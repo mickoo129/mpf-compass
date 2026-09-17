@@ -55,6 +55,103 @@ export const CATEGORY_LABEL: Record<FundCategory, { zh: string; en: string }> = 
   guaranteed: { zh: "保證", en: "Guaranteed" },
 };
 
+export type RegionId =
+  | "hk"
+  | "china"
+  | "greater-china"
+  | "asia"
+  | "us"
+  | "japan"
+  | "korea"
+  | "europe"
+  | "global"
+  | "multi";
+
+export const REGION_ORDER: RegionId[] = [
+  "hk",
+  "china",
+  "greater-china",
+  "asia",
+  "us",
+  "japan",
+  "korea",
+  "europe",
+  "global",
+  "multi",
+];
+
+export const REGION_LABEL: Record<RegionId, { zh: string; en: string }> = {
+  hk: { zh: "香港", en: "Hong Kong" },
+  china: { zh: "中國", en: "China" },
+  "greater-china": { zh: "大中華", en: "Greater China" },
+  asia: { zh: "亞洲", en: "Asia" },
+  us: { zh: "美國", en: "United States" },
+  japan: { zh: "日本", en: "Japan" },
+  korea: { zh: "韓國", en: "Korea" },
+  europe: { zh: "歐洲", en: "Europe" },
+  global: { zh: "環球", en: "Global" },
+  multi: { zh: "多元／配置", en: "Multi-asset" },
+};
+
+export function fundRegion(fund: Fund): RegionId {
+  switch (fund.sleeve) {
+    case "hk":
+    case "bond-hk":
+      return "hk";
+    case "china":
+    case "bond-cn":
+      return "china";
+    case "greater-china":
+    case "hk-china":
+      return "greater-china";
+    case "asia":
+    case "bond-asia":
+      return "asia";
+    case "us":
+      return "us";
+    case "japan":
+      return "japan";
+    case "korea":
+      return "korea";
+    case "europe":
+      return "europe";
+    case "global":
+    case "bond-global":
+    case "esg":
+    case "healthcare":
+    case "em":
+      return "global";
+    default:
+      return "multi";
+  }
+}
+
+export type ThemeId = "dis" | "tracker" | "healthcare" | "esg" | "target" | "conservative" | "guaranteed";
+
+export const THEME_ORDER: ThemeId[] = ["dis", "tracker", "healthcare", "esg", "target", "conservative", "guaranteed"];
+
+export const THEME_LABEL: Record<ThemeId, { zh: string; en: string }> = {
+  dis: { zh: "預設投資（DIS）", en: "Default (DIS)" },
+  tracker: { zh: "指數追蹤", en: "Index tracking" },
+  healthcare: { zh: "醫療", en: "Healthcare" },
+  esg: { zh: "綠色／ESG", en: "ESG / green" },
+  target: { zh: "目標日期", en: "Target date" },
+  conservative: { zh: "強積金保守", en: "MPF Conservative" },
+  guaranteed: { zh: "保證", en: "Guaranteed" },
+};
+
+export function fundThemes(fund: Fund): ThemeId[] {
+  const out: ThemeId[] = [];
+  if (fund.isDis) out.push("dis");
+  if (fund.isTracker) out.push("tracker");
+  if (fund.sleeve === "healthcare") out.push("healthcare");
+  if (fund.sleeve === "esg") out.push("esg");
+  if (fund.sleeve === "mixed-target") out.push("target");
+  if (fund.isConservative) out.push("conservative");
+  if (fund.category === "guaranteed") out.push("guaranteed");
+  return out;
+}
+
 export function fundById(id: string): Fund | undefined {
   return allFunds.find((f) => f.id === id);
 }

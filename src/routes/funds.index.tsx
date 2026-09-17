@@ -10,9 +10,17 @@ import {
   allFunds,
   CATEGORY_LABEL,
   catalogMeta,
+  fundRegion,
+  fundThemes,
+  REGION_LABEL,
+  REGION_ORDER,
   SLEEVE_LABEL,
+  THEME_LABEL,
+  THEME_ORDER,
   uniqueProviders,
   uniqueSchemes,
+  type RegionId,
+  type ThemeId,
 } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPctPlain } from "@/lib/mpf/format";
 import { annReturn, calendar3yAnn } from "@/lib/mpf/returns";
@@ -31,6 +39,8 @@ function FundsPage() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<FundCategory | "all">("all");
+  const [region, setRegion] = useState<RegionId | "all">("all");
+  const [theme, setTheme] = useState<ThemeId | "all">("all");
   const [provider, setProvider] = useState("all");
   const [scheme, setScheme] = useState("all");
   const [sort, setSort] = useState<SortKey>("ret1y");
@@ -63,6 +73,8 @@ function FundsPage() {
     const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
     let list = allFunds.filter((f) => {
       if (cat !== "all" && f.category !== cat) return false;
+      if (region !== "all" && fundRegion(f) !== region) return false;
+      if (theme !== "all" && !fundThemes(f).includes(theme)) return false;
       if (provider !== "all" && f.providerCode !== provider) return false;
       if (schemeValue !== "all" && f.schemeEn !== schemeValue) return false;
       if (!tokens.length) return true;
@@ -75,7 +87,7 @@ function FundsPage() {
       return dir === "asc" ? av - bv : bv - av;
     });
     return list;
-  }, [q, cat, provider, schemeValue, sort, dir]);
+  }, [q, cat, region, theme, provider, schemeValue, sort, dir]);
 
   function header(key: SortKey, label: string) {
     const active = sort === key;
@@ -102,7 +114,11 @@ function FundsPage() {
       <PageTitle
         kicker={`MPFA ${catalogMeta.asOf}`}
         title={zh ? "全港成分基金" : "All constituent funds"}
-        subtitle={zh ? "按受託人、類別、收費與回報篩選。點選最多四隻放入比較籃。" : "Filter by provider, type, fees and returns. Pin up to four for comparison."}
+        subtitle={
+          zh
+            ? "按類別、地區、主題、供應商篩選。積金局沒有科技／金融等行業分類；主題只包括官方有標示的指數、DIS、醫療、ESG。"
+            : "Filter by type, region, theme and provider. MPFA has no GICS sectors; themes are official flags only (index, DIS, healthcare, ESG)."
+        }
       />
 
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -124,6 +140,30 @@ function FundsPage() {
           {(Object.keys(CATEGORY_LABEL) as FundCategory[]).map((c) => (
             <option key={c} value={c}>
               {zh ? CATEGORY_LABEL[c].zh : CATEGORY_LABEL[c].en}
+            </option>
+          ))}
+        </select>
+        <select
+          value={region}
+          onChange={(e) => setRegion(e.target.value as RegionId | "all")}
+          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
+        >
+          <option value="all">{zh ? "全部地區" : "All regions"}</option>
+          {REGION_ORDER.map((r) => (
+            <option key={r} value={r}>
+              {zh ? REGION_LABEL[r].zh : REGION_LABEL[r].en}
+            </option>
+          ))}
+        </select>
+        <select
+          value={theme}
+          onChange={(e) => setTheme(e.target.value as ThemeId | "all")}
+          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
+        >
+          <option value="all">{zh ? "全部主題" : "All themes"}</option>
+          {THEME_ORDER.map((t) => (
+            <option key={t} value={t}>
+              {zh ? THEME_LABEL[t].zh : THEME_LABEL[t].en}
             </option>
           ))}
         </select>
