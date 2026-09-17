@@ -12,4 +12,5 @@ AGENTS.project.md
 .env
 .env.*
 .DS_Store
+*.tsbuildinfo
 .node_modules.lock
