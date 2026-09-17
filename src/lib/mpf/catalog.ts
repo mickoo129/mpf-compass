@@ -1,6 +1,6 @@
 import raw from "@/data/funds.json";
 import type { CatalogFile, CatalogMeta, Fund, FundCategory } from "./types";
-import { annReturn, MEDIAN_PERIODS, type AnnPeriod, type MedianPeriod } from "./returns";
+import { annReturn, calendar3yAnn, MEDIAN_PERIODS, type AnnPeriod, type MedianPeriod } from "./returns";
 
 const file = raw as CatalogFile;
 
@@ -129,18 +129,12 @@ export function providerStats() {
       count: funds.length,
       aum: funds.reduce((s, f) => s + (f.aumM ?? 0), 0),
       ret1y: median(funds.map((f) => f.ret1y ?? NaN)),
+      ret3y: median(funds.map((f) => calendar3yAnn(f) ?? NaN)),
       ret5y: median(funds.map((f) => f.ret5y ?? NaN)),
-      y2025: median(funds.map((f) => f.y2025 ?? NaN)),
+      ret10y: median(funds.map((f) => f.ret10y ?? NaN)),
       fer: median(funds.map((f) => f.fer ?? NaN)),
     }))
     .sort((a, b) => (b.ret1y ?? -999) - (a.ret1y ?? -999));
-}
-
-export function rankFunds(period: "ret1y" | "ret5y" | "y2025", dir: "best" | "worst", n = 8): Fund[] {
-  const list = allFunds.filter((f) => f[period] != null);
-  return [...list]
-    .sort((a, b) => (dir === "best" ? (b[period]! - a[period]!) : (a[period]! - b[period]!)))
-    .slice(0, n);
 }
 
 export function median(values: number[]): number | null {

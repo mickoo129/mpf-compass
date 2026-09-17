@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PageTitle } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { fundById, providerStats, rankFunds, SLEEVE_LABEL } from "@/lib/mpf/catalog";
+import { allFunds, fundById, providerStats, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPctPlain } from "@/lib/mpf/format";
 import { calendar3yAnn, MPFA_PERIOD_NOTE } from "@/lib/mpf/returns";
 import { expectedReturn } from "@/lib/mpf/score";
@@ -14,6 +15,13 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/compare")({ component: ComparePage });
 
+type RankKey = "ret1y" | "ret3yCal" | "ret5y" | "ret10y";
+
+function rankValue(fund: Fund, key: RankKey): number | null {
+  if (key === "ret3yCal") return calendar3yAnn(fund);
+  return fund[key];
+}
+
 function ComparePage() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
@@ -22,10 +30,38 @@ function ComparePage() {
   const clear = useAppStore((s) => s.clearCompare);
   const funds = ids.map(fundById).filter((f): f is NonNullable<typeof f> => !!f);
   const providers = providerStats();
-  const best1 = rankFunds("ret1y", "best");
-  const worst1 = rankFunds("ret1y", "worst");
-  const best5 = rankFunds("ret5y", "best");
-  const worst5 = rankFunds("ret5y", "worst");
+  const [sort, setSort] = useState<RankKey>("ret1y");
+  const [dir, setDir] = useState<"desc" | "asc">("desc");
+  const ranked = useMemo(() => {
+    return [...allFunds]
+      .filter((f) => rankValue(f, sort) != null)
+      .sort((a, b) => {
+        const av = rankValue(a, sort) ?? -999;
+        const bv = rankValue(b, sort) ?? -999;
+        return dir === "desc" ? bv - av : av - bv;
+      })
+      .slice(0, 15);
+  }, [sort, dir]);
+
+  function sortHeader(key: RankKey, label: string) {
+    const active = sort === key;
+    return (
+      <button
+        type="button"
+        className={cn("font-medium", active ? "text-primary" : "text-muted")}
+        onClick={() => {
+          if (sort === key) setDir(dir === "desc" ? "asc" : "desc");
+          else {
+            setSort(key);
+            setDir("desc");
+          }
+        }}
+      >
+        {label}
+        {active ? (dir === "desc" ? " ↓" : " ↑") : ""}
+      </button>
+    );
+  }
 
   return (
     <div>
@@ -34,8 +70,8 @@ function ComparePage() {
         title={zh ? "先睇全場對照，再自選並排。" : "Start with the field, then pin your own."}
         subtitle={
           zh
-            ? "積金局沒有官方半年回報，下表用一年、五年同 2025 曆年。供應商數字為旗下成分基金中位數。自選最多四隻。"
-            : "MPFA has no official 6-month return. Boards use 1Y, 5Y and calendar 2025. Provider figures are medians. Pin up to four funds."
+            ? "積金局公布一年、五年、十年年化。三年由 2023–2025 曆年推算。沒有官方半年。供應商為中位數。撳欄位排序，再加入最多四隻並排。"
+            : "MPFA publishes 1Y, 5Y and 10Y annualized. 3Y is derived from calendar 2023–2025. No official 6-month. Provider rows are medians. Click a column to rank, then pin up to four."
         }
       />
 
@@ -55,8 +91,9 @@ function ComparePage() {
                 <th className="px-3 py-2.5 text-right font-medium">{zh ? "資產" : "AUM"}</th>
                 <th className="px-3 py-2.5 text-right font-medium">FER</th>
                 <th className="px-3 py-2.5 text-right font-medium">{zh ? "1年" : "1Y"}</th>
+                <th className="px-3 py-2.5 text-right font-medium">{zh ? "3年" : "3Y"}</th>
                 <th className="px-3 py-2.5 text-right font-medium">{zh ? "5年" : "5Y"}</th>
-                <th className="px-4 py-2.5 text-right font-medium">2025</th>
+                <th className="px-4 py-2.5 text-right font-medium">{zh ? "10年" : "10Y"}</th>
               </tr>
             </thead>
             <tbody>
@@ -73,10 +110,13 @@ function ComparePage() {
                     <ReturnCell value={p.ret1y} />
                   </td>
                   <td className="px-3 py-2 text-right">
+                    <ReturnCell value={p.ret3y} />
+                  </td>
+                  <td className="px-3 py-2 text-right">
                     <ReturnCell value={p.ret5y} />
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <ReturnCell value={p.y2025} />
+                    <ReturnCell value={p.ret10y} />
                   </td>
                 </tr>
               ))}
@@ -85,12 +125,72 @@ function ComparePage() {
         </div>
       </Card>
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <Board title={zh ? "一年最高" : "Best 1Y"} funds={best1} zh={zh} ids={ids} toggle={toggle} period="ret1y" tone="up" />
-        <Board title={zh ? "一年最低" : "Worst 1Y"} funds={worst1} zh={zh} ids={ids} toggle={toggle} period="ret1y" tone="down" />
-        <Board title={zh ? "五年最高" : "Best 5Y"} funds={best5} zh={zh} ids={ids} toggle={toggle} period="ret5y" tone="up" />
-        <Board title={zh ? "五年最低" : "Worst 5Y"} funds={worst5} zh={zh} ids={ids} toggle={toggle} period="ret5y" tone="down" />
-      </div>
+      <Card className="mb-6 overflow-hidden p-0">
+        <div className="flex items-end justify-between gap-3 border-b border-border bg-tint-mint px-4 py-3 sm:px-5">
+          <div>
+            <h2 className="font-display text-lg">{zh ? "成分基金回報" : "Fund returns"}</h2>
+            <p className="text-[11px] text-subtle">
+              {zh
+                ? `撳 1／3／5／10 年排序。而家按${dir === "desc" ? "高到低" : "低到高"}顯示前 15 隻。三年為推算。`
+                : `Click 1Y/3Y/5Y/10Y. Showing top 15 ${dir === "desc" ? "highest" : "lowest"}. 3Y is derived.`}
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[780px] text-sm">
+            <thead className="border-b border-border text-xs">
+              <tr>
+                <th className="px-4 py-2.5 text-left font-medium text-muted">{zh ? "基金" : "Fund"}</th>
+                <th className="px-3 py-2.5 text-right">{sortHeader("ret1y", zh ? "1年" : "1Y")}</th>
+                <th className="px-3 py-2.5 text-right">{sortHeader("ret3yCal", zh ? "3年" : "3Y")}</th>
+                <th className="px-3 py-2.5 text-right">{sortHeader("ret5y", zh ? "5年" : "5Y")}</th>
+                <th className="px-3 py-2.5 text-right">{sortHeader("ret10y", zh ? "10年" : "10Y")}</th>
+                <th className="px-4 py-2.5 text-right font-medium text-muted" />
+              </tr>
+            </thead>
+            <tbody>
+              {ranked.map((f, i) => {
+                const pinned = ids.includes(f.id);
+                return (
+                  <tr key={f.id} className="border-b border-border/70 last:border-0">
+                    <td className="px-4 py-2">
+                      <span className="mr-2 font-mono text-[11px] text-subtle">{i + 1}</span>
+                      <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
+                        {zh ? f.nameZh : f.nameEn}
+                      </Link>
+                      <p className="pl-6 text-[11px] text-subtle">{zh ? f.providerZh : f.providerEn}</p>
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <ReturnCell value={f.ret1y} />
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <ReturnCell value={calendar3yAnn(f)} />
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <ReturnCell value={f.ret5y} />
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <ReturnCell value={f.ret10y} />
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => toggle(f.id)}
+                        className={cn(
+                          "rounded-md px-2 py-1 text-[11px]",
+                          pinned ? "bg-primary text-primary-fg" : "bg-bg-warm text-muted",
+                        )}
+                      >
+                        {pinned ? (zh ? "已揀" : "Pinned") : zh ? "比較" : "Pin"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       <div className="mb-3 flex items-end justify-between gap-3">
         <h2 className="font-display text-xl">{zh ? "自選並排" : "Your shortlist"}</h2>
@@ -117,60 +217,6 @@ function ComparePage() {
       )}
       <p className="mt-3 text-[11px] leading-relaxed text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
     </div>
-  );
-}
-
-function Board({
-  title,
-  funds,
-  zh,
-  ids,
-  toggle,
-  period,
-  tone,
-}: {
-  title: string;
-  funds: Fund[];
-  zh: boolean;
-  ids: string[];
-  toggle: (id: string) => void;
-  period: "ret1y" | "ret5y";
-  tone: "up" | "down";
-}) {
-  return (
-    <Card className={cn("overflow-hidden p-0", tone === "up" ? "bg-tint-mint/60" : "bg-tint-sand/80")}>
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h3 className="font-display text-base">{title}</h3>
-        <span className={cn("text-[11px] font-medium", tone === "up" ? "text-up" : "text-down")}>
-          {zh ? "截至 2026-08-31" : "as of 2026-08-31"}
-        </span>
-      </div>
-      <ol className="divide-y divide-border/80">
-        {funds.map((f, i) => {
-          const pinned = ids.includes(f.id);
-          return (
-            <li key={f.id} className="flex items-center gap-2 px-3 py-2">
-              <span className="w-5 font-mono text-xs text-subtle">{i + 1}</span>
-              <Link to="/funds/$id" params={{ id: f.id }} className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{zh ? f.nameZh : f.nameEn}</p>
-                <p className="truncate text-[11px] text-subtle">{zh ? f.providerZh : f.providerEn}</p>
-              </Link>
-              <ReturnCell value={f[period]} />
-              <button
-                type="button"
-                onClick={() => toggle(f.id)}
-                className={cn(
-                  "shrink-0 rounded-md px-2 py-1 text-[11px]",
-                  pinned ? "bg-primary text-primary-fg" : "bg-white text-muted ring-1 ring-ink/10",
-                )}
-              >
-                {pinned ? (zh ? "已揀" : "Pinned") : zh ? "比較" : "Pin"}
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-    </Card>
   );
 }
 
