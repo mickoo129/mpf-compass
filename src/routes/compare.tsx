@@ -1,14 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { PageTitle } from "@/components/layout/app-shell";
+import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, fundById, providerStats, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPctPlain } from "@/lib/mpf/format";
 import { calendar3yAnn, MPFA_PERIOD_NOTE } from "@/lib/mpf/returns";
-import { expectedReturn } from "@/lib/mpf/score";
 import type { Fund } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -30,6 +29,8 @@ function ComparePage() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const clear = useAppStore((s) => s.clearCompare);
   const funds = ids.map(fundById).filter((f): f is NonNullable<typeof f> => !!f);
+  const schemeEn = useAppStore((s) => s.profile.schemeEn);
+  const [onlyScheme, setOnlyScheme] = useState(false);
   const providers = providerStats();
   const [provSort, setProvSort] = useState<ProvKey>("ret1y");
   const [provDir, setProvDir] = useState<"desc" | "asc">("desc");
@@ -44,7 +45,8 @@ function ComparePage() {
     });
   }, [providers, provSort, provDir]);
   const ranked = useMemo(() => {
-    return [...allFunds]
+    const pool = onlyScheme && schemeEn ? allFunds.filter((f) => f.schemeEn === schemeEn) : allFunds;
+    return [...pool]
       .filter((f) => rankValue(f, sort) != null)
       .sort((a, b) => {
         const av = rankValue(a, sort) ?? -999;
@@ -52,7 +54,7 @@ function ComparePage() {
         return dir === "desc" ? bv - av : av - bv;
       })
       .slice(0, 15);
-  }, [sort, dir]);
+  }, [sort, dir, onlyScheme, schemeEn]);
 
   function clickSort<K extends string>(
     key: K,
@@ -104,6 +106,13 @@ function ComparePage() {
             : "MPFA publishes 1Y, 5Y and 10Y annualized. 3Y is derived from calendar 2023–2025. No official 6-month. Provider rows are medians. Click a column to rank, then pin up to four."
         }
       />
+      <AsOfLine zh={zh} />
+      {schemeEn ? (
+        <label className="mb-4 flex items-center gap-2 text-sm text-canvas-muted">
+          <input type="checkbox" checked={onlyScheme} onChange={(e) => setOnlyScheme(e.target.checked)} className="accent-primary" />
+          {zh ? "成分基金排行只顯示我在智選揀嘅計劃" : "Limit the fund board to the scheme chosen in Recommend"}
+        </label>
+      ) : null}
 
       <Card className="mb-6 overflow-hidden p-0">
         <div className="flex items-end justify-between gap-3 border-b border-border bg-tint-sky px-4 py-3 sm:px-5">
@@ -123,7 +132,7 @@ function ComparePage() {
                 <th className="px-4 py-2.5 text-left font-medium text-muted">{zh ? "供應商" : "Provider"}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("count", zh ? "基金" : "Funds")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("aum", zh ? "資產" : "AUM")}</th>
-                <th className="px-3 py-2.5 text-right">{provHeader("fer", "FER")}</th>
+                <th className="px-3 py-2.5 text-right">{provHeader("fer", zh ? "開支" : "FER")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("ret1y", zh ? "1年" : "1Y")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("ret3y", zh ? "3年" : "3Y")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("ret5y", zh ? "5年" : "5Y")}</th>
@@ -279,7 +288,7 @@ function CustomCompare({
       render: (id) => SLEEVE_LABEL[fundById(id)!.sleeve]?.[zh ? "zh" : "en"] ?? fundById(id)!.sleeve,
     },
     { k: zh ? "風險級別" : "Risk", render: (id) => fundById(id)!.riskClass ?? "—" },
-    { k: "FER", render: (id) => fmtPctPlain(fundById(id)!.fer) },
+    { k: zh ? "開支比率" : "FER", render: (id) => fmtPctPlain(fundById(id)!.fer) },
     { k: zh ? "1年年化" : "1Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret1y} /> },
     { k: zh ? "3年" : "3Y", render: (id) => <ReturnCell value={calendar3yAnn(fundById(id)!)} /> },
     { k: zh ? "5年年化" : "5Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret5y} /> },
@@ -293,7 +302,6 @@ function CustomCompare({
     { k: "2022", render: (id) => <ReturnCell value={fundById(id)!.y2022} /> },
     { k: "2021", render: (id) => <ReturnCell value={fundById(id)!.y2021} /> },
     { k: zh ? "規模" : "AUM", render: (id) => fmtAum(fundById(id)!.aumM) },
-    { k: zh ? "前瞻估算" : "Fwd est.", render: (id) => fmtPctPlain(expectedReturn(fundById(id)!), 1) },
     { k: zh ? "成立" : "Launch", render: (id) => fundById(id)!.launch ?? "—" },
   ];
 

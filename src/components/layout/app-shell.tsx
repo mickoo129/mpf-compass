@@ -133,6 +133,16 @@ export function PageTitle({
   );
 }
 
+export function AsOfLine({ zh }: { zh: boolean }) {
+  return (
+    <p className="mb-5 text-[11px] leading-relaxed text-canvas-muted">
+      {zh
+        ? `基金回報、收費、風險：積金局 ${catalogMeta.asOf}。指數：Yahoo Finance，打開頁更新。兩者不是同一日。`
+        : `Fund returns, fees and risk: MPFA ${catalogMeta.asOf}. Indices: Yahoo Finance, refresh on load. These dates are not the same.`}
+    </p>
+  );
+}
+
 export function CompareHint() {
   const ids = useAppStore((s) => s.compareIds);
   const locale = useAppStore((s) => s.locale);

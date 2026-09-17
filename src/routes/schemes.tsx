@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PageTitle } from "@/components/layout/app-shell";
+import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { allFunds, median, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtAum, fmtNum, fmtPctPlain } from "@/lib/mpf/format";
@@ -33,6 +33,7 @@ function SchemesPage() {
             : "Size, fees and median returns. “Recommend in scheme” locks the wizard to that scheme’s menu."
         }
       />
+      <AsOfLine zh={zh} />
       <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:block">
         <table className="w-full min-w-[800px] text-sm">
           <thead className="border-b border-border text-xs text-muted">
@@ -40,8 +41,8 @@ function SchemesPage() {
               <th className="px-3 py-3 text-left font-medium">{zh ? "計劃" : "Scheme"}</th>
               <th className="px-3 py-3 text-right font-medium">{zh ? "資產" : "AUM"}</th>
               <th className="px-3 py-3 text-right font-medium">{zh ? "基金數" : "Funds"}</th>
-              <th className="px-3 py-3 text-right font-medium">{zh ? "平均 FER" : "Avg FER"}</th>
-              <th className="px-3 py-3 text-right font-medium">{zh ? "最低 FER" : "Min FER"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? "平均開支" : "Avg FER"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? "最低開支" : "Min FER"}</th>
               <th className="px-3 py-3 text-right font-medium">1Y med</th>
               <th className="px-3 py-3 text-right font-medium">5Y med</th>
               <th className="px-3 py-3 text-right font-medium" />
@@ -73,7 +74,11 @@ function SchemesPage() {
                     >
                       {zh ? "用此計劃推介" : "Recommend in scheme"}
                     </Link>
-                    <Link to="/funds" className="text-[11px] text-subtle hover:text-fg">
+                    <Link
+                      to="/funds"
+                      search={{ scheme: s.en }}
+                      className="text-[11px] text-subtle hover:text-fg"
+                    >
                       {zh ? "到基金庫篩選" : "Browse funds"}
                     </Link>
                   </div>
@@ -90,7 +95,7 @@ function SchemesPage() {
             <p className="text-xs text-subtle">{zh ? s.providerZh : s.providerEn}</p>
             <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-xs">
               <span>{fmtAum(s.aum)}</span>
-              <span>FER {s.ferAvg.toFixed(2)}%</span>
+              <span>{zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}%</span>
               <span>{s.count} funds</span>
             </div>
             <Link
@@ -99,6 +104,9 @@ function SchemesPage() {
               onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
             >
               {zh ? "用此計劃推介" : "Recommend in scheme"}
+            </Link>
+            <Link to="/funds" search={{ scheme: s.en }} className="mt-1 ml-3 inline-block text-[11px] text-subtle">
+              {zh ? "到基金庫" : "Browse funds"}
             </Link>
           </Card>
         ))}

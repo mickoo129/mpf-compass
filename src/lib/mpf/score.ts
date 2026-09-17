@@ -98,12 +98,6 @@ function sleeveBoost(sleeve: string, goal: GoalId, risk: RiskAppetite): number {
     return 0.55;
   }
   if (goal === "regime") {
-    // Sep 2026: US still firm, Asia YTD strong but Korea/TW/JP cooling this week.
-    // Prefer diversified US/global core, Asia as satellite, fade Korea chase.
-    if (["us", "global", "dis-caf", "asia", "mixed-growth"].includes(sleeve)) return 0.92;
-    if (["japan", "greater-china", "hk"].includes(sleeve)) return 0.62;
-    if (sleeve === "korea") return 0.22;
-    if (sleeve === "guaranteed") return 0.08;
     return 0.5;
   }
   if (goal === "lowfee") {

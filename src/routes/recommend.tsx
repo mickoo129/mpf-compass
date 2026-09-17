@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -10,15 +10,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { PageTitle } from "@/components/layout/app-shell";
+import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { uniqueSchemes } from "@/lib/mpf/catalog";
-import { fmtHkd, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
+import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
+import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY, HORIZON_OPTS } from "@/lib/mpf/regime";
 import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
@@ -29,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/recommend")({ component: RecommendPage });
 
-const GOALS: GoalId[] = ["growth", "balanced", "preserve", "lowfee", "dis", "regime"];
+const GOALS: GoalId[] = ["growth", "balanced", "preserve", "lowfee", "dis"];
 const RISKS: RiskAppetite[] = ["conservative", "moderate", "aggressive"];
 
 function RecommendPage() {
@@ -57,6 +58,29 @@ function RecommendPage() {
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
   const review = resolvedReview(profile);
+  const [advanced, setAdvanced] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (profile.goal === "regime") setProfile({ goal: "balanced" });
+  }, [profile.goal, setProfile]);
+
+  function copyMix() {
+    const scheme = schemes.find((s) => s.en === profile.schemeEn);
+    const lines = [
+      zh ? "積金羅盤建議配置（研究用，並非投資建議）" : "MPF Compass mix (research only, not advice)",
+      `${zh ? "計劃" : "Scheme"}: ${scheme ? (zh ? scheme.zh : scheme.en) : zh ? "不限" : "unrestricted"}`,
+      `${zh ? "基金數字截至" : "Fund figures as of"} ${catalogMeta.asOf}`,
+      ...alloc.map(
+        (a) =>
+          `${Math.round(a.weight * 100)}%  ${zh ? a.fund.nameZh : a.fund.nameEn}  (${zh ? a.fund.schemeZh : a.fund.schemeEn})`,
+      ),
+    ];
+    void navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   return (
     <div>
@@ -69,6 +93,7 @@ function RecommendPage() {
             : "Contribution accounts switch inside the employer scheme. The window is forward-looking: yield, 52-week stretch and overheat — not “past 6 months = next 6 months”. Not advice and not a profit guarantee."
         }
       />
+      <AsOfLine zh={zh} />
 
       <Card className="mb-6 bg-tint-sand">
         <h2 className="mb-1 font-display text-lg">{zh ? "策略點來" : "Where the mix comes from"}</h2>
@@ -217,6 +242,13 @@ function RecommendPage() {
               </div>
             </div>
             <div className="mt-4">
+              <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
+                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：隻數同檢討節奏" : "Advanced: mix size and review"}
+              </button>
+            </div>
+            {advanced ? (
+              <>
+            <div className="mt-4">
               <Label>{zh ? "配置隻數" : "How many funds"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
                 {zh
@@ -266,6 +298,8 @@ function RecommendPage() {
                 ))}
               </div>
             </div>
+              </>
+            ) : null}
           </Card>
         </div>
 
@@ -304,11 +338,16 @@ function RecommendPage() {
             </div>
           </Card>
           <Card>
-            <div className="mb-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · ${alloc.length} 隻` : `Target risk ${riskT} · ${years} years · ${alloc.length} funds`}
               </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={copyMix} disabled={!alloc.length}>
+                {copied ? (zh ? "已複製" : "Copied") : zh ? "複製配置" : "Copy mix"}
+              </Button>
             </div>
             {profile.account === "contribution" && !profile.schemeEn ? (
               <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，才可在可轉換範圍內推介。" : "Pick your scheme to constrain the opportunity set."}</p>
@@ -325,7 +364,7 @@ function RecommendPage() {
                     <div className="min-w-0">
                       <p className="truncate font-medium">{zh ? a.fund.nameZh : a.fund.nameEn}</p>
                       <p className="text-xs text-subtle">
-                        {zh ? a.fund.providerZh : a.fund.providerEn} · FER {fmtPctPlain(a.fund.fer)} ·{" "}
+                        {zh ? a.fund.providerZh : a.fund.providerEn} · {zh ? "開支" : "FER"} {fmtPctPlain(a.fund.fer)} ·{" "}
                         {zh ? "風險" : "R"}
                         {a.fund.riskClass ?? "—"}
                       </p>
@@ -361,11 +400,11 @@ function RecommendPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "退休缺口情景" : "Retirement path"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "假設滾存示意" : "Illustrative path"}</h2>
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? "以配置加權預期回報滾存現有結餘與每月供款。牛／熊為波動帶，不是保證。"
-                : "Rolls balance + contributions at the mix’s expected return. Bands are volatility, not a guarantee."}
+                ? "用規則假設嘅年化，把現有結餘同每月供款滾到退休。牛／熊只係波動帶。唔係預測，亦唔保證。"
+                : "Rolls balance and contributions at a rule-based assumed return. Bands are volatility only. Not a forecast and not a guarantee."}
             </p>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
@@ -422,7 +461,6 @@ function RecommendPage() {
                     </span>
                     <span className="flex items-center gap-3">
                       <ReturnCell value={s.fund.ret5y} />
-                      <span className="font-mono text-xs text-subtle">{fmtPct(s.expectedReturn, 1)}</span>
                     </span>
                   </Link>
                 </li>

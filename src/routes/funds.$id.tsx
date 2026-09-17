@@ -97,7 +97,7 @@ function FundDetail() {
         <Metric label={zh ? "1年年化" : "1Y p.a."} value={<ReturnCell value={fund.ret1y} className="text-xl" />} />
         <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-xl" />} />
         <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-xl" />} />
-        <Metric label="FER" value={<span className="font-mono text-xl tabular-nums">{fmtPctPlain(fund.fer)}</span>} />
+        <Metric label={zh ? "開支比率 FER" : "FER"} value={<span className="font-mono text-xl tabular-nums">{fmtPctPlain(fund.fer)}</span>} />
       </div>
 
       <Card className="mb-8">

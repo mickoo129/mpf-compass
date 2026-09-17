@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { PageTitle } from "@/components/layout/app-shell";
+import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,22 +29,43 @@ import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 type SortKey = "ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince" | "y2025" | "fer" | "aumM" | "riskClass";
+type FundsSearch = {
+  sleeve?: string;
+  scheme?: string;
+  provider?: string;
+};
 
-export const Route = createFileRoute("/funds/")({ component: FundsPage });
+export const Route = createFileRoute("/funds/")({
+  validateSearch: (raw: Record<string, unknown>): FundsSearch => ({
+    sleeve: typeof raw.sleeve === "string" ? raw.sleeve : undefined,
+    scheme: typeof raw.scheme === "string" ? raw.scheme : undefined,
+    provider: typeof raw.provider === "string" ? raw.provider : undefined,
+  }),
+  component: FundsPage,
+});
 
 function FundsPage() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/funds/" });
   const compareIds = useAppStore((s) => s.compareIds);
   const toggle = useAppStore((s) => s.toggleCompare);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<FundCategory | "all">("all");
   const [region, setRegion] = useState<RegionId | "all">("all");
   const [theme, setTheme] = useState<ThemeId | "all">("all");
-  const [provider, setProvider] = useState("all");
-  const [scheme, setScheme] = useState("all");
+  const [provider, setProvider] = useState(search.provider ?? "all");
+  const [scheme, setScheme] = useState(search.scheme ?? "all");
+  const [sleeve, setSleeve] = useState(search.sleeve ?? "all");
   const [sort, setSort] = useState<SortKey>("ret1y");
   const [dir, setDir] = useState<"desc" | "asc">("desc");
+
+  useEffect(() => {
+    if (search.sleeve) setSleeve(search.sleeve);
+    if (search.scheme) setScheme(search.scheme);
+    if (search.provider) setProvider(search.provider);
+  }, [search.sleeve, search.scheme, search.provider]);
 
   const providers = uniqueProviders();
   const schemes = uniqueSchemes();
@@ -72,6 +93,7 @@ function FundsPage() {
   const rows = useMemo(() => {
     const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
     let list = allFunds.filter((f) => {
+      if (sleeve !== "all" && f.sleeve !== sleeve) return false;
       if (cat !== "all" && f.category !== cat) return false;
       if (region !== "all" && fundRegion(f) !== region) return false;
       if (theme !== "all" && !fundThemes(f).includes(theme)) return false;
@@ -87,7 +109,7 @@ function FundsPage() {
       return dir === "asc" ? av - bv : bv - av;
     });
     return list;
-  }, [q, cat, region, theme, provider, schemeValue, sort, dir]);
+  }, [q, cat, region, theme, provider, schemeValue, sleeve, sort, dir]);
 
   function header(key: SortKey, label: string) {
     const active = sort === key;
@@ -120,6 +142,23 @@ function FundsPage() {
             : "Filter by type, region, theme and provider. MPFA has no GICS sectors; themes are official flags only (index, DIS, healthcare, ESG)."
         }
       />
+      <AsOfLine zh={zh} />
+      {sleeve !== "all" ? (
+        <p className="mb-3 text-xs text-canvas-muted">
+          {zh ? "已篩策略：" : "Sleeve: "}
+          {SLEEVE_LABEL[sleeve]?.[zh ? "zh" : "en"] ?? sleeve}{" "}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => {
+              setSleeve("all");
+              void navigate({ search: { ...search, sleeve: undefined } });
+            }}
+          >
+            {zh ? "清除" : "Clear"}
+          </button>
+        </p>
+      ) : null}
 
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative sm:col-span-2">
@@ -222,7 +261,7 @@ function FundsPage() {
               <th className="px-3 py-3 text-left font-medium">{zh ? "基金" : "Fund"}</th>
               <th className="px-3 py-3 text-left font-medium">{zh ? "類別" : "Type"}</th>
               <th className="px-3 py-3">{header("riskClass", zh ? "風險" : "Risk")}</th>
-              <th className="px-3 py-3">{header("fer", "FER")}</th>
+              <th className="px-3 py-3">{header("fer", zh ? "開支比率" : "FER")}</th>
               <th className="px-3 py-3">{header("ret1y", zh ? "1年" : "1Y")}</th>
               <th className="px-3 py-3">{header("ret3yCal", zh ? "3年" : "3Y")}</th>
               <th className="px-3 py-3">{header("ret5y", zh ? "5年" : "5Y")}</th>
@@ -259,7 +298,7 @@ function FundsPage() {
               <ReturnCell value={f.ret1y} />
             </div>
             <div className="mt-2 flex flex-wrap gap-3 font-mono text-[11px] text-muted">
-              <span>FER {fmtPctPlain(f.fer)}</span>
+              <span>{zh ? "開支" : "FER"} {fmtPctPlain(f.fer)}</span>
               <span>5Y {fmtPctPlain(f.ret5y)}</span>
               <span>{zh ? "成立" : "Incep."} {fmtPctPlain(f.retSince)}</span>
               <span>R{f.riskClass ?? "—"}</span>

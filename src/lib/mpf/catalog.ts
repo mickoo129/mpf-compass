@@ -47,6 +47,9 @@ export const SLEEVE_LABEL: Record<string, { zh: string; en: string }> = {
   "mixed-global": { zh: "混合資產", en: "Mixed assets" },
 };
 
+export const FER_LABEL = { zh: "開支比率", en: "Expense ratio" };
+export const FER_SHORT = { zh: "開支", en: "FER" };
+
 export const CATEGORY_LABEL: Record<FundCategory, { zh: string; en: string }> = {
   equity: { zh: "股票", en: "Equity" },
   mixed: { zh: "混合資產", en: "Mixed assets" },

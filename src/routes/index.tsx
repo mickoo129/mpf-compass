@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { PageTitle } from "@/components/layout/app-shell";
+import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Sparkline } from "@/components/charts/sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,6 @@ function Home() {
   const totalAum = schemes.reduce((s, x) => s + x.aum, 0);
   const cats = categoryStats();
   const sleeves = sleeveStats(period).slice(0, 8);
-  const top1y = [...allFunds].filter((f) => f.ret1y != null).sort((a, b) => (b.ret1y ?? 0) - (a.ret1y ?? 0)).slice(0, 5);
   const lowFee = [...allFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 5);
 
   return (
@@ -50,6 +49,7 @@ function Home() {
             : `${catalogMeta.fundCount} constituent funds across ${catalogMeta.schemeCount} schemes. Official MPFA snapshot ${catalogMeta.asOf}.`
         }
       />
+      <AsOfLine zh={zh} />
 
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
         <Stat label={zh ? "成分基金" : "Funds"} value={String(catalogMeta.fundCount)} hint={zh ? "含不同單位類別" : "incl. unit classes"} tint="bg-tint-sky" />
@@ -118,7 +118,7 @@ function Home() {
                     />
                   </div>
                   <p className="mt-0.5 font-mono text-[11px] text-subtle">
-                    n={c.count} · FER {c.fer?.toFixed(2)}%
+                    n={c.count} · {zh ? "開支" : "FER"} {c.fer?.toFixed(2)}%
                   </p>
                 </div>
               );
@@ -148,7 +148,7 @@ function Home() {
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {sleeves.map((s) => (
-            <Link key={s.sleeve} to="/funds" search={{ sleeve: s.sleeve } as never} className="rounded-lg bg-card p-3 shadow-[var(--shadow-border)] transition-transform active:scale-[0.98]">
+            <Link key={s.sleeve} to="/funds" search={{ sleeve: s.sleeve }} className="rounded-lg bg-card p-3 text-fg shadow-[var(--shadow-border)] transition-transform active:scale-[0.98]">
               <p className="text-xs text-muted">{SLEEVE_LABEL[s.sleeve]?.[zh ? "zh" : "en"] ?? s.sleeve}</p>
               <p className={cn("font-mono text-xl tabular-nums", retClass(s.ret))}>{fmtPct(s.ret)}</p>
               <p className="text-[11px] text-subtle">
@@ -160,32 +160,17 @@ function Home() {
         </div>
       </section>
 
-      <div className="mb-10 grid gap-4 lg:grid-cols-2">
+      <div className="mb-10">
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl">{zh ? "一年領先" : "1-year leaders"}</h2>
+            <h2 className="font-display text-xl">{zh ? "開支比率最低" : "Lowest expense ratio"}</h2>
             <Badge>MPFA {catalogMeta.asOf}</Badge>
           </div>
-          <ol className="space-y-2">
-            {top1y.map((f, i) => (
-              <li key={f.id}>
-                <Link to="/funds/$id" params={{ id: f.id }} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="min-w-0 truncate">
-                    <span className="mr-2 font-mono text-subtle">{i + 1}</span>
-                    {zh ? f.nameZh : f.nameEn}
-                    <span className="ml-2 text-xs text-subtle">{zh ? f.providerZh : f.providerEn}</span>
-                  </span>
-                  <ReturnCell value={f.ret1y} />
-                </Link>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-3 text-xs text-subtle">
-            {zh ? "領先者集中韓國／亞洲主題，不適合作唯一持倉。" : "Leaders cluster in Korea/Asia themes — not a one-fund portfolio."}
+          <p className="mb-3 text-xs text-muted">
+            {zh
+              ? "開支比率（FER）係一年經常性收費。長線比較時，同類之中愈低愈少被費用食。"
+              : "The fund expense ratio (FER) is the annual ongoing cost. Lower is better among peers."}
           </p>
-        </Card>
-        <Card>
-          <h2 className="mb-3 font-display text-xl">{zh ? "收費地板" : "Cheapest on FER"}</h2>
           <ol className="space-y-2">
             {lowFee.map((f, i) => (
               <li key={f.id}>
