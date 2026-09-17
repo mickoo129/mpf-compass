@@ -70,6 +70,20 @@ function RecommendPage() {
         }
       />
 
+      <Card className="mb-6 bg-tint-sand">
+        <h2 className="mb-1 font-display text-lg">{zh ? "策略點來" : "Where the mix comes from"}</h2>
+        <p className="mb-3 text-sm text-muted">
+          {zh
+            ? "呢個唔係積金局或受託人嘅官方部署，亦唔係預測必賺。配置係一條公開規則：用你填嘅目標，加上積金局長線數字，再用最新指數避免追過熱。"
+            : "This is not an MPFA or trustee allocation, and not a profit forecast. The mix is a published rule: your goal, MPFA long-horizon figures, then live indices to avoid chasing heat."}
+        </p>
+        <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
+          <li>{zh ? "你：目標、風險、轉換視野（未來持有幾耐）、僱主計劃可選範圍。" : "You: goal, risk, switch window, and the employer-scheme menu."}</li>
+          <li>{zh ? "積金局（截至 2026-08-31）：收費、風險級別、五年同類——決定 qual 唔 qual。" : "MPFA (as of 31 Aug 2026): fees, risk class, 5-year peer standing."}</li>
+          <li>{zh ? "Yahoo 指數（打開頁即更新）：利率起始孳息、距離 52 週高位、過熱——用來加減倉，唔把過去半年當成未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
+        </ol>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="space-y-5 lg:col-span-5">
           <Card>
