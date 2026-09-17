@@ -36,7 +36,7 @@ function Home() {
   const schemes = uniqueSchemes();
   const totalAum = schemes.reduce((s, x) => s + x.aum, 0);
   const cats = categoryStats();
-  const sleeves = sleeveStats(period).slice(0, 8);
+  const sleeves = sleeveStats(period).filter((s) => s.count >= 3).slice(0, 12);
   const lowFee = [...allFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 5);
 
   return (
@@ -134,30 +134,26 @@ function Home() {
 
       <section className="mb-10">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="font-display text-xl">{zh ? "地區／策略中位回報" : "Sleeve medians"}</h2>
-          <p className="text-[11px] text-canvas-muted">
-            {zh ? PERIOD_LABEL[period].zh : PERIOD_LABEL[period].en}
-            {period === "ret3yCal"
-              ? zh
-                ? " · 由曆年推算"
-                : " · from calendar years"
-              : period.startsWith("y20")
-                ? zh
-                  ? " · 曆年"
-                  : " · calendar"
-                : zh
-                  ? " · 年化"
-                  : " · p.a."}
-          </p>
+          <div>
+            <h2 className="font-display text-xl">{zh ? "此時段中位最高的策略" : "Highest median sleeves this period"}</h2>
+            <p className="mt-1 text-[11px] text-canvas-muted">
+              {zh
+                ? `跟上面揀嘅時段（而家：${PERIOD_LABEL[period].zh}）將積金局分類由高到低排。撳入去基金庫睇嗰組可選基金。唔係預測下一段會繼續第一。`
+                : `Ranked by the period selected above (now ${PERIOD_LABEL[period].en}). Click through to that sleeve in the library. Not a forecast.`}
+            </p>
+          </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {sleeves.map((s) => (
+          {sleeves.map((s, i) => (
             <Link key={s.sleeve} to="/funds" search={{ sleeve: s.sleeve }} className="rounded-lg bg-card p-3 text-fg shadow-[var(--shadow-border)] transition-transform active:scale-[0.98]">
-              <p className="text-xs text-muted">{SLEEVE_LABEL[s.sleeve]?.[zh ? "zh" : "en"] ?? s.sleeve}</p>
+              <p className="text-xs text-muted">
+                <span className="mr-1.5 font-mono text-subtle">{i + 1}</span>
+                {SLEEVE_LABEL[s.sleeve]?.[zh ? "zh" : "en"] ?? s.sleeve}
+              </p>
               <p className={cn("font-mono text-xl tabular-nums", retClass(s.ret))}>{fmtPct(s.ret)}</p>
               <p className="text-[11px] text-subtle">
-                1Y {fmtPct(s.ret1y, 1)} · 5Y {fmtPct(s.ret5y, 1)} · {s.count}
-                {zh ? " 隻" : " funds"}
+                {zh ? PERIOD_LABEL[period].zh : PERIOD_LABEL[period].en} · {s.count}
+                {zh ? " 隻 · 查看" : " funds · view"}
               </p>
             </Link>
           ))}
