@@ -42,8 +42,8 @@ function Home() {
   return (
     <div>
       <PageTitle
-        kicker={zh ? "香港 · 強積金研究台" : "Hong Kong · MPF research desk"}
-        title={zh ? "以官方數據看清全場，再按你的目標落子。" : "See the whole MPF universe, then pick for your goal."}
+        kicker={zh ? "香港強積金 · 成分基金比較" : "Hong Kong MPF · constituent funds"}
+        title={zh ? "依據積金局數據，比較全港成分基金。" : "Compare Hong Kong’s MPF funds using official MPFA data."}
         subtitle={
           zh
             ? `覆蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。查找、比較與智選打分唔使 Grok。`
@@ -204,14 +204,16 @@ function Home() {
 
       <Card className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-display text-2xl">{zh ? "下一步：按你的目標推介" : "Next: picks for your goal"}</h2>
+          <h2 className="font-display text-2xl">{zh ? "按目標篩選配置" : "Filter a mix by your goal"}</h2>
           <p className="mt-1 text-sm text-muted">
-            {zh ? "年齡、年期、現有計劃、進取或保本——羅盤會在可選範圍內用官方數據打分，唔使 Grok。" : "Age, horizon, scheme lock, growth vs preserve — scored from official data, no Grok."}
+            {zh
+              ? "輸入年齡、年期、現有計劃與風險取向，系統會在可轉換範圍內排序基金。"
+              : "Enter age, horizon, current scheme and risk appetite. Funds are ranked within what you can actually switch."}
           </p>
         </div>
         <Button asChild>
           <Link to="/recommend">
-            {zh ? "開始智選" : "Start"} <ArrowRight />
+            {zh ? "開始推介" : "Start"} <ArrowRight />
           </Link>
         </Button>
       </Card>

@@ -3,11 +3,11 @@ export type Locale = "zh" | "en";
 export const copy = {
   app: { zh: "積金羅盤", en: "MPF Compass" },
   tagline: {
-    zh: "全港強積金分析 · 局勢研判 · 目標推介",
-    en: "Hong Kong MPF analysis, regime context, goal-based picks",
+    zh: "全港強積金成分基金比較與目標配置參考",
+    en: "Hong Kong MPF constituent-fund comparison and goal-based allocation",
   },
   nav: {
-    pulse: { zh: "局勢", en: "Pulse" },
+    pulse: { zh: "概覽", en: "Overview" },
     funds: { zh: "基金庫", en: "Funds" },
     compare: { zh: "比較", en: "Compare" },
     recommend: { zh: "智選", en: "Recommend" },
