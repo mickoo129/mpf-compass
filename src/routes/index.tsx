@@ -52,9 +52,9 @@ function Home() {
       />
 
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
-        <Stat label={zh ? "成分基金" : "Funds"} value={String(catalogMeta.fundCount)} hint={zh ? "含不同單位類別" : "incl. unit classes"} />
-        <Stat label={zh ? "註冊計劃" : "Schemes"} value={String(catalogMeta.schemeCount)} hint={zh ? "僱主／行業／集成信託" : "master + industry"} />
-        <Stat label={zh ? "制度資產" : "System AUM"} value={fmtAum(totalAum)} hint={zh ? "成分基金淨值合計" : "sum of fund NAV"} />
+        <Stat label={zh ? "成分基金" : "Funds"} value={String(catalogMeta.fundCount)} hint={zh ? "含不同單位類別" : "incl. unit classes"} tint="bg-tint-sky" />
+        <Stat label={zh ? "註冊計劃" : "Schemes"} value={String(catalogMeta.schemeCount)} hint={zh ? "僱主／行業／集成信託" : "master + industry"} tint="bg-tint-mint" />
+        <Stat label={zh ? "制度資產" : "System AUM"} value={fmtAum(totalAum)} hint={zh ? "成分基金淨值合計" : "sum of fund NAV"} tint="bg-tint-sand" />
       </div>
 
       <section className="mb-10">
@@ -219,11 +219,11 @@ function Home() {
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+function Stat({ label, value, hint, tint }: { label: string; value: string; hint: string; tint?: string }) {
   return (
-    <Card className="p-4">
+    <Card className={cn("p-4", tint)}>
       <p className="text-xs text-muted">{label}</p>
-      <p className="font-display text-2xl tabular-nums">{value}</p>
+      <p className="font-display text-2xl tabular-nums text-primary">{value}</p>
       <p className="text-[11px] text-subtle">{hint}</p>
     </Card>
   );

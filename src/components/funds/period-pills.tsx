@@ -45,7 +45,7 @@ function PillRow({
           onClick={() => onChange(p)}
           className={cn(
             "h-8 rounded-md px-2.5 text-xs",
-            value === p ? "bg-card text-fg shadow-[var(--shadow-border)]" : "text-muted hover:text-fg",
+            value === p ? "bg-white text-primary shadow-[var(--shadow-border)]" : "text-muted hover:text-fg",
           )}
         >
           {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}

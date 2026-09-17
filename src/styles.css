@@ -6,20 +6,24 @@
   --font-display: "Noto Serif TC", "Noto Serif", Georgia, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --color-bg: #f3f0e7;
-  --color-bg-warm: #ebe6d8;
-  --color-fg: #16191c;
-  --color-card: #faf8f2;
-  --color-muted: #5e646b;
-  --color-subtle: #8a8478;
-  --color-border: #d9d3c4;
-  --color-primary: #1b4e49;
-  --color-primary-fg: #f3f0e7;
-  --color-ink: #16191c;
-  --color-up: #1a6b4a;
-  --color-down: #b42318;
-  --color-warn: #8a5a12;
-  --color-ring: #1b4e49;
+  --color-bg: #f6f9fc;
+  --color-bg-warm: #eaf2f7;
+  --color-fg: #1c2b3a;
+  --color-card: #ffffff;
+  --color-muted: #5a6b7c;
+  --color-subtle: #8a9aab;
+  --color-border: #d5e1ec;
+  --color-primary: #2b7d8f;
+  --color-primary-fg: #ffffff;
+  --color-ink: #1c2b3a;
+  --color-up: #2c9a6a;
+  --color-down: #c24b3c;
+  --color-warn: #b8831f;
+  --color-ring: #2b7d8f;
+  --color-tint-sky: #eef6fb;
+  --color-tint-mint: #eef8f3;
+  --color-tint-sand: #f7f3ea;
+  --color-tint-lilac: #f3f0f8;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -28,9 +32,9 @@
   --radius-xl: 26px;
 
   --shadow-border:
-    0px 0px 0px 1px rgba(22, 25, 28, 0.06),
-    0px 1px 2px -1px rgba(22, 25, 28, 0.06),
-    0px 2px 4px 0px rgba(22, 25, 28, 0.04);
+    0px 0px 0px 1px rgba(43, 125, 143, 0.08),
+    0px 1px 2px -1px rgba(28, 43, 58, 0.05),
+    0px 8px 20px -8px rgba(43, 125, 143, 0.1);
 }
 
 @layer base {
@@ -40,7 +44,12 @@
   }
 
   body {
-    background: var(--color-bg);
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(1200px 420px at 8% -8%, rgba(61, 142, 196, 0.14), transparent 55%),
+      radial-gradient(900px 380px at 100% 0%, rgba(44, 154, 106, 0.1), transparent 50%),
+      radial-gradient(700px 280px at 50% 100%, rgba(43, 125, 143, 0.08), transparent 55%);
+    background-attachment: fixed;
     color: var(--color-fg);
     font-family: var(--font-sans);
     font-feature-settings: "ss01" 0;
@@ -65,7 +74,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-primary) 22%, transparent);
+    background: color-mix(in oklab, var(--color-primary) 18%, transparent);
   }
 }
 

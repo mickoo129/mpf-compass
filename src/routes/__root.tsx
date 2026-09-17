@@ -20,7 +20,7 @@ export const Route = createRootRoute({
         name: "description",
         content: "全港強積金成分基金分析、比較與目標推介。積金局官方數據結合即時市場局勢。",
       },
-      { name: "theme-color", content: "#1b4e49" },
+      { name: "theme-color", content: "#f6f9fc" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

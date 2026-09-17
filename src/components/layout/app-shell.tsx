@@ -35,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className={cn(
               "rounded-md px-3 py-2.5 text-sm transition-colors md:py-1.5",
               active
-                ? "bg-bg-warm text-fg md:bg-transparent md:text-fg md:underline md:underline-offset-8"
+                ? "bg-primary/10 text-primary md:bg-transparent md:text-primary md:underline md:underline-offset-8"
                 : "text-muted hover:text-fg",
             )}
           >
@@ -51,10 +51,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-bg/90 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
           <Link to="/" className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-fg">
+            <span className="flex size-8 items-center justify-center rounded-md bg-primary/12 text-primary">
               <Compass className="size-4" strokeWidth={1.75} />
             </span>
             <span className="font-display text-lg leading-none tracking-tight">{copy.app.zh}</span>
@@ -110,7 +110,7 @@ export function PageTitle({
   return (
     <div className="mb-6 max-w-3xl animate-fade-up">
       {kicker ? (
-        <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-subtle uppercase">{kicker}</p>
+        <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-primary uppercase">{kicker}</p>
       ) : null}
       <h1 className="font-display text-3xl tracking-tight sm:text-4xl">{title}</h1>
       {subtitle ? <p className="mt-2 text-sm text-muted sm:text-base">{subtitle}</p> : null}
@@ -124,11 +124,11 @@ export function CompareHint() {
   const clear = useAppStore((s) => s.clearCompare);
   if (!ids.length) return null;
   return (
-    <div className="fixed right-4 bottom-4 z-30 flex items-center gap-2 rounded-lg bg-ink px-3 py-2 text-primary-fg shadow-[var(--shadow-border)]">
+    <div className="fixed right-4 bottom-4 z-30 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-primary shadow-[var(--shadow-border)]">
       <Link to="/compare" className="text-sm">
         {locale === "zh" ? `比較 ${ids.length} 隻基金` : `Compare ${ids.length}`}
       </Link>
-      <button type="button" onClick={clear} className="rounded-md p-1 hover:bg-white/10" aria-label="Clear">
+      <button type="button" onClick={clear} className="rounded-md p-1 text-muted hover:bg-bg-warm" aria-label="Clear">
         <X className="size-3.5" />
       </button>
     </div>
