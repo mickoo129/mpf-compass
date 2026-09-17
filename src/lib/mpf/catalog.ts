@@ -70,12 +70,13 @@ export function uniqueSchemes(): {
 }[] {
   const map = new Map<
     string,
-    { en: string; zh: string; providerZh: string; providerEn: string; count: number; aum: number; ferSum: number; ferN: number }
+    { en: string; zh: string; providerCode: string; providerZh: string; providerEn: string; count: number; aum: number; ferSum: number; ferN: number }
   >();
   for (const f of allFunds) {
     const cur = map.get(f.schemeEn) ?? {
       en: f.schemeEn,
       zh: f.schemeZh,
+      providerCode: f.providerCode,
       providerZh: f.providerZh,
       providerEn: f.providerEn,
       count: 0,
@@ -95,6 +96,7 @@ export function uniqueSchemes(): {
     .map((s) => ({
       en: s.en,
       zh: s.zh,
+      providerCode: s.providerCode,
       providerZh: s.providerZh,
       providerEn: s.providerEn,
       count: s.count,

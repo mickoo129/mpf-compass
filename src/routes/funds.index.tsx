@@ -38,13 +38,33 @@ function FundsPage() {
 
   const providers = uniqueProviders();
   const schemes = uniqueSchemes();
+  const lockedProvider = useMemo(() => {
+    if (provider !== "all") return provider;
+    const token = q.trim().toLowerCase();
+    if (token.length < 2) return null;
+    const hits = providers.filter(
+      (p) =>
+        p.code.toLowerCase() === token ||
+        p.en.toLowerCase() === token ||
+        p.zh === q.trim() ||
+        p.en.toLowerCase().includes(token) ||
+        p.zh.includes(q.trim()),
+    );
+    const exact = hits.filter(
+      (p) => p.code.toLowerCase() === token || p.en.toLowerCase() === token || p.zh === q.trim(),
+    );
+    const pick = exact.length === 1 ? exact : hits.length === 1 ? hits : [];
+    return pick[0]?.code ?? null;
+  }, [provider, q, providers]);
+  const schemeOptions = lockedProvider ? schemes.filter((s) => s.providerCode === lockedProvider) : schemes;
+  const schemeValue = schemeOptions.some((s) => s.en === scheme) ? scheme : "all";
 
   const rows = useMemo(() => {
     const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
     let list = allFunds.filter((f) => {
       if (cat !== "all" && f.category !== cat) return false;
       if (provider !== "all" && f.providerCode !== provider) return false;
-      if (scheme !== "all" && f.schemeEn !== scheme) return false;
+      if (schemeValue !== "all" && f.schemeEn !== schemeValue) return false;
       if (!tokens.length) return true;
       const blob = `${f.nameZh} ${f.nameEn} ${f.schemeZh} ${f.schemeEn} ${f.providerZh} ${f.providerEn} ${f.typeZh} ${f.typeEn}`.toLowerCase();
       return tokens.every((t) => blob.includes(t));
@@ -55,7 +75,7 @@ function FundsPage() {
       return dir === "asc" ? av - bv : bv - av;
     });
     return list;
-  }, [q, cat, provider, scheme, sort, dir]);
+  }, [q, cat, provider, schemeValue, sort, dir]);
 
   function header(key: SortKey, label: string) {
     const active = sort === key;
@@ -109,7 +129,10 @@ function FundsPage() {
         </select>
         <select
           value={provider}
-          onChange={(e) => setProvider(e.target.value)}
+          onChange={(e) => {
+            setProvider(e.target.value);
+            setScheme("all");
+          }}
           className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
         >
           <option value="all">{zh ? "全部供應商" : "All providers"}</option>
@@ -119,18 +142,33 @@ function FundsPage() {
             </option>
           ))}
         </select>
-        <select
-          value={scheme}
-          onChange={(e) => setScheme(e.target.value)}
-          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4"
-        >
-          <option value="all">{zh ? "全部計劃" : "All schemes"}</option>
-          {schemes.map((s) => (
-            <option key={s.en} value={s.en}>
-              {zh ? s.zh : s.en}
+        {schemeOptions.length === 1 ? (
+          <div className="flex h-11 items-center rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4">
+            <span className="text-subtle">{zh ? "計劃" : "Scheme"} · </span>
+            <span className="ml-1 truncate font-medium">{zh ? schemeOptions[0]!.zh : schemeOptions[0]!.en}</span>
+          </div>
+        ) : (
+          <select
+            value={schemeValue}
+            onChange={(e) => setScheme(e.target.value)}
+            className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4"
+          >
+            <option value="all">
+              {lockedProvider
+                ? zh
+                  ? "該供應商全部計劃"
+                  : "All schemes of this provider"
+                : zh
+                  ? "全部計劃"
+                  : "All schemes"}
             </option>
-          ))}
-        </select>
+            {schemeOptions.map((s) => (
+              <option key={s.en} value={s.en}>
+                {zh ? s.zh : s.en}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <p className="mb-3 text-xs text-subtle">
