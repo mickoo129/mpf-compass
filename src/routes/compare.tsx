@@ -36,7 +36,7 @@ function ComparePage() {
 
   const chart = [
     { key: zh ? "1年" : "1Y", ...Object.fromEntries(funds.map((f) => [f.id, f.ret1y ?? 0])) },
-    { key: zh ? "3年曆" : "3Y*", ...Object.fromEntries(funds.map((f) => [f.id, calendar3yAnn(f) ?? 0])) },
+    { key: zh ? "3年" : "3Y", ...Object.fromEntries(funds.map((f) => [f.id, calendar3yAnn(f) ?? 0])) },
     { key: zh ? "5年" : "5Y", ...Object.fromEntries(funds.map((f) => [f.id, f.ret5y ?? 0])) },
     { key: zh ? "10年" : "10Y", ...Object.fromEntries(funds.map((f) => [f.id, f.ret10y ?? 0])) },
     { key: zh ? "成立" : "Since", ...Object.fromEntries(funds.map((f) => [f.id, f.retSince ?? 0])) },
@@ -53,7 +53,7 @@ function ComparePage() {
     { k: zh ? "風險級別" : "Risk", render: (id) => fundById(id)!.riskClass ?? "—" },
     { k: "FER", render: (id) => fmtPctPlain(fundById(id)!.fer) },
     { k: zh ? "1年年化" : "1Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret1y} /> },
-    { k: zh ? "3年曆*" : "3Y cal*", render: (id) => <ReturnCell value={calendar3yAnn(fundById(id)!)} /> },
+    { k: zh ? "3年" : "3Y", render: (id) => <ReturnCell value={calendar3yAnn(fundById(id)!)} /> },
     { k: zh ? "5年年化" : "5Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret5y} /> },
     { k: zh ? "10年年化" : "10Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret10y} /> },
     { k: zh ? "成立至今" : "Since launch", render: (id) => <ReturnCell value={fundById(id)!.retSince} /> },

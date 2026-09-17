@@ -146,7 +146,7 @@ function FundsPage() {
               <th className="px-3 py-3">{header("riskClass", zh ? "風險" : "Risk")}</th>
               <th className="px-3 py-3">{header("fer", "FER")}</th>
               <th className="px-3 py-3">{header("ret1y", zh ? "1年" : "1Y")}</th>
-              <th className="px-3 py-3">{header("ret3yCal", zh ? "3年曆" : "3Y*")}</th>
+              <th className="px-3 py-3">{header("ret3yCal", zh ? "3年" : "3Y")}</th>
               <th className="px-3 py-3">{header("ret5y", zh ? "5年" : "5Y")}</th>
               <th className="px-3 py-3">{header("ret10y", zh ? "10年" : "10Y")}</th>
               <th className="px-3 py-3">{header("retSince", zh ? "成立" : "Since")}</th>
@@ -197,8 +197,8 @@ function FundsPage() {
       ) : null}
       <p className="mt-3 text-[11px] text-subtle">
         {zh
-          ? "回報為積金局年化數字（截至 2026-08-31）。「3年曆」由 2023–2025 曆年複利推算，並非官方滾動三年。平台沒有 1個月／3個月／半年／YTD。"
-          : "Returns are MPFA annualized figures as of 2026-08-31. “3Y cal” is compounded from calendar 2023–2025, not an official trailing 3Y. No 1M/3M/6M/YTD on the platform."}
+          ? "回報為積金局年化數字（截至 2026-08-31）。「3年」由 2023–2025 曆年複利推算，並非官方滾動三年。平台沒有 1個月／3個月／半年／YTD。"
+          : "Returns are MPFA annualized figures as of 2026-08-31. “3Y” is compounded from calendar 2023–2025, not an official trailing 3Y. No 1M/3M/6M/YTD on the platform."}
       </p>
     </div>
   );
