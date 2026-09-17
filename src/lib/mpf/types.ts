@@ -12,6 +12,10 @@ export type RiskAppetite = "conservative" | "moderate" | "aggressive";
 
 export type AccountKind = "contribution" | "personal";
 
+export type MixSize = "auto" | 1 | 2 | 3 | 4 | 5;
+
+export type ReviewCadence = "auto" | "quarter" | "half" | "year";
+
 export interface Fund {
   id: string;
   nameEn: string;
@@ -101,6 +105,8 @@ export interface Profile {
   schemeEn: string | null;
   goal: GoalId;
   risk: RiskAppetite;
+  mixSize: MixSize;
+  reviewEvery: ReviewCadence;
 }
 
 export interface ScoredFund {

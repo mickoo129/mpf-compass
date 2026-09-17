@@ -12,6 +12,8 @@ const defaultProfile: Profile = {
   schemeEn: null,
   goal: "balanced",
   risk: "moderate",
+  mixSize: "auto",
+  reviewEvery: "auto",
 };
 
 interface AppState {

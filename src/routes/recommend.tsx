@@ -19,7 +19,7 @@ import { ReturnCell } from "@/components/funds/return-cell";
 import { uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
-import { buildAllocation, GOAL_COPY, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
+import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
 import type { GoalId, RiskAppetite } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,10 @@ function RecommendPage() {
   );
   const end = path.at(-1);
   const riskT = targetRisk(profile);
+  const mixSize = profile.mixSize ?? "auto";
+  const reviewEvery = profile.reviewEvery ?? "auto";
+  const mixN = resolvedMixSize(profile, ranked.length);
+  const review = resolvedReview(profile);
 
   return (
     <div>
@@ -170,6 +174,56 @@ function RecommendPage() {
                 ))}
               </div>
             </div>
+            <div className="mt-4">
+              <Label>{zh ? "配置隻數" : "How many funds"}</Label>
+              <p className="mt-1 text-[11px] text-subtle">
+                {zh
+                  ? mixSize === "auto"
+                    ? `按目標同剩餘年期，自動用 ${mixN} 隻。可以自行改。`
+                    : `你指定 ${mixN} 隻。計劃可選基金少嘅時候會自動減少。`
+                  : mixSize === "auto"
+                    ? `Auto-picked ${mixN} for this goal and horizon.`
+                    : `You chose ${mixN}. Capped if the scheme has fewer funds.`}
+              </p>
+              <div className="mt-2 grid grid-cols-6 gap-1">
+                {MIX_SIZE_OPTS.map((n) => (
+                  <button
+                    key={String(n)}
+                    type="button"
+                    onClick={() => setProfile({ mixSize: n })}
+                    className={cn(
+                      "h-11 rounded-md text-xs sm:text-sm",
+                      mixSize === n ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                    )}
+                  >
+                    {zh ? MIX_SIZE_COPY[n].zh : MIX_SIZE_COPY[n].en}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4">
+              <Label>{zh ? "檢討節奏" : "Review cadence"}</Label>
+              <p className="mt-1 text-[11px] text-subtle">
+                {zh
+                  ? "強積金唔使月月轉。積金局數字按月出，密轉容易追落後。"
+                  : "MPF is not a monthly trade. Official NAVs are monthly; frequent switches chase noise."}
+              </p>
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {REVIEW_OPTS.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setProfile({ reviewEvery: r })}
+                    className={cn(
+                      "h-11 rounded-md text-xs sm:text-sm",
+                      reviewEvery === r ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                    )}
+                  >
+                    {zh ? REVIEW_COPY[r].zh : REVIEW_COPY[r].en}
+                  </button>
+                ))}
+              </div>
+            </div>
           </Card>
         </div>
 
@@ -178,7 +232,7 @@ function RecommendPage() {
             <div className="mb-4">
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
               <p className="text-xs text-subtle">
-                {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · 官方數據打分，唔使 Grok` : `Target risk ${riskT} · ${years} years · scored from official data, no Grok`}
+                {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · ${alloc.length} 隻` : `Target risk ${riskT} · ${years} years · ${alloc.length} funds`}
               </p>
             </div>
             {profile.account === "contribution" && !profile.schemeEn ? (
@@ -215,6 +269,20 @@ function RecommendPage() {
                 </Link>
               ))}
             </div>
+          </Card>
+
+          <Card>
+            <h2 className="mb-1 font-display text-lg">{zh ? "幾時再睇" : "When to review"}</h2>
+            <p className="font-display text-xl">
+              {zh ? review.labelZh : review.labelEn}
+              {reviewEvery === "auto" ? (zh ? "（按年期建議）" : " (from horizon)") : ""}
+            </p>
+            <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
+            <p className="mt-2 text-[11px] text-subtle">
+              {zh
+                ? "除非轉工、計劃合併、臨近提取或收費明顯變貴，否則保持呢個配置。呢度唔係投資建議。"
+                : "Hold the mix unless job, scheme, near-withdrawal or a fee jump. Not investment advice."}
+            </p>
           </Card>
 
           <Card>

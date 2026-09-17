@@ -1,4 +1,4 @@
-import type { Allocation, Fund, GoalId, Profile, RiskAppetite, ScoredFund } from "./types";
+import type { Allocation, Fund, GoalId, MixSize, Profile, ReviewCadence, RiskAppetite, ScoredFund } from "./types";
 import { allFunds, median } from "./catalog";
 
 const SLEEVE_PRIOR: Record<string, number> = {
@@ -168,95 +168,173 @@ export function scoreFunds(profile: Profile): ScoredFund[] {
   return scored.sort((a, b) => b.score - a.score);
 }
 
-export function buildAllocation(profile: Profile, top: ScoredFund[]): Allocation[] {
+export function resolvedMixSize(profile: Profile, universeCount: number): number {
+  const cap = Math.max(1, Math.min(5, universeCount));
+  const chosen = profile.mixSize ?? "auto";
+  if (chosen !== "auto") return Math.min(chosen, cap);
   const years = profile.retireAge - profile.age;
-  const pick = (pred: (s: ScoredFund) => boolean) => top.find(pred);
+  if (profile.goal === "dis") return Math.min(2, cap);
+  if (profile.goal === "lowfee") return Math.min(2, cap);
+  if (profile.goal === "preserve") return Math.min(years < 8 ? 2 : 3, cap);
+  if (years < 5) return Math.min(2, cap);
+  if (years >= 20 && (profile.risk === "aggressive" || profile.goal === "growth")) return Math.min(4, cap);
+  return Math.min(3, cap);
+}
 
-  if (profile.goal === "dis") {
-    const caf = pick((s) => s.fund.isCaf);
-    const a65 = pick((s) => s.fund.isA65);
-    if (caf && a65) {
-      const cafW = years >= 15 ? 0.8 : years >= 5 ? 0.55 : 0.2;
-      return [
-        {
-          fund: caf.fund,
-          weight: cafW,
-          reasonZh: "核心累積：60/40 股票債券，適合距離退休較遠。",
-          reasonEn: "Core Accumulation 60/40 for longer horizons.",
-        },
-        {
-          fund: a65.fund,
-          weight: 1 - cafW,
-          reasonZh: "65歲後基金：降低股票比例，收斂波動。",
-          reasonEn: "Age 65 Plus de-risks toward bonds.",
-        },
-      ];
-    }
-  }
-
-  const core = top[0];
-  if (!core) return [];
-
-  const diversify = top.filter((s) => s.fund.sleeve !== core.fund.sleeve).slice(0, 3);
-  const satellite = diversify[0];
-  const ballast =
-    pick((s) => s.fund.isConservative || s.fund.sleeve === "dis-a65" || s.fund.category === "bond") ??
-    diversify[1];
-
-  if (profile.goal === "preserve") {
-    const cash = pick((s) => s.fund.isConservative) ?? core;
-    const bond = pick((s) => s.fund.category === "bond" && s.fund.id !== cash.fund.id);
-    const mix = pick((s) => s.fund.sleeve === "mixed-conservative" || s.fund.isA65);
-    const rows: Allocation[] = [
-      {
-        fund: cash.fund,
-        weight: 0.5,
-        reasonZh: "保守基金作底倉，本金波動最低。",
-        reasonEn: "Conservative fund as capital base.",
-      },
-    ];
-    if (bond)
-      rows.push({
-        fund: bond.fund,
-        weight: 0.3,
-        reasonZh: "債券分散利率與再投資風險。",
-        reasonEn: "Bonds diversify reinvestment risk.",
-      });
-    if (mix)
-      rows.push({
-        fund: mix.fund,
-        weight: 0.2,
-        reasonZh: "少量混合資產保留通脹對沖。",
-        reasonEn: "A small mixed-asset sleeve vs inflation.",
-      });
-    return normalize(rows);
-  }
-
-  const rows: Allocation[] = [
-    {
-      fund: core.fund,
-      weight: years >= 15 ? 0.55 : 0.45,
-      reasonZh: "按目標與風險評分最高的核心持倉。",
-      reasonEn: "Highest-scoring core holding for your goal.",
+export function resolvedReview(profile: Profile): {
+  cadence: Exclude<ReviewCadence, "auto">;
+  zh: string;
+  en: string;
+  labelZh: string;
+  labelEn: string;
+} {
+  const years = profile.retireAge - profile.age;
+  const copy = {
+    quarter: {
+      labelZh: "每季",
+      labelEn: "Quarterly",
+      zh: "距離提取較近，每季對一次官方數據即可。唔使月月轉——積金局數字本身都係按月，轉換仲有時間差。",
+      en: "Nearer withdrawal: check official data quarterly. Monthly switches add little; MPFA figures are monthly anyway.",
     },
-  ];
-  if (satellite) {
-    rows.push({
-      fund: satellite.fund,
-      weight: 0.3,
-      reasonZh: "不同地區／資產類別，降低單一市場風險。",
-      reasonEn: "Different region/asset class for diversification.",
-    });
+    half: {
+      labelZh: "每半年",
+      labelEn: "Every 6 months",
+      zh: "年期中等，半年檢討一次。除非轉工、計劃合併或收費大變，否則保持配置。",
+      en: "Mid-horizon: review twice a year. Hold the mix unless job, scheme or fee changes.",
+    },
+    year: {
+      labelZh: "每年",
+      labelEn: "Yearly",
+      zh: "年期長，一年檢討一次足夠。月月轉容易追落後；DIS 更會自動隨年齡調風險。",
+      en: "Long horizon: once a year is enough. Monthly switching chases noise; DIS already glides with age.",
+    },
+  } as const;
+  const chosen = profile.reviewEvery ?? "auto";
+  if (chosen !== "auto") return { cadence: chosen, ...copy[chosen] };
+  if (profile.goal === "dis" || years >= 15) return { cadence: "year", ...copy.year };
+  if (years < 8) return { cadence: "quarter", ...copy.quarter };
+  return { cadence: "half", ...copy.half };
+}
+
+function weightsFor(n: number, years: number): number[] {
+  if (n <= 1) return [1];
+  if (n === 2) return years >= 15 ? [0.7, 0.3] : [0.6, 0.4];
+  if (n === 3) return years >= 15 ? [0.5, 0.3, 0.2] : [0.4, 0.35, 0.25];
+  if (n === 4) return [0.4, 0.25, 0.2, 0.15];
+  return [0.32, 0.24, 0.18, 0.14, 0.12];
+}
+
+function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFund[] {
+  const years = profile.retireAge - profile.age;
+  if (profile.goal === "dis") {
+    const caf = top.find((s) => s.fund.isCaf);
+    const a65 = top.find((s) => s.fund.isA65);
+    const dis: ScoredFund[] = [];
+    if (n === 1) {
+      const one = years > 10 ? caf ?? a65 : a65 ?? caf;
+      if (one) dis.push(one);
+    } else {
+      if (caf) dis.push(caf);
+      if (a65 && a65.fund.id !== caf?.fund.id) dis.push(a65);
+    }
+    if (dis.length >= n) return dis.slice(0, n);
+    for (const s of top) {
+      if (dis.length >= n) break;
+      if (dis.some((x) => x.fund.id === s.fund.id)) continue;
+      dis.push(s);
+    }
+    return dis;
   }
-  if (ballast && ballast.fund.id !== core.fund.id && ballast.fund.id !== satellite?.fund.id) {
-    rows.push({
-      fund: ballast.fund,
-      weight: 0.2,
-      reasonZh: "防守倉：保守／債券／65歲後，應付回撤。",
-      reasonEn: "Defensive sleeve for drawdowns.",
-    });
+
+  const prefer = (s: ScoredFund) => {
+    if (profile.goal === "preserve") {
+      return (
+        s.fund.isConservative ||
+        s.fund.category === "bond" ||
+        s.fund.isA65 ||
+        s.fund.sleeve === "mixed-conservative" ||
+        s.fund.category === "money"
+      );
+    }
+    if (profile.goal === "lowfee") {
+      return s.fund.isTracker || (s.fund.fer != null && s.fund.fer <= 0.85) || s.fund.isDis;
+    }
+    if (profile.goal === "growth") {
+      return ["equity", "mixed"].includes(s.fund.category);
+    }
+    return true;
+  };
+
+  const out: ScoredFund[] = [];
+  const usedIds = new Set<string>();
+  const usedSleeves = new Set<string>();
+
+  const take = (s: ScoredFund) => {
+    out.push(s);
+    usedIds.add(s.fund.id);
+    usedSleeves.add(s.fund.sleeve);
+  };
+
+  const first = top.find((s) => prefer(s)) ?? top[0];
+  if (first) take(first);
+
+  for (const s of top) {
+    if (out.length >= n) break;
+    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve)) continue;
+    if (profile.goal === "preserve" && !prefer(s) && out.length < n - 1) continue;
+    take(s);
   }
-  return normalize(rows);
+  for (const s of top) {
+    if (out.length >= n) break;
+    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve)) continue;
+    take(s);
+  }
+  for (const s of top) {
+    if (out.length >= n) break;
+    if (usedIds.has(s.fund.id)) continue;
+    take(s);
+  }
+  return out;
+}
+
+function holdingReason(s: ScoredFund, i: number, n: number, profile: Profile): { zh: string; en: string } {
+  const f = s.fund;
+  if (f.isCaf) return { zh: "核心累積：約 60/40 股票債券，距離退休較遠時作主體。", en: "Core Accumulation ~60/40 for longer horizons." };
+  if (f.isA65) return { zh: "65歲後基金：降低股票比例，收斂波動。", en: "Age 65 Plus de-risks toward bonds." };
+  if (i === 0) {
+    return { zh: "核心持倉：按你的目標、年期與收費在可選範圍內評分最高。", en: "Core holding: highest score for your goal, horizon and fees." };
+  }
+  if (f.isConservative || f.category === "bond" || f.category === "money") {
+    return { zh: "防守倉：降低回撤，應付臨近提取或市場波動。", en: "Defensive sleeve for drawdowns and nearer withdrawals." };
+  }
+  if (i === n - 1 && n >= 3) {
+    return { zh: "衛星倉：補足核心未覆蓋的地區或資產類別。", en: "Satellite sleeve for a region or asset class the core omits." };
+  }
+  return { zh: "分散倉：與核心不同地區／類別，降低單一市場風險。", en: "Diversifier: different region or asset class than the core." };
+}
+
+export function buildAllocation(profile: Profile, top: ScoredFund[]): Allocation[] {
+  if (profile.account === "contribution" && !profile.schemeEn) return [];
+  const years = Math.max(0, profile.retireAge - profile.age);
+  const n = resolvedMixSize(profile, top.length);
+  const holdings = pickHoldings(top, n, profile);
+  if (!holdings.length) return [];
+
+  if (profile.goal === "dis" && holdings.length === 2 && holdings[0]?.fund.isCaf && holdings[1]?.fund.isA65) {
+    const cafW = years >= 15 ? 0.8 : years >= 5 ? 0.55 : 0.2;
+    return normalize([
+      { fund: holdings[0].fund, weight: cafW, reasonZh: holdingReason(holdings[0], 0, 2, profile).zh, reasonEn: holdingReason(holdings[0], 0, 2, profile).en },
+      { fund: holdings[1].fund, weight: 1 - cafW, reasonZh: holdingReason(holdings[1], 1, 2, profile).zh, reasonEn: holdingReason(holdings[1], 1, 2, profile).en },
+    ]);
+  }
+
+  const w = weightsFor(holdings.length, years);
+  return normalize(
+    holdings.map((s, i) => {
+      const why = holdingReason(s, i, holdings.length, profile);
+      return { fund: s.fund, weight: w[i] ?? 1 / holdings.length, reasonZh: why.zh, reasonEn: why.en };
+    }),
+  );
 }
 
 function normalize(rows: Allocation[]): Allocation[] {
@@ -302,3 +380,23 @@ export const RISK_COPY: Record<RiskAppetite, { zh: string; en: string }> = {
   moderate: { zh: "中性", en: "Moderate" },
   aggressive: { zh: "進取", en: "Aggressive" },
 };
+
+export const MIX_SIZE_OPTS: MixSize[] = ["auto", 1, 2, 3, 4, 5];
+export const REVIEW_OPTS: ReviewCadence[] = ["auto", "quarter", "half", "year"];
+
+export const MIX_SIZE_COPY: Record<MixSize, { zh: string; en: string }> = {
+  auto: { zh: "自動", en: "Auto" },
+  1: { zh: "1 隻", en: "1 fund" },
+  2: { zh: "2 隻", en: "2 funds" },
+  3: { zh: "3 隻", en: "3 funds" },
+  4: { zh: "4 隻", en: "4 funds" },
+  5: { zh: "5 隻", en: "5 funds" },
+};
+
+export const REVIEW_COPY: Record<ReviewCadence, { zh: string; en: string }> = {
+  auto: { zh: "自動建議", en: "Suggested" },
+  quarter: { zh: "每季", en: "Quarterly" },
+  half: { zh: "每半年", en: "Every 6 months" },
+  year: { zh: "每年", en: "Yearly" },
+};
+
