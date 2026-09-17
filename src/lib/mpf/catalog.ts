@@ -62,6 +62,7 @@ export function fundById(id: string): Fund | undefined {
 export function uniqueSchemes(): {
   en: string;
   zh: string;
+  providerCode: string;
   providerZh: string;
   providerEn: string;
   count: number;
