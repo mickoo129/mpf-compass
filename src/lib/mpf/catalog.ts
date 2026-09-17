@@ -114,6 +114,35 @@ export function uniqueProviders(): { code: string; zh: string; en: string }[] {
   return [...map.values()].sort((a, b) => a.zh.localeCompare(b.zh, "zh-Hant"));
 }
 
+export function providerStats() {
+  const map = new Map<string, Fund[]>();
+  for (const f of allFunds) {
+    const arr = map.get(f.providerCode) ?? [];
+    arr.push(f);
+    map.set(f.providerCode, arr);
+  }
+  return [...map.entries()]
+    .map(([code, funds]) => ({
+      code,
+      zh: funds[0]!.providerZh,
+      en: funds[0]!.providerEn,
+      count: funds.length,
+      aum: funds.reduce((s, f) => s + (f.aumM ?? 0), 0),
+      ret1y: median(funds.map((f) => f.ret1y ?? NaN)),
+      ret5y: median(funds.map((f) => f.ret5y ?? NaN)),
+      y2025: median(funds.map((f) => f.y2025 ?? NaN)),
+      fer: median(funds.map((f) => f.fer ?? NaN)),
+    }))
+    .sort((a, b) => (b.ret1y ?? -999) - (a.ret1y ?? -999));
+}
+
+export function rankFunds(period: "ret1y" | "ret5y" | "y2025", dir: "best" | "worst", n = 8): Fund[] {
+  const list = allFunds.filter((f) => f[period] != null);
+  return [...list]
+    .sort((a, b) => (dir === "best" ? (b[period]! - a[period]!) : (a[period]! - b[period]!)))
+    .slice(0, n);
+}
+
 export function median(values: number[]): number | null {
   const xs = values.filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
   if (!xs.length) return null;

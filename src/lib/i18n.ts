@@ -9,9 +9,9 @@ export const copy = {
   nav: {
     pulse: { zh: "概覽", en: "Overview" },
     funds: { zh: "基金庫", en: "Funds" },
+    schemes: { zh: "計劃", en: "Schemes" },
     compare: { zh: "比較", en: "Compare" },
     recommend: { zh: "智選", en: "Recommend" },
-    schemes: { zh: "計劃", en: "Schemes" },
   },
   disclaimer: {
     zh: "本工具以積金局基金平台公開數據（截至 2026-08-31）及公開市場指數作分析，並非投資建議、亦非積金局或任何受託人官方產品。強積金表現可升可跌，過往回報並不代表將來表現。轉會或轉換基金前請細閱計劃文件。",

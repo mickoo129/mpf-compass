@@ -12,7 +12,7 @@
   --color-card: #ffffff;
   --color-muted: #5a6b7c;
   --color-subtle: #8a9aab;
-  --color-border: #d5e1ec;
+  --color-border: #9eb4c4;
   --color-primary: #2b7d8f;
   --color-primary-fg: #ffffff;
   --color-ink: #1c2b3a;
@@ -32,9 +32,8 @@
   --radius-xl: 26px;
 
   --shadow-border:
-    0px 0px 0px 1px rgba(43, 125, 143, 0.08),
-    0px 1px 2px -1px rgba(28, 43, 58, 0.05),
-    0px 8px 20px -8px rgba(43, 125, 143, 0.1);
+    0px 0px 0px 1px rgba(28, 43, 58, 0.08),
+    0px 12px 32px -16px rgba(43, 125, 143, 0.28);
 }
 
 @layer base {

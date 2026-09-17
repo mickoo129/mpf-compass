@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/", key: "pulse" as const },
   { to: "/funds", key: "funds" as const },
+  { to: "/schemes", key: "schemes" as const },
   { to: "/compare", key: "compare" as const },
   { to: "/recommend", key: "recommend" as const },
-  { to: "/schemes", key: "schemes" as const },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -35,8 +35,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className={cn(
               "rounded-md px-3 py-2.5 text-sm transition-colors md:py-1.5",
               active
-                ? "bg-primary/10 text-primary md:bg-transparent md:text-primary md:underline md:underline-offset-8"
-                : "text-muted hover:text-fg",
+                ? "bg-primary text-primary-fg md:bg-primary md:text-primary-fg md:no-underline"
+                : "text-muted hover:bg-bg-warm hover:text-fg",
             )}
           >
             {t(locale, copy.nav[item.key])}
@@ -51,10 +51,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-border/70 bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b-2 border-primary/20 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
           <Link to="/" className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-md bg-primary/12 text-primary">
+            <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-fg shadow-[var(--shadow-border)]">
               <Compass className="size-4" strokeWidth={1.75} />
             </span>
             <span className="font-display text-lg leading-none tracking-tight">{copy.app.zh}</span>
@@ -112,7 +112,10 @@ export function PageTitle({
       {kicker ? (
         <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-primary uppercase">{kicker}</p>
       ) : null}
-      <h1 className="font-display text-3xl tracking-tight sm:text-4xl">{title}</h1>
+      <h1 className="relative pl-3.5 font-display text-3xl tracking-tight sm:text-4xl">
+        <span className="absolute top-1 bottom-1 left-0 w-[3px] rounded-full bg-primary" />
+        {title}
+      </h1>
       {subtitle ? <p className="mt-2 text-sm text-muted sm:text-base">{subtitle}</p> : null}
     </div>
   );

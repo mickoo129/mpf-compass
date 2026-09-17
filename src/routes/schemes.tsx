@@ -29,8 +29,8 @@ function SchemesPage() {
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "規模加權並非一切：看平均收費、有沒有低費指數基金、以及你能否在計劃內配到目標風險。"
-            : "Size is not quality. Watch average FER, cheap trackers, and whether the menu fits your risk target."
+            ? "睇計劃規模、收費同中位回報。撳「用此計劃推介」會把計劃帶去智選，只喺該計劃可轉換範圍內排序。"
+            : "Size, fees and median returns. “Recommend in scheme” locks the wizard to that scheme’s menu."
         }
       />
       <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card shadow-[var(--shadow-border)] md:block">
@@ -65,13 +65,18 @@ function SchemesPage() {
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmtPctPlain(s.ret1y)}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmtPctPlain(s.ret5y)}</td>
                 <td className="px-3 py-2.5 text-right">
-                  <Link
-                    to="/recommend"
-                    className="text-xs text-primary underline-offset-2 hover:underline"
-                    onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
-                  >
-                    {zh ? "用此計劃智選" : "Recommend in scheme"}
-                  </Link>
+                  <div className="flex flex-col items-end gap-1">
+                    <Link
+                      to="/recommend"
+                      className="text-xs text-primary underline-offset-2 hover:underline"
+                      onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
+                    >
+                      {zh ? "用此計劃推介" : "Recommend in scheme"}
+                    </Link>
+                    <Link to="/funds" className="text-[11px] text-subtle hover:text-fg">
+                      {zh ? "到基金庫篩選" : "Browse funds"}
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -93,7 +98,7 @@ function SchemesPage() {
               className="mt-2 inline-block text-xs text-primary"
               onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
             >
-              {zh ? "用此計劃智選" : "Recommend in scheme"}
+              {zh ? "用此計劃推介" : "Recommend in scheme"}
             </Link>
           </Card>
         ))}
