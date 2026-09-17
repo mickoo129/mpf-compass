@@ -134,7 +134,7 @@ function FundsPage() {
         <select
           value={cat}
           onChange={(e) => setCat(e.target.value as FundCategory | "all")}
-          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
+          className="h-11 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
         >
           <option value="all">{zh ? "全部類別" : "All types"}</option>
           {(Object.keys(CATEGORY_LABEL) as FundCategory[]).map((c) => (
@@ -146,7 +146,7 @@ function FundsPage() {
         <select
           value={region}
           onChange={(e) => setRegion(e.target.value as RegionId | "all")}
-          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
+          className="h-11 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
         >
           <option value="all">{zh ? "全部地區" : "All regions"}</option>
           {REGION_ORDER.map((r) => (
@@ -158,7 +158,7 @@ function FundsPage() {
         <select
           value={theme}
           onChange={(e) => setTheme(e.target.value as ThemeId | "all")}
-          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
+          className="h-11 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
         >
           <option value="all">{zh ? "全部主題" : "All themes"}</option>
           {THEME_ORDER.map((t) => (
@@ -173,7 +173,7 @@ function FundsPage() {
             setProvider(e.target.value);
             setScheme("all");
           }}
-          className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)]"
+          className="h-11 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
         >
           <option value="all">{zh ? "全部供應商" : "All providers"}</option>
           {providers.map((p) => (
@@ -183,7 +183,7 @@ function FundsPage() {
           ))}
         </select>
         {schemeOptions.length === 1 ? (
-          <div className="flex h-11 items-center rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4">
+          <div className="flex h-11 items-center rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4">
             <span className="text-subtle">{zh ? "計劃" : "Scheme"} · </span>
             <span className="ml-1 truncate font-medium">{zh ? schemeOptions[0]!.zh : schemeOptions[0]!.en}</span>
           </div>
@@ -191,7 +191,7 @@ function FundsPage() {
           <select
             value={schemeValue}
             onChange={(e) => setScheme(e.target.value)}
-            className="h-11 rounded-md bg-card px-3 text-sm shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4"
+            className="h-11 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4"
           >
             <option value="all">
               {lockedProvider
@@ -211,11 +211,11 @@ function FundsPage() {
         )}
       </div>
 
-      <p className="mb-3 text-xs text-subtle">
+      <p className="mb-3 text-xs text-canvas-muted">
         {zh ? `顯示 ${rows.length} / ${allFunds.length}` : `Showing ${rows.length} / ${allFunds.length}`}
       </p>
 
-      <div className="hidden overflow-x-auto rounded-xl bg-card shadow-[var(--shadow-border)] md:block">
+      <div className="hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:block">
         <table className="w-full min-w-[1100px] text-sm">
           <thead className="border-b border-border text-xs">
             <tr className="text-muted">
@@ -247,7 +247,7 @@ function FundsPage() {
             key={f.id}
             to="/funds/$id"
             params={{ id: f.id }}
-            className="block rounded-xl bg-card p-4 shadow-[var(--shadow-border)]"
+            className="block rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)]"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -268,12 +268,12 @@ function FundsPage() {
         ))}
       </div>
       {rows.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted">{zh ? "沒有符合篩選的基金。" : "No funds match these filters."}</p>
+        <p className="py-10 text-center text-sm text-canvas-muted">{zh ? "沒有符合篩選的基金。" : "No funds match these filters."}</p>
       ) : null}
       {rows.length > 250 ? (
-        <p className="mt-3 text-xs text-subtle">{zh ? "請收窄篩選以看其餘基金。" : "Narrow filters to see the rest."}</p>
+        <p className="mt-3 text-xs text-canvas-muted">{zh ? "請收窄篩選以看其餘基金。" : "Narrow filters to see the rest."}</p>
       ) : null}
-      <p className="mt-3 text-[11px] text-subtle">
+      <p className="mt-3 text-[11px] text-canvas-muted">
         {zh
           ? "回報為積金局年化數字（截至 2026-08-31）。「3年」由 2023–2025 曆年複利推算，並非官方滾動三年。平台沒有 1個月／3個月／半年／YTD。"
           : "Returns are MPFA annualized figures as of 2026-08-31. “3Y” is compounded from calendar 2023–2025, not an official trailing 3Y. No 1M/3M/6M/YTD on the platform."}

@@ -60,7 +60,7 @@ function Home() {
       <section className="mb-10">
         <div className="mb-3 flex items-end justify-between gap-3">
           <h2 className="font-display text-xl">{zh ? "參考指數" : "Market indices"}</h2>
-          <p className="font-mono text-[11px] text-subtle">
+          <p className="font-mono text-[11px] text-canvas-muted">
             {markets.data ? new Date(markets.data.fetchedAt).toLocaleString("zh-HK", { hour12: false }) : "—"}
           </p>
         </div>
@@ -89,7 +89,7 @@ function Home() {
             ))}
           </div>
         )}
-        <p className="mt-2 text-xs text-subtle">
+        <p className="mt-2 text-xs text-canvas-muted">
           {zh
             ? markets.data?.notes
             : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the 31 Aug snapshot."}
@@ -131,7 +131,7 @@ function Home() {
       <section className="mb-10">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <h2 className="font-display text-xl">{zh ? "地區／策略中位回報" : "Sleeve medians"}</h2>
-          <p className="text-[11px] text-subtle">
+          <p className="text-[11px] text-canvas-muted">
             {zh ? PERIOD_LABEL[period].zh : PERIOD_LABEL[period].en}
             {period === "ret3yCal"
               ? zh

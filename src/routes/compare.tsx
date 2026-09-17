@@ -178,7 +178,7 @@ function ComparePage() {
                         onClick={() => toggle(f.id)}
                         className={cn(
                           "rounded-md px-2 py-1 text-[11px]",
-                          pinned ? "bg-primary text-primary-fg" : "bg-bg-warm text-muted",
+                          pinned ? "bg-primary text-primary-fg" : "bg-white text-muted ring-1 ring-border",
                         )}
                       >
                         {pinned ? (zh ? "已揀" : "Pinned") : zh ? "比較" : "Pin"}
@@ -215,7 +215,7 @@ function ComparePage() {
       ) : (
         <CustomCompare funds={funds} zh={zh} toggle={toggle} />
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-canvas-muted">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
     </div>
   );
 }
@@ -280,7 +280,7 @@ function CustomCompare({
           </ResponsiveContainer>
         </div>
       </Card>
-      <div className="overflow-x-auto rounded-xl bg-card ring-1 ring-ink/12 shadow-[var(--shadow-border)]">
+      <div className="overflow-x-auto rounded-xl bg-card text-fg ring-1 ring-white/15 shadow-[var(--shadow-border)]">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-border">

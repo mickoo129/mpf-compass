@@ -18,7 +18,7 @@ export function PeriodPills({
     <div className="flex flex-col gap-1">
       <PillRow periods={trailing} value={value} onChange={onChange} zh={zh} />
       <div className="flex items-center gap-2">
-        <span className="shrink-0 text-[10px] tracking-wide text-subtle">{zh ? "曆年" : "Calendar"}</span>
+        <span className="shrink-0 text-[10px] tracking-wide text-canvas-muted">{zh ? "曆年" : "Calendar"}</span>
         <PillRow periods={calendar} value={value} onChange={onChange} zh={zh} />
       </div>
     </div>
@@ -37,7 +37,7 @@ function PillRow({
   zh: boolean;
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-lg bg-bg-warm p-1">
+    <div className="inline-flex flex-wrap gap-1 rounded-lg bg-white/10 p-1">
       {periods.map((p) => (
         <button
           key={p}
@@ -45,7 +45,7 @@ function PillRow({
           onClick={() => onChange(p)}
           className={cn(
             "h-8 rounded-md px-2.5 text-xs",
-            value === p ? "bg-white text-primary shadow-[var(--shadow-border)]" : "text-muted hover:text-fg",
+            value === p ? "bg-white text-fg shadow-sm" : "text-canvas-muted hover:text-white",
           )}
         >
           {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}

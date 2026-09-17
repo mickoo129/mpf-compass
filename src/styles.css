@@ -2,28 +2,31 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: "Noto Sans TC", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Noto Serif TC", "Noto Serif", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "IBM Plex Mono", Menlo, Consolas, monospace;
 
-  --color-bg: #f6f9fc;
-  --color-bg-warm: #eaf2f7;
-  --color-fg: #1c2b3a;
+  --color-bg: #0b2a4a;
+  --color-bg-warm: #143a61;
+  --color-fg: #1a3148;
+  --color-canvas: #eef4fa;
+  --color-canvas-muted: #b7c9dc;
   --color-card: #ffffff;
-  --color-muted: #5a6b7c;
-  --color-subtle: #8a9aab;
-  --color-border: #9eb4c4;
-  --color-primary: #2b7d8f;
+  --color-muted: #5b7086;
+  --color-subtle: #7e93a8;
+  --color-border: #d0dbe6;
+  --color-primary: #1a7a96;
   --color-primary-fg: #ffffff;
-  --color-ink: #1c2b3a;
-  --color-up: #2c9a6a;
+  --color-ink: #0b2a4a;
+  --color-up: #1f8a5c;
   --color-down: #c24b3c;
-  --color-warn: #b8831f;
-  --color-ring: #2b7d8f;
-  --color-tint-sky: #eef6fb;
-  --color-tint-mint: #eef8f3;
-  --color-tint-sand: #f7f3ea;
-  --color-tint-lilac: #f3f0f8;
+  --color-warn: #c4922a;
+  --color-ring: #3aa0bf;
+  --color-accent: #d4a84b;
+  --color-tint-sky: #e8f3f8;
+  --color-tint-mint: #e8f6ef;
+  --color-tint-sand: #f6f0e2;
+  --color-tint-lilac: #eef0f8;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -32,8 +35,8 @@
   --radius-xl: 26px;
 
   --shadow-border:
-    0px 0px 0px 1px rgba(28, 43, 58, 0.08),
-    0px 12px 32px -16px rgba(43, 125, 143, 0.28);
+    0px 0px 0px 1px rgba(255, 255, 255, 0.08),
+    0px 14px 36px -16px rgba(0, 0, 0, 0.45);
 }
 
 @layer base {
@@ -45,18 +48,18 @@
   body {
     background-color: var(--color-bg);
     background-image:
-      radial-gradient(1200px 420px at 8% -8%, rgba(61, 142, 196, 0.14), transparent 55%),
-      radial-gradient(900px 380px at 100% 0%, rgba(44, 154, 106, 0.1), transparent 50%),
-      radial-gradient(700px 280px at 50% 100%, rgba(43, 125, 143, 0.08), transparent 55%);
+      radial-gradient(900px 380px at 12% -10%, rgba(58, 160, 191, 0.18), transparent 55%),
+      radial-gradient(700px 320px at 100% 0%, rgba(212, 168, 75, 0.08), transparent 50%);
     background-attachment: fixed;
-    color: var(--color-fg);
+    color: var(--color-canvas);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01" 0;
   }
 
   h1, h2, h3 {
     text-wrap: balance;
     font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   p {
@@ -73,7 +76,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-primary) 18%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
   }
 }
 

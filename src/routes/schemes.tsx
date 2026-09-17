@@ -33,7 +33,7 @@ function SchemesPage() {
             : "Size, fees and median returns. “Recommend in scheme” locks the wizard to that scheme’s menu."
         }
       />
-      <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card shadow-[var(--shadow-border)] md:block">
+      <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:block">
         <table className="w-full min-w-[800px] text-sm">
           <thead className="border-b border-border text-xs text-muted">
             <tr>
@@ -103,7 +103,7 @@ function SchemesPage() {
           </Card>
         ))}
       </div>
-      <p className="mt-4 text-xs text-subtle">
+      <p className="mt-4 text-xs text-canvas-muted">
         {zh
           ? `制度合計約 ${fmtAum(schemes.reduce((a, s) => a + s.aum, 0))}（成分基金淨值，${fmtNum(schemes.reduce((a, s) => a + s.count, 0), 0)} 個基金單位）。`
           : "AUM is the sum of constituent-fund NAV on the MPFA platform."}

@@ -169,7 +169,7 @@ function RecommendPage() {
                   onClick={() => setProfile({ goal: g })}
                   className={cn(
                     "rounded-lg px-3 py-2.5 text-left transition-colors",
-                    profile.goal === g ? "bg-primary text-primary-fg" : "bg-bg-warm hover:bg-border/70",
+                    profile.goal === g ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border hover:bg-tint-sky",
                   )}
                 >
                   <p className="text-sm font-medium">{zh ? GOAL_COPY[g].zh : GOAL_COPY[g].en}</p>
@@ -189,7 +189,7 @@ function RecommendPage() {
                     onClick={() => setProfile({ risk: r })}
                     className={cn(
                       "h-11 rounded-md text-sm",
-                      profile.risk === r ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                      profile.risk === r ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
                     )}
                   >
                     {zh ? RISK_COPY[r].zh : RISK_COPY[r].en}
@@ -208,7 +208,7 @@ function RecommendPage() {
                     onClick={() => setProfile({ switchHorizon: h })}
                     className={cn(
                       "h-11 rounded-md text-xs sm:text-sm",
-                      horizon === h ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                      horizon === h ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
                     )}
                   >
                     {zh ? HORIZON_COPY[h].zh : HORIZON_COPY[h].en}
@@ -235,7 +235,7 @@ function RecommendPage() {
                     onClick={() => setProfile({ mixSize: n })}
                     className={cn(
                       "h-11 rounded-md text-xs sm:text-sm",
-                      mixSize === n ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                      mixSize === n ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
                     )}
                   >
                     {zh ? MIX_SIZE_COPY[n].zh : MIX_SIZE_COPY[n].en}
@@ -258,7 +258,7 @@ function RecommendPage() {
                     onClick={() => setProfile({ reviewEvery: r })}
                     className={cn(
                       "h-11 rounded-md text-xs sm:text-sm",
-                      reviewEvery === r ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                      reviewEvery === r ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
                     )}
                   >
                     {zh ? REVIEW_COPY[r].zh : REVIEW_COPY[r].en}
@@ -319,7 +319,7 @@ function RecommendPage() {
                   key={a.fund.id}
                   to="/funds/$id"
                   params={{ id: a.fund.id }}
-                  className="block rounded-lg bg-bg-warm p-3"
+                  className="block rounded-lg bg-tint-sky p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -459,7 +459,7 @@ function Choice({
     <button
       type="button"
       onClick={onClick}
-      className={cn("rounded-lg px-3 py-2.5 text-left", active ? "bg-primary text-primary-fg" : "bg-bg-warm")}
+      className={cn("rounded-lg px-3 py-2.5 text-left", active ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border")}
     >
       <p className="text-sm font-medium">{title}</p>
       <p className={cn("text-xs", active ? "text-primary-fg/75" : "text-muted")}>{sub}</p>

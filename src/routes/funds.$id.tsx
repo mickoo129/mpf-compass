@@ -67,8 +67,8 @@ function FundDetail() {
 
   return (
     <div>
-      <p className="mb-2 text-xs text-subtle">
-        <Link to="/funds" className="hover:text-fg">
+      <p className="mb-2 text-xs text-canvas-muted">
+        <Link to="/funds" className="hover:text-white">
           {zh ? "基金庫" : "Funds"}
         </Link>
         <span className="mx-1">/</span>
@@ -76,8 +76,8 @@ function FundDetail() {
       </p>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
-          <h1 className="font-display text-3xl tracking-tight">{zh ? fund.nameZh : fund.nameEn}</h1>
-          <p className="mt-1 text-sm text-muted">
+          <h1 className="text-3xl font-semibold tracking-tight text-white">{zh ? fund.nameZh : fund.nameEn}</h1>
+          <p className="mt-1 text-sm text-canvas-muted">
             {zh ? fund.nameEn : fund.nameZh} · {zh ? fund.providerZh : fund.providerEn}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
