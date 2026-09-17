@@ -1,0 +1,16 @@
+# 積金羅盤 — Netlify
+#
+# Netlify sets NETLIFY=true during CI, so the Nitro preset switches to
+# `netlify` (SSR + Functions). Local default remains Vercel for the preview.
+#
+# Optional env (Site settings → Environment variables):
+#   XAI_API_KEY  — only the two “Grok” buttons; search / compare / scoring
+#                  work without it and do not spend quota.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
