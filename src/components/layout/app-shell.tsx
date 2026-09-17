@@ -100,7 +100,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">{children}</main>
       <footer className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 py-6">
-          <p className="text-xs leading-relaxed text-canvas-muted">{t(locale, copy.disclaimer)}</p>
+          <p className="text-xs leading-relaxed text-canvas-muted">
+            {t(locale, copy.disclaimer).replaceAll("{asOf}", catalogMeta.asOf)}
+          </p>
           <p className="mt-2 font-mono text-[11px] text-canvas-muted">
             MPFA {catalogMeta.asOf} · {catalogMeta.fundCount} funds · {catalogMeta.schemeCount} schemes
           </p>

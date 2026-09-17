@@ -314,8 +314,8 @@ function FundsPage() {
       ) : null}
       <p className="mt-3 text-[11px] text-canvas-muted">
         {zh
-          ? "回報為積金局年化數字（截至 2026-08-31）。「3年」由 2023–2025 曆年複利推算，並非官方滾動三年。平台沒有 1個月／3個月／半年／YTD。"
-          : "Returns are MPFA annualized figures as of 2026-08-31. “3Y” is compounded from calendar 2023–2025, not an official trailing 3Y. No 1M/3M/6M/YTD on the platform."}
+          ? `回報為積金局年化數字（截至 ${catalogMeta.asOf}）。「3年」由 2023–2025 曆年複利推算，並非官方滾動三年。平台沒有 1個月／3個月／半年／YTD。`
+          : `Returns are MPFA annualized figures as of ${catalogMeta.asOf}. “3Y” is compounded from calendar 2023–2025, not an official trailing 3Y. No 1M/3M/6M/YTD on the platform.`}
       </p>
     </div>
   );

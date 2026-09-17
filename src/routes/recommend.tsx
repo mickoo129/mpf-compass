@@ -104,7 +104,7 @@ function RecommendPage() {
         </p>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
           <li>{zh ? "你：目標、風險、轉換視野（未來持有幾耐）、僱主計劃可選範圍。" : "You: goal, risk, switch window, and the employer-scheme menu."}</li>
-          <li>{zh ? "積金局（截至 2026-08-31）：收費、風險級別、五年同類——決定 qual 唔 qual。" : "MPFA (as of 31 Aug 2026): fees, risk class, 5-year peer standing."}</li>
+          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類——決定 qual 唔 qual。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing.`}</li>
           <li>{zh ? "Yahoo 指數（打開頁即更新）：利率起始孳息、距離 52 週高位、過熱——用來加減倉，唔把過去半年當成未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
         </ol>
       </Card>

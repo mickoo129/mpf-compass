@@ -1,0 +1,31 @@
+name: Refresh MPFA catalog
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Pull MPFA fund platform
+        run: node scripts/refresh-mpfa.mjs
+      - name: Commit if the snapshot moved
+        run: |
+          git config user.name "mpf-compass-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/funds.json src/lib/i18n.ts src/lib/mpf/returns.ts
+          if git diff --cached --quiet; then
+            echo "No catalog change."
+          else
+            git commit -m "Refresh MPFA constituent-fund snapshot."
+            git push
+          fi
