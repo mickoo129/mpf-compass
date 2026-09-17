@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Compass, RefreshCw } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { PageTitle } from "@/components/layout/app-shell";
 import { Sparkline } from "@/components/charts/sparkline";
@@ -21,7 +21,6 @@ import {
 import { fmtAum, fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
 import { MPFA_PERIOD_NOTE, PERIOD_LABEL, type MedianPeriod } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
-import { analyzeOutlook } from "@/lib/server/ai";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +30,6 @@ function Home() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
-  const [outlook, setOutlook] = useState<import("@/lib/server/ai").OutlookJson | null>(null);
-  const [outlookErr, setOutlookErr] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [period, setPeriod] = useState<MedianPeriod>("ret1y");
 
   const schemes = uniqueSchemes();
@@ -43,28 +39,6 @@ function Home() {
   const top1y = [...allFunds].filter((f) => f.ret1y != null).sort((a, b) => (b.ret1y ?? 0) - (a.ret1y ?? 0)).slice(0, 5);
   const lowFee = [...allFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 5);
 
-  async function runOutlook() {
-    setBusy(true);
-    setOutlookErr(null);
-    const res = await analyzeOutlook({
-      data: {
-        markets: (markets.data?.quotes ?? []).map((q) => ({
-          symbol: q.symbol,
-          nameZh: q.nameZh,
-          changePct: q.changePct,
-          ytdPct: q.ytdPct,
-          price: q.price,
-        })),
-      },
-    });
-    setBusy(false);
-    if (!res.ok) {
-      setOutlookErr(res.error);
-      return;
-    }
-    setOutlook(res.json);
-  }
-
   return (
     <div>
       <PageTitle
@@ -72,8 +46,8 @@ function Home() {
         title={zh ? "以官方數據看清全場，再按你的目標落子。" : "See the whole MPF universe, then pick for your goal."}
         subtitle={
           zh
-            ? `覆蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）；大市指數即時更新。`
-            : `${catalogMeta.fundCount} constituent funds across ${catalogMeta.schemeCount} schemes. Official MPFA snapshot ${catalogMeta.asOf}; live index quotes for regime context.`
+            ? `覆蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。查找、比較與智選打分唔使 Grok。`
+            : `${catalogMeta.fundCount} constituent funds across ${catalogMeta.schemeCount} schemes. Official MPFA snapshot ${catalogMeta.asOf}. Lookups, compare and scoring use no Grok quota.`
         }
       />
 
@@ -118,62 +92,13 @@ function Home() {
         <p className="mt-2 text-xs text-subtle">{zh ? markets.data?.notes : "Index quotes via Yahoo Finance (HK delayed ~15m). Fund NAVs are official through 31 Aug 2026."}</p>
       </section>
 
-      <section className="mb-10 grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl">{zh ? "局勢研判" : "Regime note"}</h2>
-            <Button size="sm" onClick={runOutlook} disabled={busy}>
-              {busy ? <RefreshCw className="animate-spin" /> : <Compass />}
-              {zh ? "Grok 分析現況" : "Ask Grok"}
-            </Button>
-          </div>
-          {!outlook && !outlookErr ? (
-            <div className="space-y-2 text-sm text-muted">
-              <p>
-                {zh
-                  ? "2026 年首八個月強積金整體錄得正回報，亞洲股票（韓、日、台供應鏈）領跑，美股仍堅，港股／中國溫和。本週東北亞與港股回吐，美債 10 年接近 5%。推介時不應把一年翻倍的韓國股票當核心。"
-                  : "MPF was positive through Aug 2026, led by Asia (Korea/Japan/Taiwan supply chain). US still firm; HK/China modest. This week NE Asia and HK pulled back; US 10Y near 5%. Do not treat a doubled Korea sleeve as core."}
-              </p>
-              <p className="text-xs text-subtle">
-                {zh
-                  ? "查找同比較唔使配額。只有撳呢個掣先用 Grok；相同局勢會共用結果，每日有上限，用完唔影響基金庫。"
-                  : "Lookups and compare use no Grok quota. Only this button calls Grok; identical market snapshots are shared, with a daily cap."}
-              </p>
-            </div>
-          ) : null}
-          {outlookErr ? <p className="text-sm text-down">{outlookErr}</p> : null}
-          {outlook ? (
-            <div className="space-y-3 text-sm">
-              <p className="font-display text-lg leading-snug">{outlook.headline}</p>
-              <p className="text-muted">{outlook.regime}</p>
-              {outlook.forMpf.length ? (
-                <ul className="list-disc space-y-1 pl-4">
-                  {outlook.forMpf.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-              ) : null}
-              {outlook.risks.length ? (
-                <div>
-                  <p className="mb-1 text-xs tracking-wide text-subtle uppercase">{zh ? "風險" : "Risks"}</p>
-                  <ul className="list-disc space-y-1 pl-4 text-muted">
-                    {outlook.risks.map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {outlook.next12m ? <p>{outlook.next12m}</p> : null}
-              {outlook.whatToAvoid ? <p className="text-warn">{outlook.whatToAvoid}</p> : null}
-            </div>
-          ) : null}
-        </Card>
-        <Card className="lg:col-span-2">
-          <div className="mb-3 flex flex-col gap-2">
-            <h2 className="font-display text-xl">{zh ? "按類別中位回報" : "Median by type"}</h2>
-            <PeriodPills value={period} onChange={setPeriod} zh={zh} />
-          </div>
-          <div className="space-y-3">
+      <section className="mb-10">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="font-display text-xl">{zh ? "按類別中位回報" : "Median by type"}</h2>
+          <PeriodPills value={period} onChange={setPeriod} zh={zh} />
+        </div>
+        <Card>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {cats.map((c) => {
               const v = c[period];
               return (
@@ -267,7 +192,7 @@ function Home() {
         <div>
           <h2 className="font-display text-2xl">{zh ? "下一步：按你的目標推介" : "Next: picks for your goal"}</h2>
           <p className="mt-1 text-sm text-muted">
-            {zh ? "年齡、年期、現有計劃、進取或保本——羅盤會在可選範圍內打分並可請 Grok 寫研判。" : "Age, horizon, scheme lock, growth vs preserve — scored in-universe, with optional Grok rationale."}
+            {zh ? "年齡、年期、現有計劃、進取或保本——羅盤會在可選範圍內用官方數據打分，唔使 Grok。" : "Age, horizon, scheme lock, growth vs preserve — scored from official data, no Grok."}
           </p>
         </div>
         <Button asChild>

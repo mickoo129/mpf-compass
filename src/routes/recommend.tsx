@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -12,7 +11,6 @@ import {
 } from "recharts";
 import { PageTitle } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +21,6 @@ import { fmtHkd, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildAllocation, GOAL_COPY, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
 import type { GoalId, RiskAppetite } from "@/lib/mpf/types";
-import { analyzeRecommendation } from "@/lib/server/ai";
-import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -39,11 +35,6 @@ function RecommendPage() {
   const profile = useAppStore((s) => s.profile);
   const setProfile = useAppStore((s) => s.setProfile);
   const schemes = uniqueSchemes();
-  const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
-  const [ai, setAi] = useState<import("@/lib/server/ai").RecJson | null>(null);
-  const [aiErr, setAiErr] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
   const ranked = useMemo(() => scoreFunds(profile), [profile]);
   const alloc = useMemo(() => buildAllocation(profile, ranked), [profile, ranked]);
   const years = Math.max(1, profile.retireAge - profile.age);
@@ -54,29 +45,6 @@ function RecommendPage() {
   const end = path.at(-1);
   const riskT = targetRisk(profile);
 
-  async function runAi() {
-    setBusy(true);
-    setAiErr(null);
-    const res = await analyzeRecommendation({
-      data: {
-        profile,
-        markets: (markets.data?.quotes ?? []).map((q) => ({
-          symbol: q.symbol,
-          nameZh: q.nameZh,
-          changePct: q.changePct,
-          ytdPct: q.ytdPct,
-          price: q.price,
-        })),
-      },
-    });
-    setBusy(false);
-    if (!res.ok) {
-      setAiErr(res.error);
-      return;
-    }
-    setAi(res.json);
-  }
-
   return (
     <div>
       <PageTitle
@@ -84,8 +52,8 @@ function RecommendPage() {
         title={zh ? "先講你要什麼，再在可選範圍內打分。" : "State the goal, then score inside your opportunity set."}
         subtitle={
           zh
-            ? "供款帳戶通常只能在僱主計劃內轉換；個人帳戶可經積金易轉到其他計劃。推介結合收費、風險匹配、同類往績與現時局勢，並非投資建議。"
-            : "Contribution accounts switch inside the employer scheme; personal accounts can transfer. Scores mix fees, risk fit, peer track record and the live regime — not advice."
+            ? "供款帳戶通常只能在僱主計劃內轉換；個人帳戶可經積金易轉到其他計劃。推介用官方收費、風險與往績打分，並非投資建議。"
+            : "Contribution accounts switch inside the employer scheme; personal accounts can transfer. Scores mix fees, risk fit and track record — not advice."
         }
       />
 
@@ -207,22 +175,12 @@ function RecommendPage() {
 
         <div className="space-y-5 lg:col-span-7">
           <Card>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
-                <p className="text-xs text-subtle">
-                  {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年` : `Target risk ${riskT} · ${years} years`}
-                </p>
-              </div>
-              <Button onClick={runAi} disabled={busy || alloc.length === 0}>
-                {busy ? (zh ? "研判中…" : "Thinking…") : zh ? "Grok 寫研判" : "Grok rationale"}
-              </Button>
+            <div className="mb-4">
+              <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
+              <p className="text-xs text-subtle">
+                {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · 官方數據打分，唔使 Grok` : `Target risk ${riskT} · ${years} years · scored from official data, no Grok`}
+              </p>
             </div>
-            <p className="mb-3 text-[11px] text-subtle">
-              {zh
-                ? "上面配置由官方數據即時打分，唔使 Grok。只有「寫研判」先用配額；相同條件會共用，用完配額打分仍然可用。"
-                : "The mix is scored from official data — no Grok. Only “rationale” spends quota; identical profiles share a result."}
-            </p>
             {profile.account === "contribution" && !profile.schemeEn ? (
               <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，才可在可轉換範圍內推介。" : "Pick your scheme to constrain the opportunity set."}</p>
             ) : null}
@@ -257,30 +215,6 @@ function RecommendPage() {
                 </Link>
               ))}
             </div>
-            {aiErr ? <p className="mt-3 text-sm text-down">{aiErr}</p> : null}
-            {ai ? (
-              <div className="mt-4 space-y-2 rounded-lg border border-border p-3 text-sm">
-                <p className="font-display text-lg">{ai.oneLiner || ai.verdict}</p>
-                {ai.verdict && ai.oneLiner ? <p className="text-muted">{ai.verdict}</p> : null}
-                {ai.why.length ? (
-                  <ul className="list-disc space-y-1 pl-4">
-                    {ai.why.map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                {ai.watchouts.length ? (
-                  <div>
-                    <p className="text-xs tracking-wide text-subtle uppercase">{zh ? "留意" : "Watchouts"}</p>
-                    <ul className="list-disc space-y-1 pl-4 text-muted">
-                      {ai.watchouts.map((x) => (
-                        <li key={x}>{x}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
           </Card>
 
           <Card>

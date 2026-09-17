@@ -2,10 +2,7 @@
 #
 # Netlify sets NETLIFY=true during CI, so the Nitro preset switches to
 # `netlify` (SSR + Functions). Local default remains Vercel for the preview.
-#
-# Optional env (Site settings → Environment variables):
-#   XAI_API_KEY  — only the two “Grok” buttons; search / compare / scoring
-#                  work without it and do not spend quota.
+# No XAI_API_KEY: the public site does not call Grok.
 
 [build]
   command = "npm run build"

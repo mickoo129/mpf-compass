@@ -156,29 +156,8 @@ function cacheGet<T>(map: Map<string, { at: number; json: T }>, key: string, ttl
   return hit.json;
 }
 
-async function grokJson(system: string, user: string): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
-  const apiKey = process.env.XAI_API_KEY;
-  if (!apiKey) return { ok: false, error: ERR_NO_KEY };
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "grok-4.5",
-      temperature: 0.3,
-      max_tokens: 1100,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-  });
-  if (res.status === 429 || res.status === 402) return { ok: false, error: ERR_QUOTA };
-  if (!res.ok) return { ok: false, error: `${ERR_API}（${res.status}）` };
-  const body = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  return { ok: true, text: body.choices?.[0]?.message?.content ?? "" };
+async function grokJson(_system: string, _user: string): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  return { ok: false, error: "公開站唔使用 Grok 研判。查找、比較與智選打分仍可用。" };
 }
 
 export const analyzeOutlook = createServerFn({ method: "POST" })
