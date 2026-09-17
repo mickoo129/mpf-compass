@@ -46,14 +46,23 @@ async function fetchChart(symbol: string): Promise<MarketQuote | null> {
   };
   const result = body.chart?.result?.[0];
   if (!result) return null;
-  const closes = (result.indicators?.quote?.[0]?.close ?? []).filter(
-    (n): n is number => n != null && Number.isFinite(n),
-  );
+  const timestamps = result.timestamp ?? [];
+  const rawCloses = result.indicators?.quote?.[0]?.close ?? [];
+  const closes = rawCloses.filter((n): n is number => n != null && Number.isFinite(n));
   const price = result.meta.regularMarketPrice ?? closes.at(-1) ?? null;
   const prev = closes.length >= 2 ? closes[closes.length - 2]! : result.meta.chartPreviousClose ?? null;
   const changePct = price != null && prev ? ((price - prev) / prev) * 100 : null;
-  const first = closes[0];
-  const ytdPct = price != null && first ? ((price - first) / first) * 100 : null;
+  const year = new Date().getUTCFullYear();
+  const ytdStart = Date.UTC(year, 0, 1) / 1000;
+  let ytdBase: number | null = null;
+  for (let i = 0; i < timestamps.length; i++) {
+    const c = rawCloses[i];
+    if ((timestamps[i] ?? 0) >= ytdStart && c != null && Number.isFinite(c)) {
+      ytdBase = c;
+      break;
+    }
+  }
+  const ytdPct = price != null && ytdBase ? ((price - ytdBase) / ytdBase) * 100 : null;
   const step = Math.max(1, Math.floor(closes.length / 48));
   const spark = closes.filter((_, i) => i % step === 0 || i === closes.length - 1);
   const meta = INDICES.find((i) => i.symbol === symbol)!;
@@ -81,7 +90,7 @@ export const getMarkets = createServerFn({ method: "GET" }).handler(async (): Pr
     fetchedAt: new Date().toISOString(),
     quotes,
     notes:
-      "指數來自 Yahoo Finance 公開報價，港股約延遲 15 分鐘。成分基金官方回報截至積金局平台 2026-08-31；當日基金估算僅供參考。",
+      "指數報價來自 Yahoo Finance（港股約延遲 15 分鐘），唔係積金局基金單位價格，亦唔係 8 月 31 日快照。",
   };
   cache = { at: Date.now(), data };
   return data;

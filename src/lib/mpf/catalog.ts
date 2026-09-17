@@ -1,6 +1,6 @@
 import raw from "@/data/funds.json";
 import type { CatalogFile, CatalogMeta, Fund, FundCategory } from "./types";
-import { annReturn, type AnnPeriod } from "./returns";
+import { annReturn, MEDIAN_PERIODS, type AnnPeriod, type MedianPeriod } from "./returns";
 
 const file = raw as CatalogFile;
 
@@ -148,17 +148,15 @@ export function sleeveStats(period: AnnPeriod = "ret1y") {
 export function categoryStats() {
   return CATEGORY_ORDER.map((category) => {
     const funds = allFunds.filter((f) => f.category === category);
+    const periods = Object.fromEntries(
+      MEDIAN_PERIODS.map((p) => [p, median(funds.map((f) => annReturn(f, p) ?? NaN))]),
+    ) as Record<MedianPeriod, number | null>;
     return {
       category,
       count: funds.length,
-      ret1y: median(funds.map((f) => f.ret1y ?? NaN)),
-      ret3yCal: median(funds.map((f) => annReturn(f, "ret3yCal") ?? NaN)),
-      ret5y: median(funds.map((f) => f.ret5y ?? NaN)),
-      ret10y: median(funds.map((f) => f.ret10y ?? NaN)),
-      retSince: median(funds.map((f) => f.retSince ?? NaN)),
-      y2025: median(funds.map((f) => f.y2025 ?? NaN)),
       fer: median(funds.map((f) => f.fer ?? NaN)),
       aum: funds.reduce((s, f) => s + (f.aumM ?? 0), 0),
+      ...periods,
     };
   });
 }

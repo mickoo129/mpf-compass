@@ -3,7 +3,18 @@ import type { Fund } from "./types";
 /** Official MPFA periods plus one labelled calendar-3Y compound. */
 export type AnnPeriod = "ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince" | "y2025" | "y2024" | "y2023" | "y2022" | "y2021";
 
-export const MEDIAN_PERIODS = ["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince", "y2025"] as const;
+export const MEDIAN_PERIODS = [
+  "ret1y",
+  "ret3yCal",
+  "ret5y",
+  "ret10y",
+  "retSince",
+  "y2025",
+  "y2024",
+  "y2023",
+  "y2022",
+  "y2021",
+] as const;
 export type MedianPeriod = (typeof MEDIAN_PERIODS)[number];
 
 export const PERIOD_LABEL: Record<AnnPeriod, { zh: string; en: string }> = {

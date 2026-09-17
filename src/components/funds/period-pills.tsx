@@ -1,6 +1,8 @@
 import { MEDIAN_PERIODS, PERIOD_LABEL, type MedianPeriod } from "@/lib/mpf/returns";
 import { cn } from "@/lib/utils";
 
+const CAL_START = MEDIAN_PERIODS.indexOf("y2025");
+
 export function PeriodPills({
   value,
   onChange,
@@ -10,9 +12,33 @@ export function PeriodPills({
   onChange: (p: MedianPeriod) => void;
   zh: boolean;
 }) {
+  const trailing = MEDIAN_PERIODS.slice(0, CAL_START);
+  const calendar = MEDIAN_PERIODS.slice(CAL_START);
+  return (
+    <div className="flex flex-col gap-1">
+      <PillRow periods={trailing} value={value} onChange={onChange} zh={zh} />
+      <div className="flex items-center gap-2">
+        <span className="shrink-0 text-[10px] tracking-wide text-subtle">{zh ? "曆年" : "Calendar"}</span>
+        <PillRow periods={calendar} value={value} onChange={onChange} zh={zh} />
+      </div>
+    </div>
+  );
+}
+
+function PillRow({
+  periods,
+  value,
+  onChange,
+  zh,
+}: {
+  periods: readonly MedianPeriod[];
+  value: MedianPeriod;
+  onChange: (p: MedianPeriod) => void;
+  zh: boolean;
+}) {
   return (
     <div className="inline-flex flex-wrap gap-1 rounded-lg bg-bg-warm p-1">
-      {MEDIAN_PERIODS.map((p) => (
+      {periods.map((p) => (
         <button
           key={p}
           type="button"

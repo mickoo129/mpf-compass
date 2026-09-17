@@ -59,7 +59,7 @@ function Home() {
 
       <section className="mb-10">
         <div className="mb-3 flex items-end justify-between gap-3">
-          <h2 className="font-display text-xl">{zh ? "即時大市" : "Live markets"}</h2>
+          <h2 className="font-display text-xl">{zh ? "參考指數" : "Market indices"}</h2>
           <p className="font-mono text-[11px] text-subtle">
             {markets.data ? new Date(markets.data.fetchedAt).toLocaleString("zh-HK", { hour12: false }) : "—"}
           </p>
@@ -89,7 +89,11 @@ function Home() {
             ))}
           </div>
         )}
-        <p className="mt-2 text-xs text-subtle">{zh ? markets.data?.notes : "Index quotes via Yahoo Finance (HK delayed ~15m). Fund NAVs are official through 31 Aug 2026."}</p>
+        <p className="mt-2 text-xs text-subtle">
+          {zh
+            ? markets.data?.notes
+            : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the 31 Aug snapshot."}
+        </p>
       </section>
 
       <section className="mb-10">
@@ -129,7 +133,17 @@ function Home() {
           <h2 className="font-display text-xl">{zh ? "地區／策略中位回報" : "Sleeve medians"}</h2>
           <p className="text-[11px] text-subtle">
             {zh ? PERIOD_LABEL[period].zh : PERIOD_LABEL[period].en}
-            {period === "ret3yCal" ? (zh ? " · 由曆年推算" : " · from calendar years") : period === "y2025" ? "" : zh ? " · 年化" : " · p.a."}
+            {period === "ret3yCal"
+              ? zh
+                ? " · 由曆年推算"
+                : " · from calendar years"
+              : period.startsWith("y20")
+                ? zh
+                  ? " · 曆年"
+                  : " · calendar"
+                : zh
+                  ? " · 年化"
+                  : " · p.a."}
           </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
