@@ -287,6 +287,58 @@ export function categoryStats() {
   });
 }
 
+export const CAL_YEARS = [2021, 2022, 2023, 2024, 2025] as const;
+export const PATH_SLEEVES = ["us", "hk", "china", "greater-china", "asia", "europe", "japan", "korea", "global"] as const;
+
+export type PathSeries = {
+  id: string;
+  zh: string;
+  en: string;
+  count: number;
+  rets: { year: number; ret: number | null }[];
+  nav: { year: number; nav: number | null }[];
+};
+
+function calendarPath(funds: Fund[], id: string, zh: string, en: string): PathSeries {
+  const rets = CAL_YEARS.map((year) => {
+    const field = `y${year}` as "y2021" | "y2022" | "y2023" | "y2024" | "y2025";
+    return { year, ret: median(funds.map((f) => f[field] ?? NaN)) };
+  });
+  let nav = 100;
+  const points: { year: number; nav: number | null }[] = [{ year: 2020, nav: 100 }];
+  for (const row of rets) {
+    if (row.ret == null) {
+      points.push({ year: row.year, nav: null });
+    } else {
+      nav *= 1 + row.ret / 100;
+      points.push({ year: row.year, nav });
+    }
+  }
+  return { id, zh, en, count: funds.length, rets, nav: points };
+}
+
+export function categoryCalendarPaths(): PathSeries[] {
+  return CATEGORY_ORDER.map((category) =>
+    calendarPath(
+      allFunds.filter((f) => f.category === category),
+      category,
+      CATEGORY_LABEL[category].zh,
+      CATEGORY_LABEL[category].en,
+    ),
+  );
+}
+
+export function sleeveCalendarPaths(): PathSeries[] {
+  return PATH_SLEEVES.map((sleeve) =>
+    calendarPath(
+      allFunds.filter((f) => f.sleeve === sleeve),
+      sleeve,
+      SLEEVE_LABEL[sleeve]?.zh ?? sleeve,
+      SLEEVE_LABEL[sleeve]?.en ?? sleeve,
+    ),
+  ).filter((s) => s.count >= 3);
+}
+
 export function peerRank(
   fund: Fund,
   field: "ret1y" | "ret5y" | "ret10y" | "retSince" | "fer" | "y2025",

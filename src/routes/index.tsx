@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Sparkline } from "@/components/charts/sparkline";
+import { CategoryPathChart } from "@/components/charts/category-path";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -126,6 +127,9 @@ function Home() {
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
         </Card>
+        <div className="mt-4">
+          <CategoryPathChart zh={zh} />
+        </div>
       </section>
 
       <section className="mb-10">
