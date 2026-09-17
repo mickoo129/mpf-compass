@@ -164,8 +164,8 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (fund.isTracker) reasons.push("指數追蹤");
     if (fund.isDis) reasons.push("預設投資策略");
     if (horizon === "1y" && skill > 0.65) reasons.push("五年同類領先");
-    if (regime && fit >= 0.62) reasons.push(horizon === "1y" ? "一年局勢尚可" : "窗口內指數偏強");
-    if (regime && fit <= 0.32) reasons.push("窗口內指數偏弱，不宜追入");
+    if (regime && fit >= 0.62) reasons.push("展望偏有利");
+    if (regime && fit <= 0.32) reasons.push("展望偏弱，不宜追入");
     if (fund.sleeve === "korea") reasons.push("一年暴升、短線不宜當核心");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
 
@@ -311,8 +311,8 @@ function holdingReason(s: ScoredFund, i: number, n: number, profile: Profile): {
   if (i === 0) {
     const win = HORIZON_COPY[profile.switchHorizon ?? "6m"].zh;
     return {
-      zh: `核心：按「${win}」指數局勢、收費同風險配對，而唔係一年基金回報最高嗰隻。`,
-      en: "Core: index regime for your switch window, plus fees and risk — not the top 1Y fund.",
+      zh: `核心：按「${win}」展望（利率、52週位置、過熱），加上收費同風險，而唔係近半年或一年回報最高嗰隻。`,
+      en: "Core: forward outlook for your window (yield, stretch, overheat), plus fees and risk — not the hottest trailing return.",
     };
   }
   if (f.isConservative || f.category === "bond" || f.category === "money") {

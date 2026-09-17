@@ -65,8 +65,8 @@ function RecommendPage() {
         title={zh ? "先講你要什麼，再在可選範圍內打分。" : "State the goal, then score inside your opportunity set."}
         subtitle={
           zh
-            ? "供款帳戶通常只能在僱主計劃內轉換。先揀轉換視野（1個月至1年），配置跟指數局勢推演，唔再淨係跟一年基金回報打分。並非投資建議。"
-            : "Contribution accounts switch inside the employer scheme. Pick a switch window (1 month–1 year); the mix follows index regime, not last year’s fund score. Not advice."
+            ? "供款帳戶通常只能在僱主計劃內轉換。轉換視野係未來持有期；配置跟展望（利率、52週位置、過熱），唔把過去半年當成未來。並非投資建議，亦不保證獲利。"
+            : "Contribution accounts switch inside the employer scheme. The window is forward-looking: yield, 52-week stretch and overheat — not “past 6 months = next 6 months”. Not advice and not a profit guarantee."
         }
       />
 
@@ -258,19 +258,36 @@ function RecommendPage() {
         <div className="space-y-5 lg:col-span-7">
           <Card className="bg-tint-sky">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="font-display text-lg">{zh ? "窗口局勢" : "Window regime"}</h2>
-              <Badge tone="primary">{zh ? regime.windowLabelZh : horizon}</Badge>
+              <h2 className="font-display text-lg">{zh ? "窗口：已發生／展望" : "Window: lookback / outlook"}</h2>
+              <Badge tone="primary">{zh ? regime.outlookLabelZh : horizon}</Badge>
             </div>
-            <p className="mb-2 text-xs text-muted">
+            <p className="mb-3 text-xs text-muted">
               {zh
-                ? `指數推演（Yahoo），語氣：${regime.tone === "risk-on" ? "偏進取" : regime.tone === "risk-off" ? "偏防守" : "混合"}。唔用基金近一年回報去追升跌。`
-                : `Index regime (${regime.tone}). Does not chase last year’s fund score.`}
+                ? `指數每載入更新（Yahoo）。語氣：${regime.tone === "risk-on" ? "偏進取" : regime.tone === "risk-off" ? "偏防守" : "混合"}。${markets.data?.fetchedAt ? `更新 ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}。配置跟右邊展望，唔跟左邊已發生。`
+                : `Yahoo indices refresh on load (${regime.tone}). Mix follows outlook, not the lookback.`}
             </p>
-            <ul className="list-disc space-y-1 pl-4 text-sm text-muted">
-              {(zh ? regime.notesZh : regime.notesEn).slice(0, 4).map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg bg-white/80 p-3">
+                <p className="mb-1 text-[11px] font-medium tracking-wide text-subtle uppercase">
+                  {zh ? `已發生 · ${regime.lookbackLabelZh}` : "Lookback"}
+                </p>
+                <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
+                  {(zh ? regime.lookbackZh : regime.lookbackEn).map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-lg bg-white p-3 shadow-[var(--shadow-border)]">
+                <p className="mb-1 text-[11px] font-medium tracking-wide text-primary uppercase">
+                  {zh ? `展望 · ${regime.outlookLabelZh}` : "Outlook"}
+                </p>
+                <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
+                  {(zh ? regime.outlookZh : regime.outlookEn).slice(0, 4).map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </Card>
           <Card>
             <div className="mb-4">
