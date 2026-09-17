@@ -46,8 +46,8 @@ function Home() {
         title={zh ? "依據積金局數據，比較全港成分基金。" : "Compare Hong Kong’s MPF funds using official MPFA data."}
         subtitle={
           zh
-            ? `覆蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。查找、比較與智選打分唔使 Grok。`
-            : `${catalogMeta.fundCount} constituent funds across ${catalogMeta.schemeCount} schemes. Official MPFA snapshot ${catalogMeta.asOf}. Lookups, compare and scoring use no Grok quota.`
+            ? `覆蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。`
+            : `${catalogMeta.fundCount} constituent funds across ${catalogMeta.schemeCount} schemes. Official MPFA snapshot ${catalogMeta.asOf}.`
         }
       />
 
