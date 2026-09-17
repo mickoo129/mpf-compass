@@ -1,5 +1,6 @@
 import type { Allocation, Fund, GoalId, MixSize, Profile, ReviewCadence, RiskAppetite, ScoredFund } from "./types";
 import { allFunds, median } from "./catalog";
+import { HORIZON_COPY, horizonWeights, type Regime } from "./regime";
 
 const SLEEVE_PRIOR: Record<string, number> = {
   us: 7.4,
@@ -32,16 +33,20 @@ const SLEEVE_PRIOR: Record<string, number> = {
   guaranteed: 1.4,
 };
 
-export function expectedReturn(fund: Fund): number {
+export function expectedReturn(fund: Fund, regime?: Regime | null, horizon?: Profile["switchHorizon"]): number {
   const prior = SLEEVE_PRIOR[fund.sleeve] ?? 5.5;
   const hist = fund.ret5y ?? fund.ret1y ?? prior;
   const cappedHist = Math.max(-2, Math.min(12, hist));
   const blended = 0.55 * prior + 0.45 * cappedHist;
   const ferDrag = fund.fer ?? 1.3;
-  // Historical returns are already net of FER; prior is gross-ish. Blend then
-  // shave a little extra for expensive funds so fee drag is visible going forward.
   const extraFee = Math.max(0, ferDrag - 0.8) * 0.25;
-  return blended - extraFee;
+  let out = blended - extraFee;
+  if (regime) {
+    const fit = regime.sleeveFit[fund.sleeve] ?? 0.5;
+    const amp = horizon === "1m" ? 2.0 : horizon === "2m" ? 1.4 : horizon === "6m" ? 0.8 : 0.35;
+    out += (fit - 0.5) * amp;
+  }
+  return out;
 }
 
 export function targetRisk(profile: Profile): number {
@@ -111,8 +116,10 @@ function sleeveBoost(sleeve: string, goal: GoalId, risk: RiskAppetite): number {
   return 0.55;
 }
 
-export function scoreFunds(profile: Profile): ScoredFund[] {
+export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund[] {
   const target = targetRisk(profile);
+  const horizon = profile.switchHorizon ?? "6m";
+  const w = horizonWeights(horizon, profile.goal);
   const universe = profile.account === "contribution" && profile.schemeEn
     ? allFunds.filter((f) => f.schemeEn === profile.schemeEn)
     : allFunds;
@@ -134,20 +141,19 @@ export function scoreFunds(profile: Profile): ScoredFund[] {
       : 0.5;
     const aum = fund.aumM ?? 0;
     const size = aum >= 2000 ? 1 : aum >= 400 ? 0.75 : aum >= 80 ? 0.5 : 0.25;
-    const tracker = fund.isTracker && profile.goal === "lowfee" ? 0.15 : fund.isTracker ? 0.05 : 0;
-    const guarPenalty = fund.category === "guaranteed" && profile.goal !== "preserve" ? -0.18 : 0;
-    const koreaPenalty = fund.sleeve === "korea" && profile.goal !== "growth" ? -0.08 : 0;
+    const tracker = fund.isTracker && profile.goal === "lowfee" ? 0.12 : fund.isTracker ? 0.04 : 0;
+    const guarPenalty = fund.category === "guaranteed" && profile.goal !== "preserve" ? -0.16 : 0;
+    const fit = regime?.sleeveFit[fund.sleeve] ?? 0.5;
+    const regimeFit = clamp01(0.35 * sb + 0.65 * fit);
 
     let score =
-      0.22 * rf +
-      0.2 * fs +
-      0.2 * sb +
-      0.16 * skill +
-      0.1 * size +
-      0.07 * (fund.ret1y != null ? clamp01((fund.ret1y + 5) / 40) : 0.4) +
+      w.risk * rf +
+      w.fee * fs +
+      w.regime * regimeFit +
+      w.skill * skill +
+      w.size * size +
       tracker +
-      guarPenalty +
-      koreaPenalty;
+      guarPenalty;
 
     if (profile.goal === "dis" && (fund.isCaf || fund.isA65)) {
       const years = profile.retireAge - profile.age;
@@ -157,12 +163,13 @@ export function scoreFunds(profile: Profile): ScoredFund[] {
     if (fund.fer != null && fund.fer <= 0.8) reasons.push("低收費");
     if (fund.isTracker) reasons.push("指數追蹤");
     if (fund.isDis) reasons.push("預設投資策略");
-    if (skill > 0.65) reasons.push("五年同類領先");
-    if (fund.sleeve === "us") reasons.push("美股核心");
-    if (fund.sleeve === "korea") reasons.push("一年暴升、回吐風險高");
+    if (horizon === "1y" && skill > 0.65) reasons.push("五年同類領先");
+    if (regime && fit >= 0.62) reasons.push(horizon === "1y" ? "一年局勢尚可" : "窗口內指數偏強");
+    if (regime && fit <= 0.32) reasons.push("窗口內指數偏弱，不宜追入");
+    if (fund.sleeve === "korea") reasons.push("一年暴升、短線不宜當核心");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
 
-    return { fund, score, reasons, expectedReturn: expectedReturn(fund) };
+    return { fund, score, reasons, expectedReturn: expectedReturn(fund, regime, horizon) };
   });
 
   return scored.sort((a, b) => b.score - a.score);
@@ -302,7 +309,11 @@ function holdingReason(s: ScoredFund, i: number, n: number, profile: Profile): {
   if (f.isCaf) return { zh: "核心累積：約 60/40 股票債券，距離退休較遠時作主體。", en: "Core Accumulation ~60/40 for longer horizons." };
   if (f.isA65) return { zh: "65歲後基金：降低股票比例，收斂波動。", en: "Age 65 Plus de-risks toward bonds." };
   if (i === 0) {
-    return { zh: "核心持倉：按你的目標、年期與收費在可選範圍內評分最高。", en: "Core holding: highest score for your goal, horizon and fees." };
+    const win = HORIZON_COPY[profile.switchHorizon ?? "6m"].zh;
+    return {
+      zh: `核心：按「${win}」指數局勢、收費同風險配對，而唔係一年基金回報最高嗰隻。`,
+      en: "Core: index regime for your switch window, plus fees and risk — not the top 1Y fund.",
+    };
   }
   if (f.isConservative || f.category === "bond" || f.category === "money") {
     return { zh: "防守倉：降低回撤，應付臨近提取或市場波動。", en: "Defensive sleeve for drawdowns and nearer withdrawals." };
@@ -369,9 +380,9 @@ export const GOAL_COPY: Record<GoalId, { zh: string; en: string; blurbZh: string
     blurbZh: "法定收費上限、自動隨年齡降低風險，適合不想揀基金的人。",
   },
   regime: {
-    zh: "因應現時局勢",
-    en: "Current regime",
-    blurbZh: "結合眼下市場（美股、亞洲供應鏈、利率）作核心＋衛星配置。",
+    zh: "因應轉換窗口局勢",
+    en: "Window regime",
+    blurbZh: "用指數近況推演你揀嘅 1 個月／2 個月／半年／1 年窗口，少追基金一年回報。",
   },
 };
 

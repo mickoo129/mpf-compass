@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
   Area,
@@ -19,8 +20,10 @@ import { ReturnCell } from "@/components/funds/return-cell";
 import { uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
+import { buildRegime, HORIZON_COPY, HORIZON_OPTS } from "@/lib/mpf/regime";
 import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
 import type { GoalId, RiskAppetite } from "@/lib/mpf/types";
+import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +38,13 @@ function RecommendPage() {
   const profile = useAppStore((s) => s.profile);
   const setProfile = useAppStore((s) => s.setProfile);
   const schemes = uniqueSchemes();
-  const ranked = useMemo(() => scoreFunds(profile), [profile]);
+  const horizon = profile.switchHorizon ?? "6m";
+  const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
+  const regime = useMemo(
+    () => buildRegime(markets.data?.quotes ?? [], horizon),
+    [markets.data, horizon],
+  );
+  const ranked = useMemo(() => scoreFunds(profile, regime), [profile, regime]);
   const alloc = useMemo(() => buildAllocation(profile, ranked), [profile, ranked]);
   const years = Math.max(1, profile.retireAge - profile.age);
   const path = useMemo(
@@ -56,8 +65,8 @@ function RecommendPage() {
         title={zh ? "先講你要什麼，再在可選範圍內打分。" : "State the goal, then score inside your opportunity set."}
         subtitle={
           zh
-            ? "供款帳戶通常只能在僱主計劃內轉換；個人帳戶可經積金易轉到其他計劃。推介用官方收費、風險與往績打分，並非投資建議。"
-            : "Contribution accounts switch inside the employer scheme; personal accounts can transfer. Scores mix fees, risk fit and track record — not advice."
+            ? "供款帳戶通常只能在僱主計劃內轉換。先揀轉換視野（1個月至1年），配置跟指數局勢推演，唔再淨係跟一年基金回報打分。並非投資建議。"
+            : "Contribution accounts switch inside the employer scheme. Pick a switch window (1 month–1 year); the mix follows index regime, not last year’s fund score. Not advice."
         }
       />
 
@@ -175,6 +184,25 @@ function RecommendPage() {
               </div>
             </div>
             <div className="mt-4">
+              <Label>{zh ? "今次轉換視野" : "Switch window"}</Label>
+              <p className="mt-1 text-[11px] text-subtle">{zh ? HORIZON_COPY[horizon].blurbZh : HORIZON_COPY[horizon].en}</p>
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {HORIZON_OPTS.map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => setProfile({ switchHorizon: h })}
+                    className={cn(
+                      "h-11 rounded-md text-xs sm:text-sm",
+                      horizon === h ? "bg-primary text-primary-fg" : "bg-bg-warm",
+                    )}
+                  >
+                    {zh ? HORIZON_COPY[h].zh : HORIZON_COPY[h].en}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4">
               <Label>{zh ? "配置隻數" : "How many funds"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
                 {zh
@@ -228,6 +256,22 @@ function RecommendPage() {
         </div>
 
         <div className="space-y-5 lg:col-span-7">
+          <Card className="bg-tint-sky">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="font-display text-lg">{zh ? "窗口局勢" : "Window regime"}</h2>
+              <Badge tone="primary">{zh ? regime.windowLabelZh : horizon}</Badge>
+            </div>
+            <p className="mb-2 text-xs text-muted">
+              {zh
+                ? `指數推演（Yahoo），語氣：${regime.tone === "risk-on" ? "偏進取" : regime.tone === "risk-off" ? "偏防守" : "混合"}。唔用基金近一年回報去追升跌。`
+                : `Index regime (${regime.tone}). Does not chase last year’s fund score.`}
+            </p>
+            <ul className="list-disc space-y-1 pl-4 text-sm text-muted">
+              {(zh ? regime.notesZh : regime.notesEn).slice(0, 4).map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          </Card>
           <Card>
             <div className="mb-4">
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>

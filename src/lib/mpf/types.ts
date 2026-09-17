@@ -16,6 +16,8 @@ export type MixSize = "auto" | 1 | 2 | 3 | 4 | 5;
 
 export type ReviewCadence = "auto" | "quarter" | "half" | "year";
 
+export type SwitchHorizon = "1m" | "2m" | "6m" | "1y";
+
 export interface Fund {
   id: string;
   nameEn: string;
@@ -107,6 +109,7 @@ export interface Profile {
   risk: RiskAppetite;
   mixSize: MixSize;
   reviewEvery: ReviewCadence;
+  switchHorizon: SwitchHorizon;
 }
 
 export interface ScoredFund {

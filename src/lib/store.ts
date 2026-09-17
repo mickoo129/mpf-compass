@@ -14,6 +14,7 @@ const defaultProfile: Profile = {
   risk: "moderate",
   mixSize: "auto",
   reviewEvery: "auto",
+  switchHorizon: "6m",
 };
 
 interface AppState {
