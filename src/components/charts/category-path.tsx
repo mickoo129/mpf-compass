@@ -148,7 +148,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
           <thead>
             <tr className="border-b border-border text-xs text-muted">
               <th className="py-1.5 pr-3 text-left font-medium">{zh ? "組別" : "Group"}</th>
-              <th className="py-1.5 px-2 text-right font-medium">{zh ? "2025＝？" : "End-2025"}</th>
+              <th className="py-1.5 px-2 text-right font-medium">{zh ? "2025年底" : "End-2025"}</th>
               <th className="py-1.5 px-2 text-right font-medium">{zh ? "折線折算" : "Line CAGR"}</th>
               <th className="py-1.5 px-2 text-right font-medium">{zh ? "官方5年" : "Official 5Y"}</th>
               <th className="py-1.5 px-2 text-right font-medium">{zh ? "官方10年" : "Official 10Y"}</th>
@@ -183,7 +183,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
         </table>
         <p className="mt-2 text-[11px] leading-relaxed text-subtle">
           {zh
-            ? "例如股票：100 連乘五年曆年中位約到 116，折線折算約 +3%。官方五年約 +5%，因為截至 2026-08-31，含 2026 年前八個月，並非完整 2021–2025。十年及成立至今覆蓋更長、每檔起步日不同。"
+            ? "例如股票：100 連乘五年曆年中位，2025 年底約 116，折線折算約 +3%。官方五年約 +5%，因為截至 2026-08-31，含 2026 年前八個月，並非完整 2021–2025。十年及成立至今覆蓋更長、每檔起步日不同。"
             : "Example, equities: compounding calendar medians reaches ~116 (+3% p.a.). Official 5Y is ~+5% because it runs to 31 Aug 2026, not calendar 2021–2025. 10Y and since-launch cover other windows."}
         </p>
       </div>
