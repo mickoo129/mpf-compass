@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
-import { categoryCalendarPaths, sleeveCalendarPaths, type PathSeries } from "@/lib/mpf/catalog";
+import { catalogMeta, categoryCalendarPaths, sleeveCalendarPaths, type PathSeries } from "@/lib/mpf/catalog";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { cn } from "@/lib/utils";
 
@@ -63,8 +63,8 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
           <h2 className="font-display text-lg">{zh ? "類別走勢（曆年中位）" : "Category path (calendar median)"}</h2>
           <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-muted">
             {zh
-              ? "折線只反映積金局已公布的曆年（2021–2025），2020 年底＝100。下表 5 年／10 年／成立至今才是截至快照日的官方年化，較新，但無法畫成同一條線。"
-              : "The line is MPFA calendar years 2021–2025 only (end-2020 = 100). The 5Y / 10Y / since-launch table is the official annualized snapshot — newer, but not a path."}
+              ? "折線是積金局曆年中位（2021–2025），2020 年底＝100。積金局尚未公布 2026 全年，故線不會畫到 2026。下方市場指數圖才更新至近日。"
+              : "The line is MPFA calendar medians 2021–2025 (end-2020 = 100). 2026 is not a published calendar year yet. The market-index chart below runs to recent dates."}
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-1 sm:items-end">
@@ -173,6 +173,11 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
             ))}
           </tbody>
         </table>
+        <p className="mt-2 text-[11px] leading-relaxed text-subtle">
+          {zh
+            ? `5 年、10 年、成立至今：積金局年化中位，截至 ${catalogMeta.asOf}。沒有官方「年初至今」。成立至今每檔起步日不同。`
+            : `5Y, 10Y and since launch: official annualized medians as of ${catalogMeta.asOf}. No official YTD. Since-launch start dates differ by fund.`}
+        </p>
       </div>
     </Card>
   );
