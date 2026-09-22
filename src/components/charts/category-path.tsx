@@ -63,8 +63,8 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
           <h2 className="font-display text-lg">{zh ? "類別走勢（曆年中位）" : "Category path (calendar median)"}</h2>
           <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-muted">
             {zh
-              ? "折線：每年用該組中位曆年回報，由 2020 年底＝100 連乘至 2025。下表「折線折算」係這條線的年化，應與圖對上。官方 5／10 年／成立至今係截至快照日的另一組年化，時段不同，不應相等。"
-              : "The line compounds each year’s median calendar return from end-2020 = 100. “Line CAGR” is that path, annualized. Official 5Y / 10Y / since-launch are different windows to the snapshot date — they should not match the line."}
+              ? "折線只反映積金局已公布的曆年（2021–2025），2020 年底＝100。下表 5 年／10 年／成立至今才是截至快照日的官方年化，較新，但無法畫成同一條線。"
+              : "The line is MPFA calendar years 2021–2025 only (end-2020 = 100). The 5Y / 10Y / since-launch table is the official annualized snapshot — newer, but not a path."}
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-1 sm:items-end">
@@ -144,14 +144,12 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
         </ResponsiveContainer>
       </div>
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[520px] text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">
               <th className="py-1.5 pr-3 text-left font-medium">{zh ? "組別" : "Group"}</th>
-              <th className="py-1.5 px-2 text-right font-medium">{zh ? "2025年底" : "End-2025"}</th>
-              <th className="py-1.5 px-2 text-right font-medium">{zh ? "折線折算" : "Line CAGR"}</th>
-              <th className="py-1.5 px-2 text-right font-medium">{zh ? "官方5年" : "Official 5Y"}</th>
-              <th className="py-1.5 px-2 text-right font-medium">{zh ? "官方10年" : "Official 10Y"}</th>
+              <th className="py-1.5 px-2 text-right font-medium">{zh ? "5年年化" : "5Y p.a."}</th>
+              <th className="py-1.5 px-2 text-right font-medium">{zh ? "10年年化" : "10Y p.a."}</th>
               <th className="py-1.5 pl-2 text-right font-medium">{zh ? "成立至今" : "Since launch"}</th>
             </tr>
           </thead>
@@ -161,12 +159,6 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
                 <td className="py-1.5 pr-3">
                   <span className="mr-2 inline-block size-2 rounded-full" style={{ background: colors[s.id] }} />
                   {zh ? s.zh : s.en}
-                </td>
-                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-muted">
-                  {s.nav.at(-1)?.nav != null ? s.nav.at(-1)!.nav!.toFixed(1) : "—"}
-                </td>
-                <td className="py-1.5 px-2 text-right">
-                  <ReturnCell value={s.calCagr} />
                 </td>
                 <td className="py-1.5 px-2 text-right">
                   <ReturnCell value={s.ret5y} />
@@ -181,11 +173,6 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-[11px] leading-relaxed text-subtle">
-          {zh
-            ? "例如股票：100 連乘五年曆年中位，2025 年底約 116，折線折算約 +3%。官方五年約 +5%，因為截至 2026-08-31，含 2026 年前八個月，並非完整 2021–2025。十年及成立至今覆蓋更長、每檔起步日不同。"
-            : "Example, equities: compounding calendar medians reaches ~116 (+3% p.a.). Official 5Y is ~+5% because it runs to 31 Aug 2026, not calendar 2021–2025. 10Y and since-launch cover other windows."}
-        </p>
       </div>
     </Card>
   );
