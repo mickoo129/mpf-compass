@@ -6,7 +6,6 @@ import { catalogMeta } from "@/lib/mpf/catalog";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { SchemeBar } from "@/components/layout/scheme-bar";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -60,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b2a4a]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
-          <Link to="/" className="flex min-w-0 items-center gap-2 text-white">
+          <Link to="/" className="flex min-w-0 items-center gap-2 text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
             <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-ink">
               <Compass className="size-4" strokeWidth={1.75} />
             </span>
@@ -89,13 +88,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <SchemeBar />
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right">
-          <div className="mb-6 flex items-center gap-2 pr-8 text-fg">
+          <Link to="/" className="mb-6 flex items-center gap-2 pr-8 text-fg" onClick={() => setOpen(false)}>
             <Compass className="size-5 text-primary" />
             <span className="text-lg font-semibold">{copy.app.zh}</span>
-          </div>
+          </Link>
           {links(false)}
         </SheetContent>
       </Sheet>

@@ -30,7 +30,7 @@ function ComparePage() {
   const clear = useAppStore((s) => s.clearCompare);
   const funds = ids.map(fundById).filter((f): f is NonNullable<typeof f> => !!f);
   const schemeEn = useAppStore((s) => s.profile.schemeEn);
-  const [onlyScheme, setOnlyScheme] = useState(true);
+  const [onlyScheme, setOnlyScheme] = useState(false);
   const providers = providerStats();
   const [provSort, setProvSort] = useState<ProvKey>("ret1y");
   const [provDir, setProvDir] = useState<"desc" | "asc">("desc");

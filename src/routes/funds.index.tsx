@@ -33,6 +33,7 @@ type FundsSearch = {
   sleeve?: string;
   scheme?: string;
   provider?: string;
+  category?: FundCategory;
 };
 
 export const Route = createFileRoute("/funds/")({
@@ -40,6 +41,14 @@ export const Route = createFileRoute("/funds/")({
     sleeve: typeof raw.sleeve === "string" ? raw.sleeve : undefined,
     scheme: typeof raw.scheme === "string" ? raw.scheme : undefined,
     provider: typeof raw.provider === "string" ? raw.provider : undefined,
+    category:
+      raw.category === "equity" ||
+      raw.category === "mixed" ||
+      raw.category === "bond" ||
+      raw.category === "money" ||
+      raw.category === "guaranteed"
+        ? raw.category
+        : undefined,
   }),
   component: FundsPage,
 });
@@ -52,7 +61,7 @@ function FundsPage() {
   const compareIds = useAppStore((s) => s.compareIds);
   const toggle = useAppStore((s) => s.toggleCompare);
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<FundCategory | "all">("all");
+  const [cat, setCat] = useState<FundCategory | "all">(search.category ?? "all");
   const [region, setRegion] = useState<RegionId | "all">("all");
   const [theme, setTheme] = useState<ThemeId | "all">("all");
   const [provider, setProvider] = useState(search.provider ?? "all");
@@ -69,7 +78,8 @@ function FundsPage() {
       if (match) setProvider(match.providerCode);
     }
     if (search.provider) setProvider(search.provider);
-  }, [search.sleeve, search.scheme, search.provider]);
+    if (search.category) setCat(search.category);
+  }, [search.sleeve, search.scheme, search.provider, search.category]);
 
   const providers = uniqueProviders();
   const schemes = uniqueSchemes();
@@ -147,20 +157,41 @@ function FundsPage() {
         }
       />
       <AsOfLine zh={zh} />
-      {sleeve !== "all" ? (
+      {sleeve !== "all" || cat !== "all" ? (
         <p className="mb-3 text-xs text-canvas-muted">
-          {zh ? "已篩策略：" : "Sleeve: "}
-          {SLEEVE_LABEL[sleeve]?.[zh ? "zh" : "en"] ?? sleeve}{" "}
-          <button
-            type="button"
-            className="underline"
-            onClick={() => {
-              setSleeve("all");
-              void navigate({ search: { ...search, sleeve: undefined } });
-            }}
-          >
-            {zh ? "清除" : "Clear"}
-          </button>
+          {sleeve !== "all" ? (
+            <>
+              {zh ? "已篩策略：" : "Sleeve: "}
+              {SLEEVE_LABEL[sleeve]?.[zh ? "zh" : "en"] ?? sleeve}{" "}
+              <button
+                type="button"
+                className="underline"
+                onClick={() => {
+                  setSleeve("all");
+                  void navigate({ search: { ...search, sleeve: undefined } });
+                }}
+              >
+                {zh ? "清除" : "Clear"}
+              </button>
+            </>
+          ) : null}
+          {cat !== "all" ? (
+            <>
+              {sleeve !== "all" ? " · " : null}
+              {zh ? "已篩類別：" : "Type: "}
+              {zh ? CATEGORY_LABEL[cat].zh : CATEGORY_LABEL[cat].en}{" "}
+              <button
+                type="button"
+                className="underline"
+                onClick={() => {
+                  setCat("all");
+                  void navigate({ search: { ...search, category: undefined } });
+                }}
+              >
+                {zh ? "清除" : "Clear"}
+              </button>
+            </>
+          ) : null}
         </p>
       ) : null}
 

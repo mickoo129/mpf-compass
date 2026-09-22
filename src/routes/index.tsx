@@ -20,7 +20,7 @@ import {
   sleeveStats,
   uniqueSchemes,
 } from "@/lib/mpf/catalog";
-import { fmtAum, fmtNum, fmtPct, fmtPctPlain, retClass } from "@/lib/mpf/format";
+import { fmtAum, fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
 import { MPFA_PERIOD_NOTE, PERIOD_LABEL, type MedianPeriod } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -31,8 +31,6 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
-  const profile = useAppStore((s) => s.profile);
-  const setProfile = useAppStore((s) => s.setProfile);
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
   const [period, setPeriod] = useState<MedianPeriod>("ret1y");
 
@@ -40,92 +38,24 @@ function Home() {
   const totalAum = schemes.reduce((s, x) => s + x.aum, 0);
   const cats = categoryStats();
   const sleeves = sleeveStats(period).filter((s) => s.count >= 3).slice(0, 12);
-  const myScheme = schemes.find((s) => s.en === profile.schemeEn);
-  const myFunds = myScheme ? allFunds.filter((f) => f.schemeEn === myScheme.en) : [];
-  const myCheap = [...myFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 3);
-  const myDis = myFunds.filter((f) => f.isDis);
   const lowFee = [...allFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 5);
 
   return (
     <div>
       <PageTitle
         kicker={zh ? "香港強積金 · 成分基金比較" : "Hong Kong MPF · constituent funds"}
-        title={zh ? "先選你的計劃，再比較可轉換的基金。" : "Pick your scheme, then compare funds you can actually switch."}
+        title={zh ? "依據積金局數據，比較全港成分基金。" : "Compare Hong Kong’s MPF funds using official MPFA data."}
         subtitle={
           zh
-            ? `供款帳戶通常只能在僱主計劃內轉換。先鎖定計劃，基金庫、比較與智選會跟住收窄。數字截至 ${catalogMeta.asOf}。`
-            : `Contribution accounts switch inside the employer scheme. Lock a scheme so Funds, Compare and Recommend follow. Figures as of ${catalogMeta.asOf}.`
+            ? `涵蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。點選類別、策略或計劃即可查看相關基金。數字截至 ${catalogMeta.asOf}。`
+            : `${catalogMeta.fundCount} funds, ${catalogMeta.schemeCount} schemes. Tap a type, sleeve or scheme to open that list. As of ${catalogMeta.asOf}.`
         }
       />
       <AsOfLine zh={zh} />
 
-      <Card className="mb-8 bg-tint-sand">
-        <h2 className="font-display text-lg">{zh ? "從你可轉的範圍開始" : "Start with what you can switch"}</h2>
-        <p className="mt-1 text-sm text-muted">
-          {zh
-            ? "收費是少數你能鎖定的項目。過去一年回報最高，不代表下一段仍然領先。"
-            : "Fees are one of the few things you can lock. Last year’s winner is not next year’s forecast."}
-        </p>
-        <select
-          className="mt-3 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)]"
-          value={profile.schemeEn ?? ""}
-          onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
-        >
-          <option value="">{zh ? "選擇你現時的強積金計劃" : "Select your current MPF scheme"}</option>
-          {schemes.map((s) => (
-            <option key={s.en} value={s.en}>
-              {zh ? `${s.zh} · ${s.providerZh}` : `${s.en} · ${s.providerEn}`}
-            </option>
-          ))}
-        </select>
-        {myScheme ? (
-          <div className="mt-4">
-            <p className="text-sm text-fg">
-              {zh ? myScheme.zh : myScheme.en}
-              <span className="ml-2 text-xs text-muted">
-                {myFunds.length} {zh ? "隻可選" : "funds"} · {zh ? "平均開支" : "avg FER"} {myScheme.ferAvg.toFixed(2)}%
-                {myDis.length ? ` · DIS ${myDis.length}` : ""}
-              </span>
-            </p>
-            {myCheap.length ? (
-              <div className="mt-3">
-                <p className="text-[11px] font-medium tracking-wide text-muted uppercase">{zh ? "此計劃開支最低（重點）" : "Lowest FER in this scheme"}</p>
-                <ol className="mt-1 space-y-1">
-                  {myCheap.map((f) => (
-                    <li key={f.id}>
-                      <Link to="/funds/$id" params={{ id: f.id }} className="flex items-baseline justify-between gap-3 text-sm">
-                        <span className="min-w-0 truncate">{zh ? f.nameZh : f.nameEn}</span>
-                        <span className="font-mono tabular-nums text-primary">{fmtPctPlain(f.fer)}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ) : null}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button asChild>
-                <Link to="/funds" search={{ scheme: myScheme.en }}>
-                  {zh ? "查看此計劃基金" : "View scheme funds"} <ArrowRight />
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/compare">{zh ? "比較" : "Compare"}</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/recommend">{zh ? "智選配置" : "Recommend"}</Link>
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <p className="mt-3 text-xs text-subtle">
-            {zh ? "未選計劃時，下列為全港概覽，方便對照，並非你可轉換的全部清單。" : "Until a scheme is chosen, the overview is market-wide — not your switchable menu."}
-          </p>
-        )}
-      </Card>
-
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
-        <Stat label={zh ? "成分基金" : "Funds"} value={String(catalogMeta.fundCount)} hint={zh ? "含不同單位類別" : "incl. unit classes"} tint="bg-tint-sky" />
-        <Stat label={zh ? "註冊計劃" : "Schemes"} value={String(catalogMeta.schemeCount)} hint={zh ? "僱主／行業／集成信託" : "master + industry"} tint="bg-tint-mint" />
+        <Stat to="/funds" label={zh ? "成分基金" : "Funds"} value={String(catalogMeta.fundCount)} hint={zh ? "點選查看全部" : "Tap to browse"} tint="bg-tint-sky" />
+        <Stat to="/schemes" label={zh ? "註冊計劃" : "Schemes"} value={String(catalogMeta.schemeCount)} hint={zh ? "點選查看各計劃基金" : "Tap a scheme’s funds"} tint="bg-tint-mint" />
         <Stat label={zh ? "制度資產" : "System AUM"} value={fmtAum(totalAum)} hint={zh ? "成分基金淨值合計" : "sum of fund NAV"} tint="bg-tint-sand" />
       </div>
 
@@ -139,7 +69,7 @@ function Home() {
             {cats.map((c) => {
               const v = c[period];
               return (
-                <div key={c.category}>
+                <Link key={c.category} to="/funds" search={{ category: c.category }} className="block rounded-lg p-1 -m-1 hover:bg-tint-sky">
                   <div className="mb-1 flex justify-between text-sm">
                     <span>{zh ? { equity: "股票", mixed: "混合資產", bond: "債券", money: "貨幣市場", guaranteed: "保證" }[c.category] : c.category}</span>
                     <ReturnCell value={v} />
@@ -153,7 +83,7 @@ function Home() {
                   <p className="mt-0.5 font-mono text-[11px] text-subtle">
                     n={c.count} · {zh ? "開支" : "FER"} {c.fer?.toFixed(2)}%
                   </p>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -272,8 +202,8 @@ function Home() {
           <h2 className="font-display text-2xl">{zh ? "按目標篩選配置" : "Filter a mix by your goal"}</h2>
           <p className="mt-1 text-sm text-muted">
             {zh
-              ? "在已選計劃內按目標排序，只使用你可以轉換的基金。"
-              : "Rank a mix inside your scheme, using only funds you can switch."}
+              ? "輸入目標與風險，系統會在可轉換範圍內排序基金。"
+              : "Enter a goal and risk appetite; funds are ranked within what you can switch."}
           </p>
         </div>
         <Button asChild>
@@ -286,12 +216,32 @@ function Home() {
   );
 }
 
-function Stat({ label, value, hint, tint }: { label: string; value: string; hint: string; tint?: string }) {
-  return (
-    <Card className={cn("p-4", tint)}>
+function Stat({
+  label,
+  value,
+  hint,
+  tint,
+  to,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  tint?: string;
+  to?: "/funds" | "/schemes";
+}) {
+  const inner = (
+    <>
       <p className="text-xs text-muted">{label}</p>
       <p className="font-display text-2xl tabular-nums text-primary">{value}</p>
       <p className="text-[11px] text-subtle">{hint}</p>
-    </Card>
+    </>
   );
+  if (to) {
+    return (
+      <Link to={to} className="block">
+        <Card className={cn("p-4 transition-transform active:scale-[0.99]", tint)}>{inner}</Card>
+      </Link>
+    );
+  }
+  return <Card className={cn("p-4", tint)}>{inner}</Card>;
 }
