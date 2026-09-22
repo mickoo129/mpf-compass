@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { allFunds, median, uniqueSchemes } from "@/lib/mpf/catalog";
@@ -11,6 +11,7 @@ function SchemesPage() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
   const setProfile = useAppStore((s) => s.setProfile);
+  const navigate = useNavigate();
   const schemes = uniqueSchemes().map((s) => {
     const funds = allFunds.filter((f) => f.schemeEn === s.en);
     return {
@@ -23,14 +24,18 @@ function SchemesPage() {
     };
   });
 
+  function openFunds(schemeEn: string) {
+    void navigate({ to: "/funds", search: { scheme: schemeEn } });
+  }
+
   return (
     <div>
       <PageTitle
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "查看計劃規模、收費與中位回報。按「用此計劃推介」會把計劃帶入智選，只在該計劃可轉換範圍內排序。"
-            : "Size, fees and median returns. “Recommend in scheme” locks the wizard to that scheme’s menu."
+            ? "按計劃可查看其成分基金（與基金庫相同篩選）。若要只在該計劃內推介配置，再用「智選」。"
+            : "Tap a scheme to see its constituent funds in the library. Use Recommend to score only within that scheme."
         }
       />
       <AsOfLine zh={zh} />
@@ -50,9 +55,13 @@ function SchemesPage() {
           </thead>
           <tbody>
             {schemes.map((s) => (
-              <tr key={s.en} className="border-b border-border/70 last:border-0">
+              <tr
+                key={s.en}
+                className="cursor-pointer border-b border-border/70 last:border-0 hover:bg-tint-sky"
+                onClick={() => openFunds(s.en)}
+              >
                 <td className="px-3 py-2.5">
-                  <p className="font-medium">{zh ? s.zh : s.en}</p>
+                  <p className="font-medium text-primary">{zh ? s.zh : s.en}</p>
                   <p className="text-xs text-subtle">
                     {zh ? s.providerZh : s.providerEn}
                     {s.hasDis ? " · DIS" : ""}
@@ -65,23 +74,14 @@ function SchemesPage() {
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.minFer.toFixed(2)}%</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmtPctPlain(s.ret1y)}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmtPctPlain(s.ret5y)}</td>
-                <td className="px-3 py-2.5 text-right">
-                  <div className="flex flex-col items-end gap-1">
-                    <Link
-                      to="/recommend"
-                      className="text-xs text-primary underline-offset-2 hover:underline"
-                      onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
-                    >
-                      {zh ? "用此計劃推介" : "Recommend in scheme"}
-                    </Link>
-                    <Link
-                      to="/funds"
-                      search={{ scheme: s.en }}
-                      className="text-[11px] text-subtle hover:text-fg"
-                    >
-                      {zh ? "到基金庫篩選" : "Browse funds"}
-                    </Link>
-                  </div>
+                <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                  <Link
+                    to="/recommend"
+                    className="text-xs text-muted underline-offset-2 hover:text-primary hover:underline"
+                    onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
+                  >
+                    {zh ? "智選" : "Recommend"}
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -90,24 +90,30 @@ function SchemesPage() {
       </div>
       <div className="space-y-2 md:hidden">
         {schemes.map((s) => (
-          <Card key={s.en} className="p-4">
-            <p className="font-medium">{zh ? s.zh : s.en}</p>
-            <p className="text-xs text-subtle">{zh ? s.providerZh : s.providerEn}</p>
-            <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-xs">
-              <span>{fmtAum(s.aum)}</span>
-              <span>{zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}%</span>
-              <span>{s.count} funds</span>
+          <Card key={s.en} className="p-0">
+            <Link to="/funds" search={{ scheme: s.en }} className="block p-4">
+              <p className="font-medium">{zh ? s.zh : s.en}</p>
+              <p className="text-xs text-subtle">{zh ? s.providerZh : s.providerEn}</p>
+              <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-xs text-muted">
+                <span>{fmtAum(s.aum)}</span>
+                <span>
+                  {zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}%
+                </span>
+                <span>
+                  {s.count} {zh ? "隻" : "funds"}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-primary">{zh ? "查看成分基金 →" : "View funds →"}</p>
+            </Link>
+            <div className="border-t border-border px-4 py-2">
+              <Link
+                to="/recommend"
+                className="text-xs text-muted"
+                onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
+              >
+                {zh ? "用此計劃做智選" : "Recommend in this scheme"}
+              </Link>
             </div>
-            <Link
-              to="/recommend"
-              className="mt-2 inline-block text-xs text-primary"
-              onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
-            >
-              {zh ? "用此計劃推介" : "Recommend in scheme"}
-            </Link>
-            <Link to="/funds" search={{ scheme: s.en }} className="mt-1 ml-3 inline-block text-[11px] text-subtle">
-              {zh ? "到基金庫" : "Browse funds"}
-            </Link>
           </Card>
         ))}
       </div>

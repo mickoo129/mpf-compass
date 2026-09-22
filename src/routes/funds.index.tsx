@@ -63,7 +63,11 @@ function FundsPage() {
 
   useEffect(() => {
     if (search.sleeve) setSleeve(search.sleeve);
-    if (search.scheme) setScheme(search.scheme);
+    if (search.scheme) {
+      setScheme(search.scheme);
+      const match = uniqueSchemes().find((s) => s.en === search.scheme);
+      if (match) setProvider(match.providerCode);
+    }
     if (search.provider) setProvider(search.provider);
   }, [search.sleeve, search.scheme, search.provider]);
 
