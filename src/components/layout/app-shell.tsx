@@ -122,15 +122,15 @@ export function PageTitle({
   subtitle?: string;
 }) {
   return (
-    <div className="mb-6 max-w-3xl min-w-0 animate-fade-up">
+    <div className="mb-6 w-full min-w-0 animate-fade-up">
       {kicker ? (
         <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-accent uppercase">{kicker}</p>
       ) : null}
-      <h1 className="relative pl-3.5 text-2xl font-semibold tracking-tight break-words text-white sm:text-3xl lg:text-4xl">
+      <h1 className="relative w-full pl-3.5 text-[1.375rem] font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
         <span className="absolute top-1 bottom-1 left-0 w-[3px] rounded-full bg-accent" />
         {title}
       </h1>
-      {subtitle ? <p className="mt-2 text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-2 max-w-4xl text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
     </div>
   );
 }

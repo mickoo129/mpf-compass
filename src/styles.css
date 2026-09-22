@@ -57,7 +57,7 @@
   }
 
   h1, h2, h3 {
-    text-wrap: balance;
+    text-wrap: pretty;
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.02em;

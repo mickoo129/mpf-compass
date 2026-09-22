@@ -44,7 +44,7 @@ function Home() {
     <div>
       <PageTitle
         kicker={zh ? "香港強積金 · 成分基金比較" : "Hong Kong MPF · constituent funds"}
-        title={zh ? "依據積金局數據，比較全港成分基金。" : "Compare Hong Kong’s MPF funds using official MPFA data."}
+        title={zh ? "依據積金局數據，比\u2060較全港成分基金。" : "Compare Hong Kong’s MPF funds using official MPFA data."}
         subtitle={
           zh
             ? `涵蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。`
