@@ -99,10 +99,10 @@ function ComparePage() {
     <div>
       <PageTitle
         kicker={zh ? "比較" : "Compare"}
-        title={zh ? "先睇全場對照，再自選並排。" : "Start with the field, then pin your own."}
+        title={zh ? "先看整體對照，再自選並排。" : "Start with the field, then pin your own."}
         subtitle={
           zh
-            ? "積金局公布一年、五年、十年年化。三年由 2023–2025 曆年推算。沒有官方半年。供應商為中位數。撳欄位排序，再加入最多四隻並排。"
+            ? "積金局公布一年、五年、十年年化。三年由 2023–2025 曆年推算。沒有官方半年。供應商為中位數。按欄位排序，再加入最多四隻並排。"
             : "MPFA publishes 1Y, 5Y and 10Y annualized. 3Y is derived from calendar 2023–2025. No official 6-month. Provider rows are medians. Click a column to rank, then pin up to four."
         }
       />
@@ -110,7 +110,7 @@ function ComparePage() {
       {schemeEn ? (
         <label className="mb-4 flex items-center gap-2 text-sm text-canvas-muted">
           <input type="checkbox" checked={onlyScheme} onChange={(e) => setOnlyScheme(e.target.checked)} className="accent-primary" />
-          {zh ? "成分基金排行只顯示我在智選揀嘅計劃" : "Limit the fund board to the scheme chosen in Recommend"}
+          {zh ? "成分基金排行只顯示智選中已選的計劃" : "Limit the fund board to the scheme chosen in Recommend"}
         </label>
       ) : null}
 
@@ -120,7 +120,7 @@ function ComparePage() {
             <h2 className="font-display text-lg">{zh ? "供應商表現（中位）" : "Providers (median)"}</h2>
             <p className="text-[11px] text-subtle">
               {zh
-                ? `撳基金數、資產、FER、1／3／5／10 年排序。而家按${provDir === "desc" ? "高到低" : "低到高"}。中位受旗下主題基金影響。`
+                ? `按基金數、資產、開支比率、1／3／5／10 年排序。現為${provDir === "desc" ? "由高至低" : "由低至高"}。中位數受旗下主題基金影響。`
                 : `Click funds, AUM, FER, 1Y/3Y/5Y/10Y. Now ${provDir === "desc" ? "high to low" : "low to high"}. A median is not every fund.`}
             </p>
           </div>
@@ -174,7 +174,7 @@ function ComparePage() {
             <h2 className="font-display text-lg">{zh ? "成分基金回報" : "Fund returns"}</h2>
             <p className="text-[11px] text-subtle">
               {zh
-                ? `撳 1／3／5／10 年排序。而家按${dir === "desc" ? "高到低" : "低到高"}顯示前 15 隻。三年為推算。`
+                ? `按 1／3／5／10 年排序。現為${dir === "desc" ? "由高至低" : "由低至高"}顯示前 15 隻。三年為推算。`
                 : `Click 1Y/3Y/5Y/10Y. Showing top 15 ${dir === "desc" ? "highest" : "lowest"}. 3Y is derived.`}
             </p>
           </div>
@@ -248,7 +248,7 @@ function ComparePage() {
         <Card className="border-dashed">
           <p className="text-sm text-muted">
             {zh
-              ? "上面排行榜撳「比較」，或到基金庫揀最多四隻。揀完會喺呢度並排回報、收費同風險。"
+              ? "於上方排行榜按「比較」，或到基金庫選取最多四隻。選取後會在此並排回報、收費與風險。"
               : "Pin up to four from the boards above or the fund library."}
           </p>
           <Button asChild className="mt-3" variant="outline">

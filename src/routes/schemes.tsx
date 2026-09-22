@@ -29,7 +29,7 @@ function SchemesPage() {
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "睇計劃規模、收費同中位回報。撳「用此計劃推介」會把計劃帶去智選，只喺該計劃可轉換範圍內排序。"
+            ? "查看計劃規模、收費與中位回報。按「用此計劃推介」會把計劃帶入智選，只在該計劃可轉換範圍內排序。"
             : "Size, fees and median returns. “Recommend in scheme” locks the wizard to that scheme’s menu."
         }
       />

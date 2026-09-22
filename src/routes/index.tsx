@@ -47,7 +47,7 @@ function Home() {
         title={zh ? "依據積金局數據，比較全港成分基金。" : "Compare Hong Kong’s MPF funds using official MPFA data."}
         subtitle={
           zh
-            ? `覆蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。`
+            ? `涵蓋 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個註冊計劃。回報與收費來自積金局基金平台（${catalogMeta.asOf}）。`
             : `${catalogMeta.fundCount} constituent funds across ${catalogMeta.schemeCount} schemes. Official MPFA snapshot ${catalogMeta.asOf}.`
         }
       />
@@ -94,7 +94,7 @@ function Home() {
         <p className="mt-2 text-xs text-canvas-muted">
           {zh
             ? markets.data?.notes
-            : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the 31 Aug snapshot."}
+            : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the fund snapshot date."}
         </p>
       </section>
 
@@ -140,9 +140,9 @@ function Home() {
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="font-display text-xl">{zh ? "此時段中位最高的策略" : "Highest median sleeves this period"}</h2>
-            <p className="mt-1 text-[11px] text-canvas-muted">
+            <p className="mt-1 text-[11px] leading-relaxed text-canvas-muted">
               {zh
-                ? `跟上面揀嘅時段（而家：${PERIOD_LABEL[period].zh}）將積金局分類由高到低排。撳入去基金庫睇嗰組可選基金。唔係預測下一段會繼續第一。`
+                ? `按上方所選時段（現為：${PERIOD_LABEL[period].zh}）將積金局分類由高到低排列。點選可進入基金庫，查看該組可選基金。並非預測下一時段仍會領先。`
                 : `Ranked by the period selected above (now ${PERIOD_LABEL[period].en}). Click through to that sleeve in the library. Not a forecast.`}
             </p>
           </div>
@@ -172,7 +172,7 @@ function Home() {
           </div>
           <p className="mb-3 text-xs text-muted">
             {zh
-              ? "開支比率（FER）係一年經常性收費。長線比較時，同類之中愈低愈少被費用食。"
+              ? "開支比率（FER）為每年經常性收費。同類比較時，較低者長線被費用侵蝕較少。"
               : "The fund expense ratio (FER) is the annual ongoing cost. Lower is better among peers."}
           </p>
           <ol className="space-y-2">

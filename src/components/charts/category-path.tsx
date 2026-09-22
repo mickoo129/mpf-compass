@@ -63,7 +63,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
           <h2 className="font-display text-lg">{zh ? "類別走勢（曆年中位）" : "Category path (calendar median)"}</h2>
           <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-muted">
             {zh
-              ? "折線只用積金局公開嘅 2021–2025 曆年中位，2020 年底＝100。下面 5 年／10 年／成立至今係官方年化中位，唔係把年化砌成假線。"
+              ? "折線只用積金局公開的 2021–2025 曆年中位，2020 年底＝100。下表 5 年／10 年／成立至今為官方年化中位，並非把年化繪成路徑。"
               : "The line uses only official calendar years 2021–2025 (end-2020 = 100). 5Y / 10Y / since-launch below are official annualized medians — not a reconstructed path."}
           </p>
         </div>
@@ -104,7 +104,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
           </div>
         </div>
       </div>
-      <div className="h-72">
+      <div className="h-60 min-w-0 sm:h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="var(--color-border)" vertical={false} />

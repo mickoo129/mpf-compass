@@ -30,13 +30,13 @@ export function IndexPathChart({ zh }: { zh: boolean }) {
       <h2 className="font-display text-lg">{zh ? "市場指數十年（參考）" : "Market indices, 10 years"}</h2>
       <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-muted">
         {zh
-          ? "Yahoo 週線，起點＝100。呢啲係公開市場指數，唔係強積金單位價，亦未扣 FER。用來睇長線市況，唔好同上面積金局類別線直接對賭。"
+          ? "Yahoo 週線，起點＝100。此為公開市場指數，並非強積金單位價，亦未扣除開支比率。用作長線市況參考，不宜與上方積金局類別線直接對照。"
           : "Yahoo weekly, start = 100. Public market indices, not MPF NAVs and not net of FER. Context only — do not match them 1:1 to the MPFA category lines above."}
       </p>
       {q.isLoading ? (
         <Skeleton className="mt-3 h-72" />
       ) : (
-        <div className="mt-3 h-72">
+        <div className="mt-3 h-60 min-w-0 sm:h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="var(--color-border)" vertical={false} />

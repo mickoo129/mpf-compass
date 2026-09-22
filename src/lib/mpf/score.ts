@@ -160,7 +160,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (horizon === "1y" && skill > 0.65) reasons.push("五年同類領先");
     if (regime && fit >= 0.62) reasons.push("展望偏有利");
     if (regime && fit <= 0.32) reasons.push("展望偏弱，不宜追入");
-    if (fund.sleeve === "korea") reasons.push("一年暴升、短線不宜當核心");
+    if (fund.sleeve === "korea") reasons.push("一年升幅較大，短線不宜作為核心");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
 
     return { fund, score, reasons, expectedReturn: expectedReturn(fund, regime, horizon) };
@@ -194,19 +194,19 @@ export function resolvedReview(profile: Profile): {
     quarter: {
       labelZh: "每季",
       labelEn: "Quarterly",
-      zh: "距離提取較近，每季對一次官方數據即可。唔使月月轉——積金局數字本身都係按月，轉換仲有時間差。",
+      zh: "距離提取較近，每季核對一次官方數據即可。不必每月轉換——積金局數字本身按月公布，轉換尚有時間差。",
       en: "Nearer withdrawal: check official data quarterly. Monthly switches add little; MPFA figures are monthly anyway.",
     },
     half: {
       labelZh: "每半年",
       labelEn: "Every 6 months",
-      zh: "年期中等，半年檢討一次。除非轉工、計劃合併或收費大變，否則保持配置。",
+      zh: "年期中等，半年檢討一次。除非轉職、計劃合併或收費大幅變動，否則維持配置。",
       en: "Mid-horizon: review twice a year. Hold the mix unless job, scheme or fee changes.",
     },
     year: {
       labelZh: "每年",
       labelEn: "Yearly",
-      zh: "年期長，一年檢討一次足夠。月月轉容易追落後；DIS 更會自動隨年齡調風險。",
+      zh: "年期較長，一年檢討一次已足夠。每月轉換容易追趕近期表現；預設投資策略更會隨年齡自動調整風險。",
       en: "Long horizon: once a year is enough. Monthly switching chases noise; DIS already glides with age.",
     },
   } as const;
@@ -305,7 +305,7 @@ function holdingReason(s: ScoredFund, i: number, n: number, profile: Profile): {
   if (i === 0) {
     const win = HORIZON_COPY[profile.switchHorizon ?? "6m"].zh;
     return {
-      zh: `核心：按「${win}」展望（利率、52週位置、過熱），加上收費同風險，而唔係近半年或一年回報最高嗰隻。`,
+      zh: `核心：按「${win}」展望（利率、52 週位置、過熱），加上收費與風險，而非近半年或一年回報最高的一檔。`,
       en: "Core: forward outlook for your window (yield, stretch, overheat), plus fees and risk — not the hottest trailing return.",
     };
   }
@@ -371,12 +371,12 @@ export const GOAL_COPY: Record<GoalId, { zh: string; en: string; blurbZh: string
   dis: {
     zh: "跟隨預設策略",
     en: "Default (DIS)",
-    blurbZh: "法定收費上限、自動隨年齡降低風險，適合不想揀基金的人。",
+    blurbZh: "法定收費上限、隨年齡自動降低風險，適合不欲自行挑選基金的人士。",
   },
   regime: {
     zh: "因應轉換窗口局勢",
     en: "Window regime",
-    blurbZh: "用指數近況推演你揀嘅 1 個月／2 個月／半年／1 年窗口，少追基金一年回報。",
+    blurbZh: "以指數近況推演所選的 1 個月／2 個月／半年／1 年窗口，減少追趕基金一年回報。",
   },
 };
 
@@ -391,11 +391,11 @@ export const REVIEW_OPTS: ReviewCadence[] = ["auto", "quarter", "half", "year"];
 
 export const MIX_SIZE_COPY: Record<MixSize, { zh: string; en: string }> = {
   auto: { zh: "自動", en: "Auto" },
-  1: { zh: "1 隻", en: "1 fund" },
-  2: { zh: "2 隻", en: "2 funds" },
-  3: { zh: "3 隻", en: "3 funds" },
-  4: { zh: "4 隻", en: "4 funds" },
-  5: { zh: "5 隻", en: "5 funds" },
+  1: { zh: "1 檔", en: "1 fund" },
+  2: { zh: "2 檔", en: "2 funds" },
+  3: { zh: "3 檔", en: "3 funds" },
+  4: { zh: "4 檔", en: "4 funds" },
+  5: { zh: "5 檔", en: "5 funds" },
 };
 
 export const REVIEW_COPY: Record<ReviewCadence, { zh: string; en: string }> = {

@@ -90,7 +90,7 @@ export const getMarkets = createServerFn({ method: "GET" }).handler(async (): Pr
     fetchedAt: new Date().toISOString(),
     quotes,
     notes:
-      "指數報價來自 Yahoo Finance（港股約延遲 15 分鐘），唔係積金局基金單位價格，亦唔係基金快照日期。",
+      "指數報價來自 Yahoo Finance（港股約延遲 15 分鐘），並非積金局基金單位價格，亦非基金快照日期。",
   };
   cache = { at: Date.now(), data };
   return data;

@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             to={item.to}
             onClick={() => setOpen(false)}
             className={cn(
-              "rounded-md px-3 py-2.5 text-sm font-medium transition-colors md:py-1.5",
+                "rounded-md px-2.5 py-2.5 text-sm font-medium transition-colors md:px-2 md:py-1.5 md:text-xs lg:px-3 lg:text-sm",
               onNavy
                 ? active
                   ? "bg-white text-fg"
@@ -59,12 +59,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b2a4a]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
-          <Link to="/" className="flex items-center gap-2 text-white">
-            <span className="flex size-8 items-center justify-center rounded-md bg-accent text-ink">
+          <Link to="/" className="flex min-w-0 items-center gap-2 text-white">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-ink">
               <Compass className="size-4" strokeWidth={1.75} />
             </span>
-            <span className="text-lg leading-none font-semibold tracking-tight">{copy.app.zh}</span>
-            <span className="hidden text-[11px] tracking-[0.16em] text-canvas-muted sm:inline">MPF COMPASS</span>
+            <span className="truncate text-base leading-none font-semibold tracking-tight sm:text-lg">{copy.app.zh}</span>
+            <span className="hidden text-[11px] tracking-[0.14em] text-canvas-muted lg:inline">MPF COMPASS</span>
           </Link>
           <div className="hidden md:block">{links(true)}</div>
           <div className="flex items-center gap-1">
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {links(false)}
         </SheetContent>
       </Sheet>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-3 py-5 sm:px-4 sm:py-8">{children}</main>
       <footer className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <p className="text-xs leading-relaxed text-canvas-muted">
@@ -122,15 +122,15 @@ export function PageTitle({
   subtitle?: string;
 }) {
   return (
-    <div className="mb-6 max-w-3xl animate-fade-up">
+    <div className="mb-6 max-w-3xl min-w-0 animate-fade-up">
       {kicker ? (
         <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-accent uppercase">{kicker}</p>
       ) : null}
-      <h1 className="relative pl-3.5 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+      <h1 className="relative pl-3.5 text-2xl font-semibold tracking-tight break-words text-white sm:text-3xl lg:text-4xl">
         <span className="absolute top-1 bottom-1 left-0 w-[3px] rounded-full bg-accent" />
         {title}
       </h1>
-      {subtitle ? <p className="mt-2 text-sm text-canvas-muted sm:text-base">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-2 text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
     </div>
   );
 }
@@ -139,7 +139,7 @@ export function AsOfLine({ zh }: { zh: boolean }) {
   return (
     <p className="mb-5 text-[11px] leading-relaxed text-canvas-muted">
       {zh
-        ? `基金回報、收費、風險：積金局 ${catalogMeta.asOf}。指數：Yahoo Finance，打開頁更新。兩者不是同一日。`
+        ? `基金回報、收費、風險：積金局 ${catalogMeta.asOf}。指數：Yahoo Finance，開啟頁面時更新。兩者日期並不相同。`
         : `Fund returns, fees and risk: MPFA ${catalogMeta.asOf}. Indices: Yahoo Finance, refresh on load. These dates are not the same.`}
     </p>
   );

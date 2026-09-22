@@ -37,20 +37,22 @@ function PillRow({
   zh: boolean;
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-lg bg-white/10 p-1">
+    <div className="w-full min-w-0 overflow-x-auto pb-1">
+      <div className="inline-flex flex-nowrap gap-1 rounded-lg bg-white/10 p-1">
       {periods.map((p) => (
         <button
           key={p}
           type="button"
           onClick={() => onChange(p)}
           className={cn(
-            "h-8 rounded-md px-2.5 text-xs",
+            "h-8 shrink-0 rounded-md px-2.5 text-xs whitespace-nowrap",
             value === p ? "bg-white text-fg shadow-sm" : "text-canvas-muted hover:text-white",
           )}
         >
           {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
         </button>
       ))}
+      </div>
     </div>
   );
 }

@@ -218,12 +218,12 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   if (yieldLevel != null) {
     outlookZh.push(
       short
-        ? `${outlookLabelZh}：孳息 ${yieldLevel.toFixed(2)}%${yieldMove != null && yieldMove > 0 ? "且近月上行" : ""}。短線債券跟利率方向走；預期回報主要係孳息，不是預測減息幅度。`
-        : `${outlookLabelZh}：債券預期回報主要來自而家 ${yieldLevel.toFixed(2)}% 起始孳息。孳息愈高、一年持有期的carry愈清楚，唔使估利率頂。`,
+        ? `${outlookLabelZh}：孳息 ${yieldLevel.toFixed(2)}%${yieldMove != null && yieldMove > 0 ? "且近月上行" : ""}。短線債券跟隨利率方向；預期回報主要是孳息，並非預測減息幅度。`
+        : `${outlookLabelZh}：債券預期回報主要來自現時 ${yieldLevel.toFixed(2)}% 起始孳息。孳息愈高，一年持有期的票息收益愈明確，不必猜測利率高位。`,
     );
     outlookEn.push(`${outEn}: bond outlook starts from ${yieldLevel.toFixed(2)}% yield, not a rate call.`);
   }
-  outlookZh.push("展望用而家利率、52週位置同過熱程度，唔係把過去半年當成未來。指數亦唔等於基金單位價；並非保證賺錢。");
+  outlookZh.push("展望採用現時利率、52 週位置與過熱程度，並非把過去半年視為未來。指數亦不等於基金單位價；並非保證獲利。");
   outlookEn.push("Outlook uses starting yield and 52-week stretch, not “past = future”. Not a profit guarantee.");
 
   return {
@@ -244,10 +244,10 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
 export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "2m", "6m", "1y"];
 
 export const HORIZON_COPY: Record<SwitchHorizon, { zh: string; en: string; blurbZh: string }> = {
-  "1m": { zh: "1 個月", en: "1 month", blurbZh: "未來一個月：過熱就減、利率上行就輕債券。唔把近月升幅當成下月保證。" },
-  "2m": { zh: "2 個月", en: "2 months", blurbZh: "未來兩個月：動量同回吐風險並重，避開一年暴升嘅核心倉。" },
-  "6m": { zh: "半年", en: "6 months", blurbZh: "未來半年：起始孳息、相對滯後同收費為主，少追近月熱門。" },
-  "1y": { zh: "1 年", en: "1 year", blurbZh: "未來一年：收費、五年質素同孳息carry。過去一年回報權重最低。" },
+  "1m": { zh: "1 個月", en: "1 month", blurbZh: "未來一個月：過熱則減持，利率上行則減輕債券。不會把近月升幅視為下月保證。" },
+  "2m": { zh: "2 個月", en: "2 months", blurbZh: "未來兩個月：動量與回吐風險並重，避免以一年急升的基金作為核心。" },
+  "6m": { zh: "半年", en: "6 months", blurbZh: "未來半年：以起始孳息、相對滯後與收費為主，減少追趕近月熱門。" },
+  "1y": { zh: "1 年", en: "1 year", blurbZh: "未來一年：收費、五年質素與孳息收益為主。過去一年回報權重最低。" },
 };
 
 export function horizonWeights(horizon: SwitchHorizon, goal: string): {

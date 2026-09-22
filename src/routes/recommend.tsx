@@ -86,26 +86,26 @@ function RecommendPage() {
     <div>
       <PageTitle
         kicker={zh ? "目標推介" : "Goal-based"}
-        title={zh ? "先講你要什麼，再在可選範圍內打分。" : "State the goal, then score inside your opportunity set."}
+        title={zh ? "先設定目標，再在可選範圍內評分。" : "State the goal, then score inside your opportunity set."}
         subtitle={
           zh
-            ? "供款帳戶通常只能在僱主計劃內轉換。轉換視野係未來持有期；配置跟展望（利率、52週位置、過熱），唔把過去半年當成未來。並非投資建議，亦不保證獲利。"
+            ? "供款帳戶通常只能在僱主計劃內轉換。轉換視野是未來持有期；配置跟隨展望（利率、52 週位置、過熱），不會把過去半年視為未來。並非投資建議，亦不保證獲利。"
             : "Contribution accounts switch inside the employer scheme. The window is forward-looking: yield, 52-week stretch and overheat — not “past 6 months = next 6 months”. Not advice and not a profit guarantee."
         }
       />
       <AsOfLine zh={zh} />
 
       <Card className="mb-6 bg-tint-sand">
-        <h2 className="mb-1 font-display text-lg">{zh ? "策略點來" : "Where the mix comes from"}</h2>
+        <h2 className="mb-1 font-display text-lg">{zh ? "策略來源" : "Where the mix comes from"}</h2>
         <p className="mb-3 text-sm text-muted">
           {zh
-            ? "呢個唔係積金局或受託人嘅官方部署，亦唔係預測必賺。配置係一條公開規則：用你填嘅目標，加上積金局長線數字，再用最新指數避免追過熱。"
+            ? "此並非積金局或受託人的官方部署，亦非預測必賺。配置是一條公開規則：按你填寫的目標，結合積金局長線數字，再用最新指數避免追趕過熱。"
             : "This is not an MPFA or trustee allocation, and not a profit forecast. The mix is a published rule: your goal, MPFA long-horizon figures, then live indices to avoid chasing heat."}
         </p>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
-          <li>{zh ? "你：目標、風險、轉換視野（未來持有幾耐）、僱主計劃可選範圍。" : "You: goal, risk, switch window, and the employer-scheme menu."}</li>
-          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現——用來判斷呢隻基金貴唔貴、風險啱唔啱、同類之中穩唔穩。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
-          <li>{zh ? "Yahoo 指數（打開頁即更新）：利率起始孳息、距離 52 週高位、過熱——用來加減倉，唔把過去半年當成未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
+          <li>{zh ? "你：目標、風險、轉換視野（未來持有多久）、僱主計劃可選範圍。" : "You: goal, risk, switch window, and the employer-scheme menu."}</li>
+          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現——用以判斷基金是否偏貴、風險是否合適、同類之中是否落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
+          <li>{zh ? "Yahoo 指數（開啟頁面時更新）：利率起始孳息、距離 52 週高位、過熱——用作調整比重，不會把過去半年視為未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
         </ol>
       </Card>
 
@@ -113,7 +113,7 @@ function RecommendPage() {
         <div className="space-y-5 lg:col-span-5">
           <Card>
             <h2 className="mb-4 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={zh ? "年齡" : "Age"}>
                 <div className="flex items-center gap-3">
                   <Slider min={18} max={64} value={[profile.age]} onValueChange={([v]) => setProfile({ age: v ?? 35 })} />
@@ -215,7 +215,7 @@ function RecommendPage() {
             <div className="mt-4">
               <Label>{zh ? "今次轉換視野" : "Switch window"}</Label>
               <p className="mt-1 text-[11px] text-subtle">{zh ? HORIZON_COPY[horizon].blurbZh : HORIZON_COPY[horizon].en}</p>
-              <div className="mt-2 grid grid-cols-4 gap-1">
+              <div className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-4">
                 {HORIZON_OPTS.map((h) => (
                   <button
                     key={h}
@@ -233,23 +233,23 @@ function RecommendPage() {
             </div>
             <div className="mt-4">
               <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
-                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：隻數同檢討節奏" : "Advanced: mix size and review"}
+                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：基金數目與檢討節奏" : "Advanced: mix size and review"}
               </button>
             </div>
             {advanced ? (
               <>
             <div className="mt-4">
-              <Label>{zh ? "配置隻數" : "How many funds"}</Label>
+              <Label>{zh ? "配置基金數目" : "How many funds"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
                 {zh
                   ? mixSize === "auto"
-                    ? `按目標同剩餘年期，自動用 ${mixN} 隻。可以自行改。`
-                    : `你指定 ${mixN} 隻。計劃可選基金少嘅時候會自動減少。`
+                    ? `按目標及剩餘年期，自動採用 ${mixN} 檔。亦可自行更改。`
+                    : `你指定 ${mixN} 檔。計劃可選基金較少時會自動減少。`
                   : mixSize === "auto"
                     ? `Auto-picked ${mixN} for this goal and horizon.`
                     : `You chose ${mixN}. Capped if the scheme has fewer funds.`}
               </p>
-              <div className="mt-2 grid grid-cols-6 gap-1">
+              <div className="mt-2 grid grid-cols-3 gap-1 sm:grid-cols-6">
                 {MIX_SIZE_OPTS.map((n) => (
                   <button
                     key={String(n)}
@@ -269,10 +269,10 @@ function RecommendPage() {
               <Label>{zh ? "檢討節奏" : "Review cadence"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
                 {zh
-                  ? "強積金唔使月月轉。積金局數字按月出，密轉容易追落後。"
+                  ? "強積金不必每月轉換。積金局數字按月公布，頻繁轉換容易追趕落後表現。"
                   : "MPF is not a monthly trade. Official NAVs are monthly; frequent switches chase noise."}
               </p>
-              <div className="mt-2 grid grid-cols-4 gap-1">
+              <div className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-4">
                 {REVIEW_OPTS.map((r) => (
                   <button
                     key={r}
@@ -301,7 +301,7 @@ function RecommendPage() {
             </div>
             <p className="mb-3 text-xs text-muted">
               {zh
-                ? `指數每載入更新（Yahoo）。語氣：${regime.tone === "risk-on" ? "偏進取" : regime.tone === "risk-off" ? "偏防守" : "混合"}。${markets.data?.fetchedAt ? `更新 ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}。配置跟右邊展望，唔跟左邊已發生。`
+                ? `指數每次載入更新（Yahoo）。語氣：${regime.tone === "risk-on" ? "偏進取" : regime.tone === "risk-off" ? "偏防守" : "混合"}。${markets.data?.fetchedAt ? `更新 ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}。配置跟隨右側展望，並非左側已發生走勢。`
                 : `Yahoo indices refresh on load (${regime.tone}). Mix follows outlook, not the lookback.`}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -332,7 +332,7 @@ function RecommendPage() {
               <div>
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
               <p className="text-xs text-subtle">
-                {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · ${alloc.length} 隻` : `Target risk ${riskT} · ${years} years · ${alloc.length} funds`}
+                {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · ${alloc.length} 檔` : `Target risk ${riskT} · ${years} years · ${alloc.length} funds`}
               </p>
               </div>
               <Button variant="outline" size="sm" onClick={copyMix} disabled={!alloc.length}>
@@ -376,7 +376,7 @@ function RecommendPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "幾時再睇" : "When to review"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "下次檢討" : "When to review"}</h2>
             <p className="font-display text-xl">
               {zh ? review.labelZh : review.labelEn}
               {reviewEvery === "auto" ? (zh ? "（按年期建議）" : " (from horizon)") : ""}
@@ -384,7 +384,7 @@ function RecommendPage() {
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
             <p className="mt-2 text-[11px] text-subtle">
               {zh
-                ? "除非轉工、計劃合併、臨近提取或收費明顯變貴，否則保持呢個配置。呢度唔係投資建議。"
+                ? "除非轉職、計劃合併、臨近提取或收費明顯上升，否則維持此配置。此處並非投資建議。"
                 : "Hold the mix unless job, scheme, near-withdrawal or a fee jump. Not investment advice."}
             </p>
           </Card>
@@ -393,7 +393,7 @@ function RecommendPage() {
             <h2 className="mb-1 font-display text-lg">{zh ? "假設滾存示意" : "Illustrative path"}</h2>
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? "用規則假設嘅年化，把現有結餘同每月供款滾到退休。牛／熊只係波動帶。唔係預測，亦唔保證。"
+                ? "以規則假設的年化，把現有結餘與每月供款滾存至退休。牛／熊僅為波動帶。並非預測，亦不保證。"
                 : "Rolls balance and contributions at a rule-based assumed return. Bands are volatility only. Not a forecast and not a guarantee."}
             </p>
             <div className="h-52">

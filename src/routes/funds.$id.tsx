@@ -76,7 +76,7 @@ function FundDetail() {
       </p>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">{zh ? fund.nameZh : fund.nameEn}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight break-words text-white sm:text-3xl">{zh ? fund.nameZh : fund.nameEn}</h1>
           <p className="mt-1 text-sm text-canvas-muted">
             {zh ? fund.nameEn : fund.nameZh} · {zh ? fund.providerZh : fund.providerEn}
           </p>
