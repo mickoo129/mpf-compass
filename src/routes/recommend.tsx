@@ -104,7 +104,7 @@ function RecommendPage() {
         </p>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
           <li>{zh ? "你：目標、風險、轉換視野（未來持有幾耐）、僱主計劃可選範圍。" : "You: goal, risk, switch window, and the employer-scheme menu."}</li>
-          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類——決定 qual 唔 qual。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing.`}</li>
+          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現——用來判斷呢隻基金貴唔貴、風險啱唔啱、同類之中穩唔穩。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
           <li>{zh ? "Yahoo 指數（打開頁即更新）：利率起始孳息、距離 52 週高位、過熱——用來加減倉，唔把過去半年當成未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
         </ol>
       </Card>
@@ -132,20 +132,10 @@ function RecommendPage() {
                 </div>
               </Field>
               <Field label={zh ? "現有結餘（港元）" : "Balance (HKD)"}>
-                <Input
-                  type="number"
-                  min={0}
-                  value={profile.balance}
-                  onChange={(e) => setProfile({ balance: Number(e.target.value) || 0 })}
-                />
+                <MoneyInput value={profile.balance} onChange={(n) => setProfile({ balance: n })} />
               </Field>
               <Field label={zh ? "每月供款" : "Monthly contribution"}>
-                <Input
-                  type="number"
-                  min={0}
-                  value={profile.monthly}
-                  onChange={(e) => setProfile({ monthly: Number(e.target.value) || 0 })}
-                />
+                <MoneyInput value={profile.monthly} onChange={(n) => setProfile({ monthly: n })} />
               </Field>
             </div>
             <div className="mt-4">
@@ -470,6 +460,26 @@ function RecommendPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function MoneyInput({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const [text, setText] = useState(value ? String(Math.round(value)) : "");
+  useEffect(() => {
+    const next = value ? String(Math.round(value)) : "";
+    setText((cur) => (Number(cur || 0) === value ? cur : next));
+  }, [value]);
+  return (
+    <Input
+      inputMode="numeric"
+      value={text}
+      placeholder="0"
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^\d]/g, "");
+        setText(raw);
+        onChange(raw === "" ? 0 : Number(raw));
+      }}
+    />
   );
 }
 
