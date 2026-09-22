@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Sparkline } from "@/components/charts/sparkline";
 import { CategoryPathChart } from "@/components/charts/category-path";
+import { IndexPathChart } from "@/components/charts/index-path";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -129,6 +130,9 @@ function Home() {
         </Card>
         <div className="mt-4">
           <CategoryPathChart zh={zh} />
+        </div>
+        <div className="mt-4">
+          <IndexPathChart zh={zh} />
         </div>
       </section>
 

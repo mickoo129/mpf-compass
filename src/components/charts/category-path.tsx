@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { categoryCalendarPaths, sleeveCalendarPaths, type PathSeries } from "@/lib/mpf/catalog";
+import { ReturnCell } from "@/components/funds/return-cell";
 import { cn } from "@/lib/utils";
 
 const CAT_COLORS: Record<string, string> = {
@@ -62,8 +63,8 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
           <h2 className="font-display text-lg">{zh ? "類別走勢（曆年中位）" : "Category path (calendar median)"}</h2>
           <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-muted">
             {zh
-              ? "積金局只有 2021–2025 曆年可連成折線。十年／二十年只有一個年化數字，唔可以畫真路徑。2020 年底＝100。"
-              : "MPFA only publishes calendar years 2021–2025 as a path. 10Y/20Y are single annualized figures, not a series. End-2020 = 100."}
+              ? "折線只用積金局公開嘅 2021–2025 曆年中位，2020 年底＝100。下面 5 年／10 年／成立至今係官方年化中位，唔係把年化砌成假線。"
+              : "The line uses only official calendar years 2021–2025 (end-2020 = 100). 5Y / 10Y / since-launch below are official annualized medians — not a reconstructed path."}
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-1 sm:items-end">
@@ -141,6 +142,37 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
             ))}
           </LineChart>
         </ResponsiveContainer>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="py-1.5 pr-3 text-left font-medium">{zh ? "組別" : "Group"}</th>
+              <th className="py-1.5 px-2 text-right font-medium">{zh ? "5年年化" : "5Y p.a."}</th>
+              <th className="py-1.5 px-2 text-right font-medium">{zh ? "10年年化" : "10Y p.a."}</th>
+              <th className="py-1.5 pl-2 text-right font-medium">{zh ? "成立至今" : "Since launch"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {series.map((s) => (
+              <tr key={s.id} className="border-b border-border/60 last:border-0">
+                <td className="py-1.5 pr-3">
+                  <span className="mr-2 inline-block size-2 rounded-full" style={{ background: colors[s.id] }} />
+                  {zh ? s.zh : s.en}
+                </td>
+                <td className="py-1.5 px-2 text-right">
+                  <ReturnCell value={s.ret5y} />
+                </td>
+                <td className="py-1.5 px-2 text-right">
+                  <ReturnCell value={s.ret10y} />
+                </td>
+                <td className="py-1.5 pl-2 text-right">
+                  <ReturnCell value={s.retSince} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </Card>
   );

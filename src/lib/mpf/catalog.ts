@@ -297,6 +297,9 @@ export type PathSeries = {
   count: number;
   rets: { year: number; ret: number | null }[];
   nav: { year: number; nav: number | null }[];
+  ret5y: number | null;
+  ret10y: number | null;
+  retSince: number | null;
 };
 
 function calendarPath(funds: Fund[], id: string, zh: string, en: string): PathSeries {
@@ -314,7 +317,17 @@ function calendarPath(funds: Fund[], id: string, zh: string, en: string): PathSe
       points.push({ year: row.year, nav });
     }
   }
-  return { id, zh, en, count: funds.length, rets, nav: points };
+  return {
+    id,
+    zh,
+    en,
+    count: funds.length,
+    rets,
+    nav: points,
+    ret5y: median(funds.map((f) => f.ret5y ?? NaN)),
+    ret10y: median(funds.map((f) => f.ret10y ?? NaN)),
+    retSince: median(funds.map((f) => f.retSince ?? NaN)),
+  };
 }
 
 export function categoryCalendarPaths(): PathSeries[] {

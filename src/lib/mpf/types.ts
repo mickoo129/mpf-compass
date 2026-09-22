@@ -98,6 +98,18 @@ export interface MarketsPayload {
   notes: string;
 }
 
+export interface IndexPath {
+  symbol: string;
+  nameZh: string;
+  nameEn: string;
+  points: { t: string; nav: number }[];
+}
+
+export interface IndexPathsPayload {
+  fetchedAt: string;
+  series: IndexPath[];
+}
+
 export interface Profile {
   age: number;
   retireAge: number;

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { MarketQuote, MarketsPayload } from "@/lib/mpf/types";
+import type { IndexPath, IndexPathsPayload, MarketQuote, MarketsPayload } from "@/lib/mpf/types";
 
 const INDICES: { symbol: string; nameZh: string; nameEn: string }[] = [
   { symbol: "^HSI", nameZh: "恒生指數", nameEn: "Hang Seng" },
@@ -90,8 +90,71 @@ export const getMarkets = createServerFn({ method: "GET" }).handler(async (): Pr
     fetchedAt: new Date().toISOString(),
     quotes,
     notes:
-      "指數報價來自 Yahoo Finance（港股約延遲 15 分鐘），唔係積金局基金單位價格，亦唔係 8 月 31 日快照。",
+      "指數報價來自 Yahoo Finance（港股約延遲 15 分鐘），唔係積金局基金單位價格，亦唔係基金快照日期。",
   };
   cache = { at: Date.now(), data };
+  return data;
+});
+
+const PATH_INDICES = [
+  { symbol: "^HSI", nameZh: "恒生指數", nameEn: "Hang Seng" },
+  { symbol: "^GSPC", nameZh: "標普 500", nameEn: "S&P 500" },
+  { symbol: "^N225", nameZh: "日經 225", nameEn: "Nikkei 225" },
+  { symbol: "^KS11", nameZh: "韓國綜指", nameEn: "KOSPI" },
+  { symbol: "000300.SS", nameZh: "滬深 300", nameEn: "CSI 300" },
+  { symbol: "^STOXX50E", nameZh: "歐元區 50", nameEn: "Euro Stoxx 50" },
+];
+
+let pathCache: { at: number; data: IndexPathsPayload } | null = null;
+const PATH_TTL_MS = 60 * 60 * 1000;
+
+async function fetchIndexPath(symbol: string): Promise<IndexPath | null> {
+  const meta = PATH_INDICES.find((i) => i.symbol === symbol);
+  if (!meta) return null;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1wk&range=10y`;
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; MPFCompass/1.0)",
+      Accept: "application/json",
+    },
+  });
+  if (!res.ok) return null;
+  const body = (await res.json()) as {
+    chart?: {
+      result?: {
+        timestamp?: number[];
+        indicators?: { quote?: { close?: (number | null)[] }[] };
+      }[];
+    };
+  };
+  const result = body.chart?.result?.[0];
+  const timestamps = result?.timestamp ?? [];
+  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+  const monthly = new Map<string, number>();
+  for (let i = 0; i < timestamps.length; i++) {
+    const c = closes[i];
+    if (c == null || !Number.isFinite(c)) continue;
+    const d = new Date(timestamps[i]! * 1000);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    monthly.set(key, c);
+  }
+  const keys = [...monthly.keys()].sort();
+  const first = monthly.get(keys[0] ?? "");
+  if (!first || keys.length < 12) return null;
+  return {
+    symbol,
+    nameZh: meta.nameZh,
+    nameEn: meta.nameEn,
+    points: keys.map((t) => ({ t, nav: ((monthly.get(t) ?? first) / first) * 100 })),
+  };
+}
+
+export const getIndexPaths = createServerFn({ method: "GET" }).handler(async (): Promise<IndexPathsPayload> => {
+  if (pathCache && Date.now() - pathCache.at < PATH_TTL_MS) return pathCache.data;
+  const series = (await Promise.all(PATH_INDICES.map((i) => fetchIndexPath(i.symbol).catch(() => null)))).filter(
+    (s): s is IndexPath => s != null,
+  );
+  const data: IndexPathsPayload = { fetchedAt: new Date().toISOString(), series };
+  pathCache = { at: Date.now(), data };
   return data;
 });
