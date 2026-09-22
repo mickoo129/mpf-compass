@@ -8,7 +8,7 @@ export type AccountKind = "contribution" | "personal";
 
 export type MixSize = "auto" | 1 | 2 | 3 | 4 | 5;
 
-export type ReviewCadence = "auto" | "quarter" | "half" | "year";
+export type ReviewCadence = "auto" | "month" | "quarter" | "half" | "year";
 
 export type SwitchHorizon = "1m" | "3m" | "6m" | "1y";
 
@@ -130,4 +130,12 @@ export interface Allocation {
   weight: number;
   reasonZh: string;
   reasonEn: string;
+}
+
+export interface SavedMix {
+  at: string;
+  horizon: SwitchHorizon;
+  schemeEn: string | null;
+  goal: GoalId;
+  holdings: { id: string; weight: number; nameZh: string; nameEn: string }[];
 }

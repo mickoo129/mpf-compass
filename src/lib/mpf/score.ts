@@ -183,32 +183,37 @@ export function resolvedReview(profile: Profile): {
   labelZh: string;
   labelEn: string;
 } {
-  const years = profile.retireAge - profile.age;
   const copy = {
+    month: {
+      labelZh: "一個月後",
+      labelEn: "In 1 month",
+      zh: "請於一個月後返回本頁，對照今次建議。積金局數字按月公布，一個月內單位價未必已更新。",
+      en: "Come back in a month to compare with this mix. Official NAVs are monthly.",
+    },
     quarter: {
-      labelZh: "每季",
-      labelEn: "Quarterly",
-      zh: "距離提取較近，每季核對一次官方數據即可。不必每月轉換——積金局數字本身按月公布，轉換尚有時間差。",
-      en: "Nearer withdrawal: check official data quarterly. Monthly switches add little; MPFA figures are monthly anyway.",
+      labelZh: "三個月後",
+      labelEn: "In 3 months",
+      zh: "請於三個月後返回對照。期間不必因短期升跌而轉換。",
+      en: "Come back in a quarter. Do not switch on short-term noise.",
     },
     half: {
-      labelZh: "每半年",
-      labelEn: "Every 6 months",
-      zh: "年期中等，半年檢討一次。除非轉職、計劃合併或收費大幅變動，否則維持配置。",
-      en: "Mid-horizon: review twice a year. Hold the mix unless job, scheme or fee changes.",
+      labelZh: "半年後",
+      labelEn: "In 6 months",
+      zh: "請於半年後返回對照。除非轉職、計劃合併或收費大變，否則維持。",
+      en: "Come back in six months. Hold unless job, scheme or fee changes.",
     },
     year: {
-      labelZh: "每年",
-      labelEn: "Yearly",
-      zh: "年期較長，一年檢討一次已足夠。每月轉換容易追趕近期表現；預設投資策略更會隨年齡自動調整風險。",
-      en: "Long horizon: once a year is enough. Monthly switching chases noise; DIS already glides with age.",
+      labelZh: "一年後",
+      labelEn: "In 1 year",
+      zh: "請於一年後返回對照。每月轉換容易追趕近期表現。",
+      en: "Come back in a year. Monthly switching chases noise.",
     },
   } as const;
   const chosen = profile.reviewEvery ?? "auto";
   if (chosen !== "auto") return { cadence: chosen, ...copy[chosen] };
-  if (profile.goal === "dis" || years >= 15) return { cadence: "year", ...copy.year };
-  if (years < 8) return { cadence: "quarter", ...copy.quarter };
-  return { cadence: "half", ...copy.half };
+  const fromHorizon = { "1m": "month", "3m": "quarter", "6m": "half", "1y": "year" } as const;
+  const cadence = fromHorizon[profile.switchHorizon ?? "6m"];
+  return { cadence, ...copy[cadence] };
 }
 
 function weightsFor(n: number, years: number): number[] {
@@ -381,7 +386,7 @@ export const RISK_COPY: Record<RiskAppetite, { zh: string; en: string }> = {
 };
 
 export const MIX_SIZE_OPTS: MixSize[] = ["auto", 1, 2, 3, 4, 5];
-export const REVIEW_OPTS: ReviewCadence[] = ["auto", "quarter", "half", "year"];
+export const REVIEW_OPTS: ReviewCadence[] = ["auto", "month", "quarter", "half", "year"];
 
 export const MIX_SIZE_COPY: Record<MixSize, { zh: string; en: string }> = {
   auto: { zh: "自動", en: "Auto" },
@@ -393,9 +398,55 @@ export const MIX_SIZE_COPY: Record<MixSize, { zh: string; en: string }> = {
 };
 
 export const REVIEW_COPY: Record<ReviewCadence, { zh: string; en: string }> = {
-  auto: { zh: "自動建議", en: "Suggested" },
-  quarter: { zh: "每季", en: "Quarterly" },
-  half: { zh: "每半年", en: "Every 6 months" },
-  year: { zh: "每年", en: "Yearly" },
+  auto: { zh: "跟轉換視野", en: "Follow window" },
+  month: { zh: "一個月", en: "1 month" },
+  quarter: { zh: "三個月", en: "3 months" },
+  half: { zh: "半年", en: "6 months" },
+  year: { zh: "一年", en: "1 year" },
 };
+
+export function compareSavedMix(
+  saved: { holdings: { id: string }[] } | null,
+  next: Allocation[],
+  ranked: ScoredFund[],
+): { status: "none" | "keep" | "adjust"; alertsZh: string[]; alertsEn: string[] } {
+  if (!saved?.holdings.length || !next.length) {
+    return { status: "none", alertsZh: [], alertsEn: [] };
+  }
+  const prevIds = saved.holdings.map((h) => h.id);
+  const nextIds = next.map((a) => a.fund.id);
+  const same = prevIds.length === nextIds.length && prevIds.every((id, i) => id === nextIds[i]);
+  const alertsZh: string[] = [];
+  const alertsEn: string[] = [];
+
+  for (const a of next) {
+    const row = ranked.find((s) => s.fund.id === a.fund.id);
+    if (row?.reasons.includes("展望偏弱，不宜追入")) {
+      alertsZh.push(`${a.fund.nameZh}：展望偏弱，不宜加碼。`);
+      alertsEn.push(`${a.fund.nameEn}: outlook is weak; do not add.`);
+    }
+  }
+
+  const added = next.filter((a) => !prevIds.includes(a.fund.id));
+  const dropped = prevIds.filter((id) => !nextIds.includes(id));
+  if (dropped.length || added.length) {
+    const addNames = added.map((a) => a.fund.nameZh).join("、");
+    alertsZh.push(
+      added.length
+        ? `今次評分／展望已變，建議調整配置${addNames ? `（新入：${addNames}）` : ""}。`
+        : "今次評分／展望已變，部分先前持倉不再列入。",
+    );
+    alertsEn.push("Scores or outlook changed; the mix was adjusted.");
+  }
+
+  if (same && !alertsZh.length) {
+    return {
+      status: "keep",
+      alertsZh: ["與上次相同。展望與評分未出現明顯更佳替代，可繼續持有。"],
+      alertsEn: ["Same mix. No stronger replacement — hold."],
+    };
+  }
+  if (same) return { status: "keep", alertsZh, alertsEn };
+  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序已變，請對照新的建議配置。"], alertsEn };
+}
 

@@ -22,7 +22,7 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -37,6 +37,8 @@ function RecommendPage() {
   const zh = locale === "zh";
   const profile = useAppStore((s) => s.profile);
   const setProfile = useAppStore((s) => s.setProfile);
+  const lastMix = useAppStore((s) => s.lastMix);
+  const saveMix = useAppStore((s) => s.saveMix);
   const schemes = uniqueSchemes();
   const horizon = profile.switchHorizon ?? "6m";
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
@@ -61,9 +63,25 @@ function RecommendPage() {
   );
   const [copied, setCopied] = useState(false);
 
+  const comparison = useMemo(() => compareSavedMix(lastMix, alloc, ranked), [lastMix, alloc, ranked]);
+  const mixAgeMs = lastMix ? Date.now() - new Date(lastMix.at).getTime() : 0;
+  const showCompare = comparison.status === "adjust" || mixAgeMs > 12 * 60 * 60 * 1000;
+
   useEffect(() => {
-    if ((profile.goal as string) === "regime") setProfile({ goal: "balanced" });
-  }, [profile.goal, setProfile]);
+    if (!alloc.length || lastMix) return;
+    saveMix({
+      at: new Date().toISOString(),
+      horizon,
+      schemeEn: profile.schemeEn,
+      goal: profile.goal,
+      holdings: alloc.map((a) => ({
+        id: a.fund.id,
+        weight: a.weight,
+        nameZh: a.fund.nameZh,
+        nameEn: a.fund.nameEn,
+      })),
+    });
+  }, [alloc, lastMix, saveMix, horizon, profile.schemeEn, profile.goal]);
 
   function copyMix() {
     const scheme = schemes.find((s) => s.en === profile.schemeEn);
@@ -347,7 +365,7 @@ function RecommendPage() {
               </p>
               <p className="mt-1 text-[11px] leading-relaxed text-subtle">
                 {zh
-                  ? `檔數按目標與距離退休自動決定（穩健、年期較長通常 3 檔；可在進階更改）。不是保證「${HORIZON_COPY[horizon].zh}」一定增值，只是在可選範圍內按收費、風險與展望排序。`
+                  ? `檔數按目標與距離退休自動決定（穩健、年期較長通常 3 檔）。排序用收費、風險、五年同類，再加「${HORIZON_COPY[horizon].zh}」展望（利率、過熱、滯後），不是隨便派保守或進取基金，亦不是保證該段增值。`
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
@@ -391,25 +409,65 @@ function RecommendPage() {
             </div>
           </Card>
 
+          {showCompare && comparison.status !== "none" ? (
+            <Card className={comparison.status === "adjust" ? "bg-tint-sand" : "bg-tint-mint"}>
+              <h2 className="mb-1 font-display text-lg">{zh ? "對照上次建議" : "Versus last mix"}</h2>
+              <p className="text-xs text-subtle">
+                {zh
+                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "可繼續持有" : "建議調整"}`
+                  : `Saved ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status}`}
+              </p>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted">
+                {(zh ? comparison.alertsZh : comparison.alertsEn).map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[11px] text-subtle">
+                {zh
+                  ? "沒有每日單位價，不能用「升幾多／跌幾多」作為轉倉警號。警號是展望變弱，或同類出現明顯更高分、更低收費的替代。"
+                  : "No daily NAVs, so there is no +X% / −X% switch trigger. Alerts are a weaker outlook or a clearly better-scoring, cheaper peer."}
+              </p>
+            </Card>
+          ) : null}
+
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "建議幾時再看一次" : "When to look again"}</h2>
-            <p className="font-display text-xl">
-              {zh ? review.labelZh : review.labelEn}
-              {reviewEvery === "auto" ? (zh ? "（按距離退休）" : " (by years left)") : ""}
-            </p>
+            <h2 className="mb-1 font-display text-lg">{zh ? "幾時再回來對照" : "When to come back"}</h2>
+            <p className="font-display text-xl">{zh ? review.labelZh : review.labelEn}</p>
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
             <p className="mt-2 text-[11px] text-subtle">
               {zh
-                ? `「今次轉換視野」只決定展望看多遠，不是叫你${HORIZON_COPY[horizon].zh}後一定再轉。若跟住之後沒有升、甚至跌了，屬市場正常波動；強積金不保證獲利。除非轉職、計劃合併、臨近提取或收費明顯上升，否則維持配置。`
-                : "The switch window is the outlook horizon, not a mandatory rebalance date. Losses can happen. Hold unless job, scheme, near-withdrawal or a fee jump. Not advice."}
+                ? "轉換視野同再看一次係同一件事：揀一個月，就一個月後返嚟對照今次建議。不是保證該段一定升。回來時系統用展望同評分決定維持定調整，不是用你帳戶的升跌幅（我們沒有單位價）。"
+                : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}
             </p>
+            <Button
+              className="mt-3"
+              variant="outline"
+              size="sm"
+              disabled={!alloc.length}
+              onClick={() =>
+                saveMix({
+                  at: new Date().toISOString(),
+                  horizon,
+                  schemeEn: profile.schemeEn,
+                  goal: profile.goal,
+                  holdings: alloc.map((a) => ({
+                    id: a.fund.id,
+                    weight: a.weight,
+                    nameZh: a.fund.nameZh,
+                    nameEn: a.fund.nameEn,
+                  })),
+                })
+              }
+            >
+              {zh ? "記住今次建議" : "Save this mix"}
+            </Button>
           </Card>
 
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "至退休的假設滾存" : "Illustrative path to retirement"}</h2>
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? `橫軸是距離退休的年數（而家 ${years} 年），與上方「${HORIZON_COPY[horizon].zh}」轉換視野無關。基本：用規則假設年化，把結餘加每月供款滾上去。牛／熊只是按基金風險級別加寬／收窄的波動帶，不是預測。請以「基本」作參考，牛熊只顯示若波動較大或較差時的範圍。並非保證。`
+                ? `假設你長期持有今次這幾隻直至退休（${years} 年）。基本＝規則假設年化＋每月供款。牛／熊＝按風險級別的波動帶，不是預測。日常睇基本。與「${HORIZON_COPY[horizon].zh}」對照週期無關。`
                 : `The x-axis is years to retirement (${years}), not the switch window. Base compounds a rule-based return plus contributions. Bull/bear are volatility bands from risk class, not forecasts. Read the base line. Not a guarantee.`}
             </p>
             <div className="h-52">

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Locale } from "./i18n";
-import type { GoalId, Profile, SwitchHorizon } from "./mpf/types";
+import type { GoalId, Profile, SavedMix, SwitchHorizon } from "./mpf/types";
 
 const defaultProfile: Profile = {
   age: 35,
@@ -32,10 +32,12 @@ interface AppState {
   locale: Locale;
   compareIds: string[];
   profile: Profile;
+  lastMix: SavedMix | null;
   setLocale: (locale: Locale) => void;
   toggleCompare: (id: string) => void;
   clearCompare: () => void;
   setProfile: (patch: Partial<Profile>) => void;
+  saveMix: (mix: SavedMix) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -44,6 +46,7 @@ export const useAppStore = create<AppState>()(
       locale: "zh",
       compareIds: [],
       profile: defaultProfile,
+      lastMix: null,
       setLocale: (locale) => set({ locale }),
       toggleCompare: (id) => {
         const cur = get().compareIds;
@@ -64,6 +67,7 @@ export const useAppStore = create<AppState>()(
         };
         set({ profile });
       },
+      saveMix: (mix) => set({ lastMix: mix }),
     }),
     {
       name: "mpf-compass",
