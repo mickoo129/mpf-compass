@@ -29,7 +29,7 @@ npm run build:netlify
 
 基金表主要來自 [`src/data/funds.json`](src/data/funds.json)。**唔使每次改程式。**
 
-GitHub Action 每逢星期一 16:00 HKT 自動去 [積金局基金平台](https://mfp.mpfa.org.hk/) 核對「最新資料截至」日期。平台出咗新月底快照，就合併回報／收費／規模，commit 後 Netlify 會 rebuild。平台仍係舊日期就唔改檔。
+GitHub Action **星期一至六**約 16:00 HKT 自動去 [積金局基金平台](https://mfp.mpfa.org.hk/) 核對「最新資料截至」日期。平台出咗新月底快照，就合併回報／收費／規模，commit 後 Netlify 會 rebuild。平台仍係舊日期就唔改檔，多數日子會空跑。
 
 亦可喺 GitHub Actions 撳 **Refresh MPFA catalog → Run workflow**，或本地：
 
