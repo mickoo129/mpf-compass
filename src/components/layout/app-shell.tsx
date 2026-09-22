@@ -6,6 +6,7 @@ import { catalogMeta } from "@/lib/mpf/catalog";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { SchemeBar } from "@/components/layout/scheme-bar";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -88,6 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
+      <SchemeBar />
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right">
           <div className="mb-6 flex items-center gap-2 pr-8 text-fg">

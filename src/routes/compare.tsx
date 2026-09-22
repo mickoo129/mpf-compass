@@ -30,7 +30,7 @@ function ComparePage() {
   const clear = useAppStore((s) => s.clearCompare);
   const funds = ids.map(fundById).filter((f): f is NonNullable<typeof f> => !!f);
   const schemeEn = useAppStore((s) => s.profile.schemeEn);
-  const [onlyScheme, setOnlyScheme] = useState(false);
+  const [onlyScheme, setOnlyScheme] = useState(true);
   const providers = providerStats();
   const [provSort, setProvSort] = useState<ProvKey>("ret1y");
   const [provDir, setProvDir] = useState<"desc" | "asc">("desc");
@@ -110,7 +110,7 @@ function ComparePage() {
       {schemeEn ? (
         <label className="mb-4 flex items-center gap-2 text-sm text-canvas-muted">
           <input type="checkbox" checked={onlyScheme} onChange={(e) => setOnlyScheme(e.target.checked)} className="accent-primary" />
-          {zh ? "成分基金排行只顯示智選中已選的計劃" : "Limit the fund board to the scheme chosen in Recommend"}
+          {zh ? "只顯示已選計劃的成分基金" : "Limit the fund board to your selected scheme"}
         </label>
       ) : null}
 
