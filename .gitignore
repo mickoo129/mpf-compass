@@ -14,3 +14,4 @@ AGENTS.project.md
 .DS_Store
 *.tsbuildinfo
 .node_modules.lock
+attachments/
