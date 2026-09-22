@@ -15,12 +15,11 @@ export function PeriodPills({
   const trailing = MEDIAN_PERIODS.slice(0, CAL_START);
   const calendar = MEDIAN_PERIODS.slice(CAL_START);
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 max-w-full items-center gap-2 overflow-x-auto pb-0.5">
       <PillRow periods={trailing} value={value} onChange={onChange} zh={zh} />
-      <div className="flex items-center gap-2">
-        <span className="shrink-0 text-[10px] tracking-wide text-canvas-muted">{zh ? "曆年" : "Calendar"}</span>
-        <PillRow periods={calendar} value={value} onChange={onChange} zh={zh} />
-      </div>
+      <span className="h-5 w-px shrink-0 bg-white/20" aria-hidden />
+      <span className="shrink-0 text-[10px] tracking-wide text-canvas-muted">{zh ? "曆年" : "Cal."}</span>
+      <PillRow periods={calendar} value={value} onChange={onChange} zh={zh} />
     </div>
   );
 }
@@ -37,8 +36,7 @@ function PillRow({
   zh: boolean;
 }) {
   return (
-    <div className="w-full min-w-0 overflow-x-auto pb-1">
-      <div className="inline-flex flex-nowrap gap-1 rounded-lg bg-white/10 p-1">
+    <div className="inline-flex shrink-0 gap-1 rounded-lg bg-white/10 p-1">
       {periods.map((p) => (
         <button
           key={p}
@@ -52,7 +50,6 @@ function PillRow({
           {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
         </button>
       ))}
-      </div>
     </div>
   );
 }

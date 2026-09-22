@@ -89,21 +89,16 @@ function Home() {
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
         </Card>
-        <div className="mt-4">
-          <CategoryPathChart zh={zh} />
-        </div>
       </section>
 
       <section className="mb-10">
-        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="font-display text-xl">{zh ? "此時段中位最高的策略" : "Highest median sleeves this period"}</h2>
-            <p className="mt-1 text-[11px] leading-relaxed text-canvas-muted">
-              {zh
-                ? `按上方所選時段（現為：${PERIOD_LABEL[period].zh}）將積金局分類由高到低排列。點選可進入基金庫，查看該組可選基金。並非預測下一時段仍會領先。`
-                : `Ranked by the period selected above (now ${PERIOD_LABEL[period].en}). Click through to that sleeve in the library. Not a forecast.`}
-            </p>
-          </div>
+        <div className="mb-3">
+          <h2 className="font-display text-xl">{zh ? "此時段中位最高的策略" : "Highest median sleeves this period"}</h2>
+          <p className="mt-1 text-[11px] leading-relaxed text-canvas-muted">
+            {zh
+              ? `按上方所選時段（現為：${PERIOD_LABEL[period].zh}）將積金局分類由高到低排列。點選可進入基金庫，查看該組可選基金。並非預測下一時段仍會領先。`
+              : `Ranked by the period selected above (now ${PERIOD_LABEL[period].en}). Click through to that sleeve in the library. Not a forecast.`}
+          </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {sleeves.map((s, i) => (
@@ -121,6 +116,10 @@ function Home() {
           ))}
         </div>
       </section>
+
+      <div className="mb-10">
+        <CategoryPathChart zh={zh} />
+      </div>
 
       <div className="mb-10">
         <Card>
