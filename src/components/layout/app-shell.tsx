@@ -106,6 +106,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <p className="mt-2 font-mono text-[11px] text-canvas-muted">
             MPFA {catalogMeta.asOf} · {catalogMeta.fundCount} funds · {catalogMeta.schemeCount} schemes
           </p>
+          <p className="mt-4 text-center text-[11px] text-canvas-muted">
+            © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). 版權所有。
+          </p>
         </div>
       </footer>
     </div>
