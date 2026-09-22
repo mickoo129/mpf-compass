@@ -160,7 +160,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "現時計劃（只在此計劃內揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full rounded-md bg-bg px-3 text-sm shadow-[var(--shadow-border)]"
+                  className="mt-2 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -179,7 +179,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "只從此計劃揀基金（可選）" : "Limit to one scheme (optional)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full rounded-md bg-bg px-3 text-sm shadow-[var(--shadow-border)]"
+                  className="mt-2 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
