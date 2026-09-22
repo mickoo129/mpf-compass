@@ -22,7 +22,7 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds, targetRisk } from "@/lib/mpf/score";
+import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -52,7 +52,6 @@ function RecommendPage() {
     [alloc, years, profile.balance, profile.monthly],
   );
   const end = path.at(-1);
-  const riskT = targetRisk(profile);
   const mixSize = profile.mixSize ?? "auto";
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
@@ -311,8 +310,8 @@ function RecommendPage() {
             </div>
             <p className="mb-3 text-xs text-muted">
               {zh
-                ? `指數每次載入更新（Yahoo）${markets.data?.fetchedAt ? ` · ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}。配置跟隨右側展望，並非左側已發生走勢。`
-                : `Yahoo indices refresh on load${markets.data?.fetchedAt ? ` · ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}. Mix follows outlook, not the lookback.`}
+                ? `Yahoo 指數，開啟本頁時更新${markets.data?.fetchedAt ? `（${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC）` : ""}。左側是該時段已經發生的走勢；右側是同一時段的規則展望（利率、52 週位置、過熱），不是預測必升。`
+                : `Yahoo indices as of page load. Left = what already happened in the window; right = a rule-based tilt, not a forecast.`}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg bg-white/80 p-3">
@@ -343,8 +342,13 @@ function RecommendPage() {
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
-                  ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : "全港可轉"} · 目標風險級別 ${riskT} · 剩餘 ${years} 年 · ${alloc.length} 檔`
-                  : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : "all schemes"} · risk ${riskT} · ${years}y · ${alloc.length} funds`}
+                  ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : "全港可轉"} · ${mixSize === "auto" ? "自動" : "指定"} ${alloc.length} 檔 · 剩餘 ${years} 年`
+                  : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : "all schemes"} · ${alloc.length} funds · ${years}y`}
+              </p>
+              <p className="mt-1 text-[11px] leading-relaxed text-subtle">
+                {zh
+                  ? `檔數按目標與距離退休自動決定（穩健、年期較長通常 3 檔；可在進階更改）。不是保證「${HORIZON_COPY[horizon].zh}」一定增值，只是在可選範圍內按收費、風險與展望排序。`
+                  : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
               <Button variant="outline" size="sm" onClick={copyMix} disabled={!alloc.length}>
@@ -388,25 +392,25 @@ function RecommendPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "下次檢討" : "When to review"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "建議幾時再看一次" : "When to look again"}</h2>
             <p className="font-display text-xl">
               {zh ? review.labelZh : review.labelEn}
-              {reviewEvery === "auto" ? (zh ? "（按年期建議）" : " (from horizon)") : ""}
+              {reviewEvery === "auto" ? (zh ? "（按距離退休）" : " (by years left)") : ""}
             </p>
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
             <p className="mt-2 text-[11px] text-subtle">
               {zh
-                ? "除非轉職、計劃合併、臨近提取或收費明顯上升，否則維持此配置。此處並非投資建議。"
-                : "Hold the mix unless job, scheme, near-withdrawal or a fee jump. Not investment advice."}
+                ? `「今次轉換視野」只決定展望看多遠，不是叫你${HORIZON_COPY[horizon].zh}後一定再轉。若跟住之後沒有升、甚至跌了，屬市場正常波動；強積金不保證獲利。除非轉職、計劃合併、臨近提取或收費明顯上升，否則維持配置。`
+                : "The switch window is the outlook horizon, not a mandatory rebalance date. Losses can happen. Hold unless job, scheme, near-withdrawal or a fee jump. Not advice."}
             </p>
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "假設滾存示意" : "Illustrative path"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "至退休的假設滾存" : "Illustrative path to retirement"}</h2>
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? "以規則假設的年化，把現有結餘與每月供款滾存至退休。牛／熊僅為波動帶。並非預測，亦不保證。"
-                : "Rolls balance and contributions at a rule-based assumed return. Bands are volatility only. Not a forecast and not a guarantee."}
+                ? `橫軸是距離退休的年數（而家 ${years} 年），與上方「${HORIZON_COPY[horizon].zh}」轉換視野無關。基本：用規則假設年化，把結餘加每月供款滾上去。牛／熊只是按基金風險級別加寬／收窄的波動帶，不是預測。請以「基本」作參考，牛熊只顯示若波動較大或較差時的範圍。並非保證。`
+                : `The x-axis is years to retirement (${years}), not the switch window. Base compounds a rule-based return plus contributions. Bull/bear are volatility bands from risk class, not forecasts. Read the base line. Not a guarantee.`}
             </p>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">

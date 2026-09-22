@@ -244,7 +244,7 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
 export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "3m", "6m", "1y"];
 
 export const HORIZON_COPY: Record<SwitchHorizon, { zh: string; en: string; blurbZh: string }> = {
-  "1m": { zh: "1 個月", en: "1 month", blurbZh: "未來一個月：過熱則減持。官方數字按月，此窗只作研究對照。" },
+  "1m": { zh: "1 個月", en: "1 month", blurbZh: "只決定展望看多遠。不是規定一個月後再轉，亦不是保證這一個月增值。" },
   "3m": { zh: "3 個月", en: "3 months", blurbZh: "未來三個月：動量與回吐並重，避免以一年急升的基金作為核心。" },
   "6m": { zh: "半年", en: "6 months", blurbZh: "未來半年：以起始孳息、相對滯後與收費為主，減少追趕近月熱門。" },
   "1y": { zh: "1 年", en: "1 year", blurbZh: "未來一年：收費、五年質素與孳息收益為主。過去一年回報權重最低。" },
