@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Compass className="size-4" strokeWidth={1.75} />
             </span>
             <span className="text-lg leading-none font-semibold tracking-tight">{copy.app.zh}</span>
-            <span className="hidden text-[11px] tracking-[0.16em] text-canvas-muted sm:inline">COMPASS</span>
+            <span className="hidden text-[11px] tracking-[0.16em] text-canvas-muted sm:inline">MPF COMPASS</span>
           </Link>
           <div className="hidden md:block">{links(true)}</div>
           <div className="flex items-center gap-1">
