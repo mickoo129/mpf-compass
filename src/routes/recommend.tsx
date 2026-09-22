@@ -22,8 +22,8 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
-import type { GoalId, RiskAppetite } from "@/lib/mpf/types";
+import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds, targetRisk } from "@/lib/mpf/score";
+import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,6 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/recommend")({ component: RecommendPage });
 
 const GOALS: GoalId[] = ["growth", "balanced", "preserve", "lowfee", "dis"];
-const RISKS: RiskAppetite[] = ["conservative", "moderate", "aggressive"];
 
 function RecommendPage() {
   const locale = useAppStore((s) => s.locale);
@@ -59,16 +58,13 @@ function RecommendPage() {
   const mixN = resolvedMixSize(profile, ranked.length);
   const review = resolvedReview(profile);
   const [advanced, setAdvanced] = useState(
-    () => profile.mixSize !== "auto" || profile.reviewEvery !== "auto" || profile.switchHorizon === "1m" || profile.switchHorizon === "2m",
+    () => profile.mixSize !== "auto" || profile.reviewEvery !== "auto",
   );
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if ((profile.goal as string) === "regime") setProfile({ goal: "balanced" });
   }, [profile.goal, setProfile]);
-  useEffect(() => {
-    if (horizon === "1m" || horizon === "2m") setAdvanced(true);
-  }, [horizon]);
 
   function copyMix() {
     const scheme = schemes.find((s) => s.en === profile.schemeEn);
@@ -108,7 +104,7 @@ function RecommendPage() {
             : "This is not an MPFA or trustee allocation, and not a profit forecast. The mix is a published rule: your goal, MPFA long-horizon figures, then live indices to avoid chasing heat."}
         </p>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
-          <li>{zh ? "你：目標、風險、轉換視野（未來持有多久）、僱主計劃可選範圍。" : "You: goal, risk, switch window, and the employer-scheme menu."}</li>
+            <li>{zh ? "你：目標、轉換視野（未來持有多久）、現時計劃可選範圍。" : "You: goal, switch window, and the scheme menu you can actually use."}</li>
           <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現——用以判斷基金是否偏貴、風險是否合適、同類之中是否落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
           <li>{zh ? "Yahoo 指數（開啟頁面時更新）：利率起始孳息、距離 52 週高位、過熱——用作調整比重，不會把過去半年視為未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
         </ol>
@@ -162,21 +158,43 @@ function RecommendPage() {
             </div>
             {profile.account === "contribution" ? (
               <div className="mt-4">
-                <Label>{zh ? "現時計劃" : "Current scheme"}</Label>
+                <Label>{zh ? "現時計劃（只在此計劃內揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
                   className="mt-2 h-11 w-full rounded-md bg-bg px-3 text-sm shadow-[var(--shadow-border)]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
-                  <option value="">{zh ? "請選擇計劃" : "Select scheme"}</option>
+                  <option value="">{zh ? "請選擇計劃，例如只得宏利戶口" : "Select scheme, e.g. Manulife only"}</option>
                   {schemes.map((s) => (
                     <option key={s.en} value={s.en}>
                       {zh ? s.zh : s.en}
                     </option>
                   ))}
                 </select>
+                <p className="mt-1 text-[11px] text-subtle">
+                  {zh ? "供款帳戶通常只能在僱主計劃內轉換。未選計劃則不會給出配置。" : "Contribution accounts switch inside the employer scheme."}
+                </p>
               </div>
-            ) : null}
+            ) : (
+              <div className="mt-4">
+                <Label>{zh ? "只從此計劃揀基金（可選）" : "Limit to one scheme (optional)"}</Label>
+                <select
+                  className="mt-2 h-11 w-full rounded-md bg-bg px-3 text-sm shadow-[var(--shadow-border)]"
+                  value={profile.schemeEn ?? ""}
+                  onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
+                >
+                  <option value="">{zh ? "不限計劃（全港可轉）" : "All schemes"}</option>
+                  {schemes.map((s) => (
+                    <option key={s.en} value={s.en}>
+                      {zh ? s.zh : s.en}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-subtle">
+                  {zh ? "個人帳戶可轉出。若實際只得一間公司（例如宏利），請在此鎖定該計劃。" : "Personal accounts can transfer. Lock a scheme if you only hold one trustee."}
+                </p>
+              </div>
+            )}
           </Card>
 
           <Card>
@@ -200,32 +218,14 @@ function RecommendPage() {
               ))}
             </div>
             <div className="mt-4">
-              <Label>{zh ? "風險承受" : "Risk appetite"}</Label>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {RISKS.map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setProfile({ risk: r })}
-                    className={cn(
-                      "h-11 rounded-md text-sm",
-                      profile.risk === r ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
-                    )}
-                  >
-                    {zh ? RISK_COPY[r].zh : RISK_COPY[r].en}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-4">
               <Label>{zh ? "今次轉換視野" : "Switch window"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
                 {zh
-                  ? "強積金轉換不宜過密。預設半年或一年；一個月／兩個月見進階。"
-                  : "MPF switches should be infrequent. Default is 6 or 12 months; 1–2 months are under Advanced."}
+                  ? "已發生／展望會跟你揀的時段。揀三個月就睇近三個月同未來三個月。"
+                  : "Lookback and outlook follow this window."}
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-1">
-                {(["6m", "1y"] as const).map((h) => (
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {(["1m", "3m", "6m", "1y"] as const).map((h) => (
                   <button
                     key={h}
                     type="button"
@@ -243,32 +243,11 @@ function RecommendPage() {
             </div>
             <div className="mt-4">
               <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
-                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：短窗、基金數目與檢討節奏" : "Advanced: short window, mix size, review"}
+                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：基金數目與檢討節奏" : "Advanced: mix size and review"}
               </button>
             </div>
             {advanced ? (
               <>
-            <div className="mt-4">
-              <Label>{zh ? "較短轉換視野" : "Shorter window"}</Label>
-              <p className="mt-1 text-[11px] text-subtle">
-                {zh ? "僅供研究對照。官方數字按月，一個月視野並不能對應一次真實轉換。" : "Research only. Official figures are monthly; a 1-month window is not a live switch."}
-              </p>
-              <div className="mt-2 grid grid-cols-2 gap-1">
-                {(["1m", "2m"] as const).map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => setProfile({ switchHorizon: h })}
-                    className={cn(
-                      "h-11 rounded-md text-xs sm:text-sm",
-                      horizon === h ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
-                    )}
-                  >
-                    {zh ? HORIZON_COPY[h].zh : HORIZON_COPY[h].en}
-                  </button>
-                ))}
-              </div>
-            </div>
             <div className="mt-4">
               <Label>{zh ? "配置基金數目" : "How many funds"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
@@ -332,8 +311,8 @@ function RecommendPage() {
             </div>
             <p className="mb-3 text-xs text-muted">
               {zh
-                ? `指數每次載入更新（Yahoo）。語氣：${regime.tone === "risk-on" ? "偏進取" : regime.tone === "risk-off" ? "偏防守" : "混合"}。${markets.data?.fetchedAt ? `更新 ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}。配置跟隨右側展望，並非左側已發生走勢。`
-                : `Yahoo indices refresh on load (${regime.tone}). Mix follows outlook, not the lookback.`}
+                ? `指數每次載入更新（Yahoo）${markets.data?.fetchedAt ? ` · ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}。配置跟隨右側展望，並非左側已發生走勢。`
+                : `Yahoo indices refresh on load${markets.data?.fetchedAt ? ` · ${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC` : ""}. Mix follows outlook, not the lookback.`}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg bg-white/80 p-3">
@@ -363,7 +342,9 @@ function RecommendPage() {
               <div>
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
               <p className="text-xs text-subtle">
-                {zh ? `目標風險級別 ${riskT} · 剩餘年期 ${years} 年 · ${alloc.length} 檔` : `Target risk ${riskT} · ${years} years · ${alloc.length} funds`}
+                {zh
+                  ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : "全港可轉"} · 目標風險級別 ${riskT} · 剩餘 ${years} 年 · ${alloc.length} 檔`
+                  : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : "all schemes"} · risk ${riskT} · ${years}y · ${alloc.length} funds`}
               </p>
               </div>
               <Button variant="outline" size="sm" onClick={copyMix} disabled={!alloc.length}>

@@ -10,7 +10,7 @@ export type MixSize = "auto" | 1 | 2 | 3 | 4 | 5;
 
 export type ReviewCadence = "auto" | "quarter" | "half" | "year";
 
-export type SwitchHorizon = "1m" | "2m" | "6m" | "1y";
+export type SwitchHorizon = "1m" | "3m" | "6m" | "1y";
 
 export interface Fund {
   id: string;

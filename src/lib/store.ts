@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Locale } from "./i18n";
-import type { GoalId, Profile } from "./mpf/types";
+import type { GoalId, Profile, SwitchHorizon } from "./mpf/types";
 
 const defaultProfile: Profile = {
   age: 35,
@@ -20,6 +20,12 @@ const defaultProfile: Profile = {
 function normalizeGoal(g: unknown): GoalId {
   if (g === "growth" || g === "balanced" || g === "preserve" || g === "lowfee" || g === "dis") return g;
   return "balanced";
+}
+
+function normalizeHorizon(h: unknown): SwitchHorizon {
+  if (h === "1m" || h === "3m" || h === "6m" || h === "1y") return h;
+  if (h === "2m") return "3m";
+  return "6m";
 }
 
 interface AppState {
@@ -50,7 +56,12 @@ export const useAppStore = create<AppState>()(
       },
       clearCompare: () => set({ compareIds: [] }),
       setProfile: (patch) => {
-        const profile = { ...get().profile, ...patch, goal: normalizeGoal(patch.goal ?? get().profile.goal) };
+        const profile = {
+          ...get().profile,
+          ...patch,
+          goal: normalizeGoal(patch.goal ?? get().profile.goal),
+          switchHorizon: normalizeHorizon(patch.switchHorizon ?? get().profile.switchHorizon),
+        };
         set({ profile });
       },
     }),
@@ -65,6 +76,7 @@ export const useAppStore = create<AppState>()(
             ...current.profile,
             ...p.profile,
             goal: normalizeGoal(p.profile?.goal ?? current.profile.goal),
+            switchHorizon: normalizeHorizon(p.profile?.switchHorizon ?? current.profile.switchHorizon),
           },
         };
       },

@@ -18,7 +18,7 @@ export interface Regime {
 
 const SPARK_POINTS: Record<SwitchHorizon, number> = {
   "1m": 4,
-  "2m": 8,
+  "3m": 13,
   "6m": 24,
   "1y": 48,
 };
@@ -71,9 +71,9 @@ function forwardFit(
   const overheat = Math.max(0, s - 0.86) * 1.6 + Math.max(0, (ytd ?? 0) - 28) / 90;
   const value = clamp01(0.5 + (0.55 - s) * 0.9);
   const lag = lagVsUs ?? 0;
-  const lagBoost = horizon === "1y" ? lag * 0.016 : horizon === "6m" ? lag * 0.01 : lag * 0.003;
+  const lagBoost = horizon === "1y" ? lag * 0.016 : horizon === "6m" ? lag * 0.01 : horizon === "3m" ? lag * 0.006 : lag * 0.003;
   if (horizon === "1m") return clamp01(0.42 * trailing + 0.48 * (1 - s) + 0.1 * value - overheat + lagBoost);
-  if (horizon === "2m") return clamp01(0.34 * trailing + 0.46 * (1 - s) + 0.2 * value - overheat + lagBoost);
+  if (horizon === "3m") return clamp01(0.28 * trailing + 0.44 * (1 - s) + 0.28 * value - overheat + lagBoost);
   if (horizon === "6m") return clamp01(0.18 * trailing + 0.42 * value + 0.4 * 0.52 - overheat * 0.75 + lagBoost);
   return clamp01(0.1 * trailing + 0.5 * value + 0.4 * 0.52 - overheat * 0.55 + lagBoost);
 }
@@ -82,7 +82,7 @@ function bondForward(yieldLevel: number | null, yieldMove: number | null, horizo
   const carry = yieldLevel != null ? clamp01((yieldLevel - 2.4) / 4.2) : 0.5;
   const duration = yieldMove != null ? clamp01(0.5 - yieldMove / 8) : 0.5;
   if (horizon === "1m") return duration;
-  if (horizon === "2m") return clamp01(0.65 * duration + 0.35 * carry);
+  if (horizon === "3m") return clamp01(0.55 * duration + 0.45 * carry);
   if (horizon === "6m") return clamp01(0.45 * duration + 0.55 * carry);
   return clamp01(0.25 * duration + 0.75 * carry);
 }
@@ -119,7 +119,7 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
 
   const riskPulse = avg([us, asia, eu]) ?? 0;
   const tone: MarketTone = riskPulse >= 4 ? "risk-on" : riskPulse <= -3 ? "risk-off" : "mixed";
-  const short = horizon === "1m" || horizon === "2m";
+  const short = horizon === "1m" || horizon === "3m";
 
   const usStretch = avg([pos52(usQ), pos52(ndxQ)]);
   const hkStretch = pos52(hsiQ);
@@ -179,10 +179,10 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
 
   const fmt = (v: number | null) => (v == null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`);
   const pct = (v: number | null) => (v == null ? "—" : `${Math.round(v * 100)}%`);
-  const lookbackLabelZh = { "1m": "近一個月", "2m": "近兩個月", "6m": "近半年", "1y": "今年至今" }[horizon];
-  const outlookLabelZh = { "1m": "未來一個月", "2m": "未來兩個月", "6m": "未來半年", "1y": "未來一年" }[horizon];
-  const lookEn = { "1m": "past month", "2m": "past 2 months", "6m": "past 6 months", "1y": "year to date" }[horizon];
-  const outEn = { "1m": "next month", "2m": "next 2 months", "6m": "next 6 months", "1y": "next year" }[horizon];
+  const lookbackLabelZh = { "1m": "近一個月", "3m": "近三個月", "6m": "近半年", "1y": "今年至今" }[horizon];
+  const outlookLabelZh = { "1m": "未來一個月", "3m": "未來三個月", "6m": "未來半年", "1y": "未來一年" }[horizon];
+  const lookEn = { "1m": "past month", "3m": "past 3 months", "6m": "past 6 months", "1y": "year to date" }[horizon];
+  const outEn = { "1m": "next month", "3m": "next 3 months", "6m": "next 6 months", "1y": "next year" }[horizon];
 
   const lookbackZh = [
     `美股（標普／納指）${lookbackLabelZh} ${fmt(us)}，處於 52 週區間約 ${pct(usStretch)}。`,
@@ -241,11 +241,11 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   };
 }
 
-export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "2m", "6m", "1y"];
+export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "3m", "6m", "1y"];
 
 export const HORIZON_COPY: Record<SwitchHorizon, { zh: string; en: string; blurbZh: string }> = {
-  "1m": { zh: "1 個月", en: "1 month", blurbZh: "未來一個月：過熱則減持，利率上行則減輕債券。不會把近月升幅視為下月保證。" },
-  "2m": { zh: "2 個月", en: "2 months", blurbZh: "未來兩個月：動量與回吐風險並重，避免以一年急升的基金作為核心。" },
+  "1m": { zh: "1 個月", en: "1 month", blurbZh: "未來一個月：過熱則減持。官方數字按月，此窗只作研究對照。" },
+  "3m": { zh: "3 個月", en: "3 months", blurbZh: "未來三個月：動量與回吐並重，避免以一年急升的基金作為核心。" },
   "6m": { zh: "半年", en: "6 months", blurbZh: "未來半年：以起始孳息、相對滯後與收費為主，減少追趕近月熱門。" },
   "1y": { zh: "1 年", en: "1 year", blurbZh: "未來一年：收費、五年質素與孳息收益為主。過去一年回報權重最低。" },
 };
@@ -262,12 +262,12 @@ export function horizonWeights(horizon: SwitchHorizon, goal: string): {
   if (goal === "preserve") return { regime: 0.22, risk: 0.3, fee: 0.28, skill: 0.12, size: 0.08 };
   const table: Record<SwitchHorizon, { regime: number; risk: number; fee: number; skill: number; size: number }> = {
     "1m": { regime: 0.5, risk: 0.18, fee: 0.18, skill: 0.08, size: 0.06 },
-    "2m": { regime: 0.4, risk: 0.2, fee: 0.18, skill: 0.14, size: 0.08 },
+    "3m": { regime: 0.36, risk: 0.2, fee: 0.18, skill: 0.18, size: 0.08 },
     "6m": { regime: 0.28, risk: 0.22, fee: 0.2, skill: 0.22, size: 0.08 },
     "1y": { regime: 0.16, risk: 0.22, fee: 0.22, skill: 0.3, size: 0.1 },
   };
   const w = { ...table[horizon] };
-  if (goal === "growth" && (horizon === "1m" || horizon === "2m")) {
+  if (goal === "growth" && (horizon === "1m" || horizon === "3m")) {
     w.regime = Math.min(0.55, w.regime + 0.05);
   }
   return w;

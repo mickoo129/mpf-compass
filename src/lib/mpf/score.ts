@@ -43,7 +43,7 @@ export function expectedReturn(fund: Fund, regime?: Regime | null, horizon?: Pro
   let out = blended - extraFee;
   if (regime) {
     const fit = regime.sleeveFit[fund.sleeve] ?? 0.5;
-    const amp = horizon === "1m" ? 2.0 : horizon === "2m" ? 1.4 : horizon === "6m" ? 0.8 : 0.35;
+    const amp = horizon === "1m" ? 2.0 : horizon === "3m" ? 1.2 : horizon === "6m" ? 0.8 : 0.35;
     out += (fit - 0.5) * amp;
   }
   return out;
@@ -56,8 +56,6 @@ export function targetRisk(profile: Profile): number {
   else if (years >= 15) t = 5;
   else if (years >= 8) t = 4;
   else if (years >= 3) t = 3;
-  if (profile.risk === "aggressive") t += 1;
-  if (profile.risk === "conservative") t -= 1;
   if (profile.goal === "preserve") t -= 1;
   if (profile.goal === "growth") t += 1;
   return Math.max(1, Math.min(7, t));
@@ -79,7 +77,7 @@ function feeScore(fer: number | null, goal: GoalId): number {
   return goal === "lowfee" ? base : 0.65 * base + 0.35 * 0.6;
 }
 
-function sleeveBoost(sleeve: string, goal: GoalId, risk: RiskAppetite): number {
+function sleeveBoost(sleeve: string, goal: GoalId): number {
   if (goal === "dis") {
     if (sleeve === "dis-caf" || sleeve === "dis-a65") return 1;
     return 0.15;
@@ -103,7 +101,6 @@ function sleeveBoost(sleeve: string, goal: GoalId, risk: RiskAppetite): number {
   // balanced
   if (["dis-caf", "mixed-balanced", "mixed-growth", "global", "us"].includes(sleeve)) return 0.85;
   if (sleeve === "korea" || sleeve === "guaranteed") return 0.25;
-  if (risk === "conservative" && ["conservative", "dis-a65"].includes(sleeve)) return 0.8;
   return 0.55;
 }
 
@@ -111,7 +108,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
   const target = targetRisk(profile);
   const horizon = profile.switchHorizon ?? "6m";
   const w = horizonWeights(horizon, profile.goal);
-  const universe = profile.account === "contribution" && profile.schemeEn
+  const universe = profile.schemeEn
     ? allFunds.filter((f) => f.schemeEn === profile.schemeEn)
     : allFunds;
 
@@ -125,7 +122,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     const reasons: string[] = [];
     const rf = riskFit(fund, target);
     const fs = feeScore(fund.fer, profile.goal);
-    const sb = sleeveBoost(fund.sleeve, profile.goal, profile.risk);
+    const sb = sleeveBoost(fund.sleeve, profile.goal);
     const med = sleeveMed5.get(fund.sleeve);
     const skill = fund.ret5y != null && med != null
       ? clamp01(0.5 + (fund.ret5y - med) / 12)
@@ -175,7 +172,7 @@ export function resolvedMixSize(profile: Profile, universeCount: number): number
   if (profile.goal === "lowfee") return Math.min(2, cap);
   if (profile.goal === "preserve") return Math.min(years < 8 ? 2 : 3, cap);
   if (years < 5) return Math.min(2, cap);
-  if (years >= 20 && (profile.risk === "aggressive" || profile.goal === "growth")) return Math.min(4, cap);
+  if (years >= 20 && profile.goal === "growth") return Math.min(4, cap);
   return Math.min(3, cap);
 }
 
