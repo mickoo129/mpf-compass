@@ -267,11 +267,6 @@ export function horizonWeights(horizon: SwitchHorizon, goal: string): {
     "1y": { regime: 0.16, risk: 0.22, fee: 0.22, skill: 0.3, size: 0.1 },
   };
   const w = { ...table[horizon] };
-  if (goal === "regime") {
-    w.regime = Math.min(0.58, w.regime + 0.14);
-    w.skill = Math.max(0.06, w.skill - 0.08);
-    w.fee = Math.max(0.12, w.fee - 0.06);
-  }
   if (goal === "growth" && (horizon === "1m" || horizon === "2m")) {
     w.regime = Math.min(0.55, w.regime + 0.05);
   }

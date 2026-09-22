@@ -97,9 +97,6 @@ function sleeveBoost(sleeve: string, goal: GoalId, risk: RiskAppetite): number {
     if (["conservative", "guaranteed", "bond-global", "money"].includes(sleeve)) return 0.1;
     return 0.55;
   }
-  if (goal === "regime") {
-    return 0.5;
-  }
   if (goal === "lowfee") {
     return 0.5;
   }
@@ -347,36 +344,36 @@ function normalize(rows: Allocation[]): Allocation[] {
   return rows.map((r) => ({ ...r, weight: r.weight / sum }));
 }
 
-export const GOAL_COPY: Record<GoalId, { zh: string; en: string; blurbZh: string }> = {
+export const GOAL_COPY: Record<GoalId, { zh: string; en: string; blurbZh: string; blurbEn: string }> = {
   growth: {
     zh: "進取增長",
     en: "Growth",
     blurbZh: "距離退休尚遠，追求長期資本增值，可承受較大波動。",
+    blurbEn: "Long horizon, capital growth, larger swings accepted.",
   },
   balanced: {
     zh: "穩健增值",
     en: "Balanced",
     blurbZh: "增長與防守並重，接近預設投資策略的風險水平。",
+    blurbEn: "Growth and defence together, near DIS risk.",
   },
   preserve: {
     zh: "保本為先",
     en: "Preserve",
     blurbZh: "臨近提取或厭惡虧損，優先穩定與流動性。",
+    blurbEn: "Near withdrawal or loss-averse: stability first.",
   },
   lowfee: {
     zh: "低收費優先",
     en: "Low fee",
     blurbZh: "收費是你唯一可鎖定的拖累。優先指數基金與 DIS。",
+    blurbEn: "Fees are the drag you can lock. Prefer trackers and DIS.",
   },
   dis: {
     zh: "跟隨預設策略",
     en: "Default (DIS)",
     blurbZh: "法定收費上限、隨年齡自動降低風險，適合不欲自行挑選基金的人士。",
-  },
-  regime: {
-    zh: "因應轉換窗口局勢",
-    en: "Window regime",
-    blurbZh: "以指數近況推演所選的 1 個月／2 個月／半年／1 年窗口，減少追趕基金一年回報。",
+    blurbEn: "Fee cap and an age glidepath if you do not want to pick funds.",
   },
 };
 

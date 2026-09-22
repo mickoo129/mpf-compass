@@ -21,7 +21,7 @@ import { ReturnCell } from "@/components/funds/return-cell";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
-import { buildRegime, HORIZON_COPY, HORIZON_OPTS } from "@/lib/mpf/regime";
+import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
 import { buildAllocation, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, RISK_COPY, scoreFunds, targetRisk } from "@/lib/mpf/score";
 import type { GoalId, RiskAppetite } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
@@ -58,12 +58,17 @@ function RecommendPage() {
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
   const review = resolvedReview(profile);
-  const [advanced, setAdvanced] = useState(false);
+  const [advanced, setAdvanced] = useState(
+    () => profile.mixSize !== "auto" || profile.reviewEvery !== "auto" || profile.switchHorizon === "1m" || profile.switchHorizon === "2m",
+  );
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (profile.goal === "regime") setProfile({ goal: "balanced" });
+    if ((profile.goal as string) === "regime") setProfile({ goal: "balanced" });
   }, [profile.goal, setProfile]);
+  useEffect(() => {
+    if (horizon === "1m" || horizon === "2m") setAdvanced(true);
+  }, [horizon]);
 
   function copyMix() {
     const scheme = schemes.find((s) => s.en === profile.schemeEn);
@@ -189,7 +194,7 @@ function RecommendPage() {
                 >
                   <p className="text-sm font-medium">{zh ? GOAL_COPY[g].zh : GOAL_COPY[g].en}</p>
                   <p className={cn("text-xs", profile.goal === g ? "text-primary-fg/80" : "text-muted")}>
-                    {GOAL_COPY[g].blurbZh}
+                    {zh ? GOAL_COPY[g].blurbZh : GOAL_COPY[g].blurbEn}
                   </p>
                 </button>
               ))}
@@ -214,9 +219,42 @@ function RecommendPage() {
             </div>
             <div className="mt-4">
               <Label>{zh ? "今次轉換視野" : "Switch window"}</Label>
+              <p className="mt-1 text-[11px] text-subtle">
+                {zh
+                  ? "強積金轉換不宜過密。預設半年或一年；一個月／兩個月見進階。"
+                  : "MPF switches should be infrequent. Default is 6 or 12 months; 1–2 months are under Advanced."}
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-1">
+                {(["6m", "1y"] as const).map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => setProfile({ switchHorizon: h })}
+                    className={cn(
+                      "h-11 rounded-md text-xs sm:text-sm",
+                      horizon === h ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border",
+                    )}
+                  >
+                    {zh ? HORIZON_COPY[h].zh : HORIZON_COPY[h].en}
+                  </button>
+                ))}
+              </div>
               <p className="mt-1 text-[11px] text-subtle">{zh ? HORIZON_COPY[horizon].blurbZh : HORIZON_COPY[horizon].en}</p>
-              <div className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-4">
-                {HORIZON_OPTS.map((h) => (
+            </div>
+            <div className="mt-4">
+              <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
+                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：短窗、基金數目與檢討節奏" : "Advanced: short window, mix size, review"}
+              </button>
+            </div>
+            {advanced ? (
+              <>
+            <div className="mt-4">
+              <Label>{zh ? "較短轉換視野" : "Shorter window"}</Label>
+              <p className="mt-1 text-[11px] text-subtle">
+                {zh ? "僅供研究對照。官方數字按月，一個月視野並不能對應一次真實轉換。" : "Research only. Official figures are monthly; a 1-month window is not a live switch."}
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-1">
+                {(["1m", "2m"] as const).map((h) => (
                   <button
                     key={h}
                     type="button"
@@ -231,13 +269,6 @@ function RecommendPage() {
                 ))}
               </div>
             </div>
-            <div className="mt-4">
-              <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
-                {advanced ? (zh ? "收起進階" : "Hide advanced") : zh ? "進階：基金數目與檢討節奏" : "Advanced: mix size and review"}
-              </button>
-            </div>
-            {advanced ? (
-              <>
             <div className="mt-4">
               <Label>{zh ? "配置基金數目" : "How many funds"}</Label>
               <p className="mt-1 text-[11px] text-subtle">

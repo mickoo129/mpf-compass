@@ -60,45 +60,6 @@ function Home() {
       </div>
 
       <section className="mb-10">
-        <div className="mb-3 flex items-end justify-between gap-3">
-          <h2 className="font-display text-xl">{zh ? "參考指數" : "Market indices"}</h2>
-          <p className="font-mono text-[11px] text-canvas-muted">
-            {markets.data ? new Date(markets.data.fetchedAt).toLocaleString("zh-HK", { hour12: false }) : "—"}
-          </p>
-        </div>
-        {markets.isLoading ? (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            {(markets.data?.quotes ?? []).map((q) => (
-              <Card key={q.symbol} className="p-3 sm:p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs text-muted">{zh ? q.nameZh : q.nameEn}</p>
-                    <p className="font-mono text-lg tabular-nums">{q.price != null ? fmtNum(q.price, q.symbol === "^TNX" ? 3 : 2) : "—"}</p>
-                  </div>
-                  <Sparkline data={q.spark} />
-                </div>
-                <div className="mt-1 flex items-center justify-between text-xs">
-                  <span className={cn("font-mono tabular-nums", retClass(q.changePct))}>{fmtPct(q.changePct)}</span>
-                  <span className="text-subtle">YTD {fmtPct(q.ytdPct, 1)}</span>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-        <p className="mt-2 text-xs text-canvas-muted">
-          {zh
-            ? markets.data?.notes
-            : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the fund snapshot date."}
-        </p>
-      </section>
-
-      <section className="mb-10">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <h2 className="font-display text-xl">{zh ? "按類別中位回報" : "Median by type"}</h2>
           <PeriodPills value={period} onChange={setPeriod} zh={zh} />
@@ -130,9 +91,6 @@ function Home() {
         </Card>
         <div className="mt-4">
           <CategoryPathChart zh={zh} />
-        </div>
-        <div className="mt-4">
-          <IndexPathChart zh={zh} />
         </div>
       </section>
 
@@ -190,6 +148,55 @@ function Home() {
           </ol>
         </Card>
       </div>
+
+      <section className="mb-10">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-xl">{zh ? "市況參考（非基金）" : "Market context (not funds)"}</h2>
+            <p className="mt-1 text-[11px] text-canvas-muted">
+              {zh
+                ? "Yahoo 指數，開啟頁面時更新。不是積金局單位價，亦不是上方官方年化。"
+                : "Yahoo indices, refresh on load. Not MPFA NAVs and not the official returns above."}
+            </p>
+          </div>
+          <p className="font-mono text-[11px] text-canvas-muted">
+            {markets.data ? new Date(markets.data.fetchedAt).toLocaleString("zh-HK", { hour12: false }) : "—"}
+          </p>
+        </div>
+        {markets.isLoading ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {(markets.data?.quotes ?? []).map((q) => (
+              <Card key={q.symbol} className="p-3 sm:p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs text-muted">{zh ? q.nameZh : q.nameEn}</p>
+                    <p className="font-mono text-lg tabular-nums">{q.price != null ? fmtNum(q.price, q.symbol === "^TNX" ? 3 : 2) : "—"}</p>
+                  </div>
+                  <Sparkline data={q.spark} />
+                </div>
+                <div className="mt-1 flex items-center justify-between text-xs">
+                  <span className={cn("font-mono tabular-nums", retClass(q.changePct))}>{fmtPct(q.changePct)}</span>
+                  <span className="text-subtle">YTD {fmtPct(q.ytdPct, 1)}</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+        <p className="mt-2 text-xs text-canvas-muted">
+          {zh
+            ? markets.data?.notes
+            : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the fund snapshot date."}
+        </p>
+        <div className="mt-4">
+          <IndexPathChart zh={zh} />
+        </div>
+      </section>
 
       <Card className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

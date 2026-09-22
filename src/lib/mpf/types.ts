@@ -1,12 +1,6 @@
 export type FundCategory = "equity" | "mixed" | "bond" | "money" | "guaranteed";
 
-export type GoalId =
-  | "growth"
-  | "balanced"
-  | "preserve"
-  | "lowfee"
-  | "dis"
-  | "regime";
+export type GoalId = "growth" | "balanced" | "preserve" | "lowfee" | "dis";
 
 export type RiskAppetite = "conservative" | "moderate" | "aggressive";
 

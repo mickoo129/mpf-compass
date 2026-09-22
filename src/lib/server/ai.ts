@@ -11,7 +11,7 @@ const ProfileSchema = z.object({
   monthly: z.number(),
   account: z.enum(["contribution", "personal"]),
   schemeEn: z.string().nullable(),
-  goal: z.enum(["growth", "balanced", "preserve", "lowfee", "dis", "regime"]),
+  goal: z.enum(["growth", "balanced", "preserve", "lowfee", "dis"]),
   risk: z.enum(["conservative", "moderate", "aggressive"]),
 });
 

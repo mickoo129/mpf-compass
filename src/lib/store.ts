@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Locale } from "./i18n";
-import type { Profile } from "./mpf/types";
+import type { GoalId, Profile } from "./mpf/types";
 
 const defaultProfile: Profile = {
   age: 35,
@@ -16,6 +16,11 @@ const defaultProfile: Profile = {
   reviewEvery: "auto",
   switchHorizon: "6m",
 };
+
+function normalizeGoal(g: unknown): GoalId {
+  if (g === "growth" || g === "balanced" || g === "preserve" || g === "lowfee" || g === "dis") return g;
+  return "balanced";
+}
 
 interface AppState {
   locale: Locale;
@@ -44,8 +49,25 @@ export const useAppStore = create<AppState>()(
         set({ compareIds: [...cur, id] });
       },
       clearCompare: () => set({ compareIds: [] }),
-      setProfile: (patch) => set({ profile: { ...get().profile, ...patch } }),
+      setProfile: (patch) => {
+        const profile = { ...get().profile, ...patch, goal: normalizeGoal(patch.goal ?? get().profile.goal) };
+        set({ profile });
+      },
     }),
-    { name: "mpf-compass" },
+    {
+      name: "mpf-compass",
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<AppState>;
+        return {
+          ...current,
+          ...p,
+          profile: {
+            ...current.profile,
+            ...p.profile,
+            goal: normalizeGoal(p.profile?.goal ?? current.profile.goal),
+          },
+        };
+      },
+    },
   ),
 );
