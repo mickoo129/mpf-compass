@@ -97,10 +97,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {links(false)}
         </SheetContent>
       </Sheet>
-      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-3 py-5 sm:px-4 sm:py-8">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-5 sm:py-8">{children}</main>
       <footer className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 py-6">
-          <p className="text-xs leading-relaxed text-canvas-muted">
+          <p className="w-full text-xs leading-relaxed text-canvas-muted">
             {t(locale, copy.disclaimer).replaceAll("{asOf}", catalogMeta.asOf)}
           </p>
           <p className="mt-2 font-mono text-[11px] text-canvas-muted">
@@ -126,18 +126,18 @@ export function PageTitle({
       {kicker ? (
         <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-accent uppercase">{kicker}</p>
       ) : null}
-      <h1 className="relative w-full pl-3.5 text-[1.375rem] font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
+      <h1 className="relative w-full pl-3.5 text-xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
         <span className="absolute top-1 bottom-1 left-0 w-[3px] rounded-full bg-accent" />
         {title}
       </h1>
-      {subtitle ? <p className="mt-2 max-w-4xl text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-2 w-full text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
     </div>
   );
 }
 
 export function AsOfLine({ zh }: { zh: boolean }) {
   return (
-    <p className="mb-5 text-[11px] leading-relaxed text-canvas-muted">
+    <p className="mb-5 w-full text-[11px] leading-relaxed text-canvas-muted">
       {zh
         ? `基金回報、收費、風險：積金局 ${catalogMeta.asOf}。指數：Yahoo Finance，開啟頁面時更新。兩者日期並不相同。`
         : `Fund returns, fees and risk: MPFA ${catalogMeta.asOf}. Indices: Yahoo Finance, refresh on load. These dates are not the same.`}

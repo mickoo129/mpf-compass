@@ -61,7 +61,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="font-display text-lg">{zh ? "類別走勢（曆年中位）" : "Category path (calendar median)"}</h2>
-          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-muted">
+          <p className="mt-1 w-full text-[11px] leading-relaxed text-muted">
             {zh
               ? "折線是積金局曆年中位（2021–2025），2020 年底＝100。積金局尚未公布 2026 全年，故線不會畫到 2026。下方市場指數圖才更新至近日。"
               : "The line is MPFA calendar medians 2021–2025 (end-2020 = 100). 2026 is not a published calendar year yet. The market-index chart below runs to recent dates."}

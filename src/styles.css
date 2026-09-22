@@ -57,14 +57,17 @@
   }
 
   h1, h2, h3 {
-    text-wrap: pretty;
+    text-wrap: wrap;
+    overflow-wrap: normal;
+    word-break: normal;
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
 
   p {
-    text-wrap: pretty;
+    text-wrap: wrap;
+    overflow-wrap: break-word;
   }
 
   button:not(:disabled),

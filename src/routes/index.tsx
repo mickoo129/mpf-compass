@@ -94,7 +94,7 @@ function Home() {
       <section className="mb-10">
         <div className="mb-3">
           <h2 className="font-display text-xl">{zh ? "此時段中位最高的策略" : "Highest median sleeves this period"}</h2>
-          <p className="mt-1 text-[11px] leading-relaxed text-canvas-muted">
+          <p className="mt-1 w-full text-[11px] leading-relaxed text-canvas-muted">
             {zh
               ? `按上方所選時段（現為：${PERIOD_LABEL[period].zh}）將積金局分類由高到低排列。點選可進入基金庫，查看該組可選基金。並非預測下一時段仍會領先。`
               : `Ranked by the period selected above (now ${PERIOD_LABEL[period].en}). Click through to that sleeve in the library. Not a forecast.`}
@@ -152,7 +152,7 @@ function Home() {
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-xl">{zh ? "市況參考（非基金）" : "Market context (not funds)"}</h2>
-            <p className="mt-1 text-[11px] text-canvas-muted">
+            <p className="mt-1 w-full text-[11px] leading-relaxed text-canvas-muted">
               {zh
                 ? "Yahoo 指數，開啟頁面時更新。不是積金局單位價，亦不是上方官方年化。"
                 : "Yahoo indices, refresh on load. Not MPFA NAVs and not the official returns above."}
