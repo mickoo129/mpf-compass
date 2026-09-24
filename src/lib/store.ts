@@ -7,7 +7,7 @@ const defaultProfile: Profile = {
   age: 35,
   retireAge: 65,
   balance: 0,
-  monthly: 3000,
+  monthly: 0,
   account: "personal",
   schemeEn: null,
   goal: "balanced",

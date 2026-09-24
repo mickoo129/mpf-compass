@@ -55,6 +55,12 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
   );
   const data = useMemo(() => chartRows(series, mode), [series, mode]);
   const colors = group === "category" ? CAT_COLORS : SLEEVE_COLORS;
+  const yDomain = useMemo((): [number, number] | undefined => {
+    if (mode !== "nav") return undefined;
+    const vals = series.flatMap((s) => s.nav.map((p) => p.nav)).filter((n): n is number => n != null);
+    const top = Math.max(150, Math.ceil(Math.max(...vals) / 10) * 10);
+    return [50, top];
+  }, [mode, series]);
 
   return (
     <Card>
@@ -111,6 +117,8 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
             <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-muted)" }} />
             <YAxis
               width={44}
+              domain={yDomain}
+              allowDataOverflow={false}
               tick={{ fontSize: 11, fill: "var(--color-muted)" }}
               tickFormatter={(v: number) => (mode === "nav" ? String(Math.round(v)) : `${v}`)}
             />
