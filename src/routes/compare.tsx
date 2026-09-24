@@ -5,7 +5,7 @@ import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { allFunds, fundById, providerStats, SLEEVE_LABEL } from "@/lib/mpf/catalog";
+import { allFunds, fundById, providerStats } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPctPlain } from "@/lib/mpf/format";
 import { calendar3yAnn, MPFA_PERIOD_NOTE } from "@/lib/mpf/returns";
 import type { Fund } from "@/lib/mpf/types";
@@ -280,31 +280,6 @@ function CustomCompare({
     { key: zh ? "成立" : "Since", ...Object.fromEntries(funds.map((f) => [f.id, f.retSince ?? 0])) },
   ];
   const colors = ["var(--color-primary)", "var(--color-up)", "var(--color-warn)", "var(--color-muted)"];
-  const rows: { k: string; render: (id: string) => React.ReactNode }[] = [
-    { k: zh ? "計劃" : "Scheme", render: (id) => (zh ? fundById(id)!.schemeZh : fundById(id)!.schemeEn) },
-    { k: zh ? "供應商" : "Provider", render: (id) => (zh ? fundById(id)!.providerZh : fundById(id)!.providerEn) },
-    {
-      k: zh ? "策略" : "Sleeve",
-      render: (id) => SLEEVE_LABEL[fundById(id)!.sleeve]?.[zh ? "zh" : "en"] ?? fundById(id)!.sleeve,
-    },
-    { k: zh ? "風險級別" : "Risk", render: (id) => fundById(id)!.riskClass ?? "—" },
-    { k: zh ? "開支比率" : "FER", render: (id) => fmtPctPlain(fundById(id)!.fer) },
-    { k: zh ? "1年年化" : "1Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret1y} /> },
-    { k: zh ? "3年" : "3Y", render: (id) => <ReturnCell value={calendar3yAnn(fundById(id)!)} /> },
-    { k: zh ? "5年年化" : "5Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret5y} /> },
-    { k: zh ? "10年年化" : "10Y p.a.", render: (id) => <ReturnCell value={fundById(id)!.ret10y} /> },
-    { k: zh ? "成立至今" : "Since launch", render: (id) => <ReturnCell value={fundById(id)!.retSince} /> },
-    { k: zh ? "5年累積" : "5Y cum.", render: (id) => <ReturnCell value={fundById(id)!.cum5y} /> },
-    { k: zh ? "10年累積" : "10Y cum.", render: (id) => <ReturnCell value={fundById(id)!.cum10y} /> },
-    { k: "2025", render: (id) => <ReturnCell value={fundById(id)!.y2025} /> },
-    { k: "2024", render: (id) => <ReturnCell value={fundById(id)!.y2024} /> },
-    { k: "2023", render: (id) => <ReturnCell value={fundById(id)!.y2023} /> },
-    { k: "2022", render: (id) => <ReturnCell value={fundById(id)!.y2022} /> },
-    { k: "2021", render: (id) => <ReturnCell value={fundById(id)!.y2021} /> },
-    { k: zh ? "規模" : "AUM", render: (id) => fmtAum(fundById(id)!.aumM) },
-    { k: zh ? "成立" : "Launch", render: (id) => fundById(id)!.launch ?? "—" },
-  ];
-
   return (
     <>
       <Card className="mb-6">
@@ -323,31 +298,56 @@ function CustomCompare({
         </div>
       </Card>
       <div className="overflow-x-auto rounded-xl bg-card text-fg ring-1 ring-white/15 shadow-[var(--shadow-border)]">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[880px] text-sm">
           <thead>
-            <tr className="border-b border-border">
-              <th className="px-3 py-3 text-left text-muted" />
-              {funds.map((f) => (
-                <th key={f.id} className="px-3 py-3 text-left align-bottom">
-                  <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
-                    {zh ? f.nameZh : f.nameEn}
-                  </Link>
-                  <button type="button" className="mt-1 block text-xs text-subtle" onClick={() => toggle(f.id)}>
-                    {zh ? "移出" : "Remove"}
-                  </button>
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="px-3 py-2 text-left font-medium">{zh ? "基金" : "Fund"}</th>
+              {(
+                [
+                  [zh ? "1年" : "1Y", "y1"],
+                  [zh ? "3年" : "3Y", "y3"],
+                  [zh ? "5年" : "5Y", "y5"],
+                  [zh ? "10年" : "10Y", "y10"],
+                  [zh ? "成立至今" : "Since", "since"],
+                  ["2025", "c25"],
+                  ["2024", "c24"],
+                  ["2023", "c23"],
+                  ["2022", "c22"],
+                  ["2021", "c21"],
+                ] as const
+              ).map(([label]) => (
+                <th key={label} className="px-2 py-2 text-right font-medium whitespace-nowrap">
+                  {label}
                 </th>
               ))}
+              <th className="px-2 py-2 text-right font-medium">{zh ? "開支" : "FER"}</th>
+              <th className="px-2 py-2 text-right font-medium">{zh ? "風險" : "Risk"}</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
-              <tr key={r.k} className="border-b border-border/70 last:border-0">
-                <td className="px-3 py-2 text-muted">{r.k}</td>
-                {funds.map((f) => (
-                  <td key={f.id} className="px-3 py-2">
-                    {r.render(f.id)}
-                  </td>
-                ))}
+            {funds.map((f) => (
+              <tr key={f.id} className="border-b border-border/70 last:border-0">
+                <td className="px-3 py-2">
+                  <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
+                    {zh ? f.nameZh : f.nameEn}
+                  </Link>
+                  <p className="text-[11px] text-subtle">{zh ? f.schemeZh : f.schemeEn}</p>
+                  <button type="button" className="text-[11px] text-subtle" onClick={() => toggle(f.id)}>
+                    {zh ? "移出" : "Remove"}
+                  </button>
+                </td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.ret1y} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={calendar3yAnn(f)} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.ret5y} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.ret10y} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.retSince} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.y2025} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.y2024} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.y2023} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.y2022} /></td>
+                <td className="px-2 py-2 text-right"><ReturnCell value={f.y2021} /></td>
+                <td className="px-2 py-2 text-right font-mono text-xs">{fmtPctPlain(f.fer)}</td>
+                <td className="px-2 py-2 text-right font-mono text-xs">{f.riskClass ?? "—"}</td>
               </tr>
             ))}
           </tbody>

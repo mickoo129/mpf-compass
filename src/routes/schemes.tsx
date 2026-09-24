@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
+import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, median, uniqueSchemes } from "@/lib/mpf/catalog";
-import { fmtAum, fmtNum, fmtPctPlain } from "@/lib/mpf/format";
+import { fmtAum, fmtNum } from "@/lib/mpf/format";
+import { calendar3yAnn } from "@/lib/mpf/returns";
 import { useAppStore } from "@/lib/store";
 
 export const Route = createFileRoute("/schemes")({ component: SchemesPage });
@@ -17,7 +19,9 @@ function SchemesPage() {
     return {
       ...s,
       ret1y: median(funds.map((f) => f.ret1y ?? NaN)),
+      ret3y: median(funds.map((f) => calendar3yAnn(f) ?? NaN)),
       ret5y: median(funds.map((f) => f.ret5y ?? NaN)),
+      ret10y: median(funds.map((f) => f.ret10y ?? NaN)),
       minFer: Math.min(...funds.map((f) => f.fer ?? 9)),
       hasDis: funds.some((f) => f.isDis),
       tracker: funds.filter((f) => f.isTracker).length,
@@ -48,8 +52,10 @@ function SchemesPage() {
               <th className="px-3 py-3 text-right font-medium">{zh ? "基金數" : "Funds"}</th>
               <th className="px-3 py-3 text-right font-medium">{zh ? "平均開支" : "Avg FER"}</th>
               <th className="px-3 py-3 text-right font-medium">{zh ? "最低開支" : "Min FER"}</th>
-              <th className="px-3 py-3 text-right font-medium">1Y med</th>
-              <th className="px-3 py-3 text-right font-medium">5Y med</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? "1年" : "1Y"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? "3年" : "3Y"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? "5年" : "5Y"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? "10年" : "10Y"}</th>
               <th className="px-3 py-3 text-right font-medium" />
             </tr>
           </thead>
@@ -72,8 +78,10 @@ function SchemesPage() {
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.count}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.ferAvg.toFixed(2)}%</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.minFer.toFixed(2)}%</td>
-                <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmtPctPlain(s.ret1y)}</td>
-                <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmtPctPlain(s.ret5y)}</td>
+                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret1y} /></td>
+                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret3y} /></td>
+                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret5y} /></td>
+                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret10y} /></td>
                 <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <Link
                     to="/recommend"
@@ -94,15 +102,15 @@ function SchemesPage() {
             <Link to="/funds" search={{ scheme: s.en }} className="block p-4">
               <p className="font-medium">{zh ? s.zh : s.en}</p>
               <p className="text-xs text-subtle">{zh ? s.providerZh : s.providerEn}</p>
-              <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-xs text-muted">
-                <span>{fmtAum(s.aum)}</span>
-                <span>
-                  {zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}%
-                </span>
-                <span>
-                  {s.count} {zh ? "隻" : "funds"}
-                </span>
+              <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
+                <span>1{zh ? "年" : "Y"} <ReturnCell value={s.ret1y} /></span>
+                <span>3{zh ? "年" : "Y"} <ReturnCell value={s.ret3y} /></span>
+                <span>5{zh ? "年" : "Y"} <ReturnCell value={s.ret5y} /></span>
+                <span>10{zh ? "年" : "Y"} <ReturnCell value={s.ret10y} /></span>
               </div>
+              <p className="mt-2 font-mono text-[11px] text-subtle">
+                {fmtAum(s.aum)} · {zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}% · {s.count} {zh ? "隻" : "funds"}
+              </p>
               <p className="mt-2 text-xs text-primary">{zh ? "查看成分基金 →" : "View funds →"}</p>
             </Link>
             <div className="border-t border-border px-4 py-2">
