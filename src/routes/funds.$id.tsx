@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   Area,
   AreaChart,
@@ -16,7 +17,7 @@ import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtHkd, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
-import { estimateTodayMove, projectFund } from "@/lib/mpf/forecast";
+import { estimateTodayMove, projectFund, volOf } from "@/lib/mpf/forecast";
 import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { expectedReturn } from "@/lib/mpf/score";
 import { getMarkets } from "@/lib/server/markets";
@@ -46,7 +47,13 @@ function FundDetail() {
 
   const quote = markets.data?.quotes.find((q) => q.symbol === fund.bench);
   const today = estimateTodayMove(quote?.changePct ?? null, fund.beta);
-  const path = projectFund(fund, 10, 10000);
+  const [horizon, setHorizon] = useState<3 | 5 | 10 | 15 | 20>(10);
+  const [peerPeriod, setPeerPeriod] = useState<"ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince">("ret5y");
+  const path = projectFund(fund, horizon, 10000);
+  const mu = expectedReturn(fund);
+  const vol = volOf(fund);
+  const bullPa = mu + 0.7 * vol;
+  const bearPa = Math.max(-25, mu - 1.05 * vol);
   const rank1 = peerRank(fund, "ret1y");
   const rank5 = peerRank(fund, "ret5y");
   const rank10 = peerRank(fund, "ret10y");
@@ -54,8 +61,8 @@ function FundDetail() {
   const rank3 = peerRankBy(fund, calendar3yAnn);
   const rankF = peerRank(fund, "fer");
   const peers = allFunds
-    .filter((f) => f.sleeve === fund.sleeve && f.id !== fund.id && f.ret5y != null)
-    .sort((a, b) => (b.ret5y ?? 0) - (a.ret5y ?? 0))
+    .filter((f) => f.sleeve === fund.sleeve && f.id !== fund.id && annReturn(f, peerPeriod) != null)
+    .sort((a, b) => (annReturn(b, peerPeriod) ?? 0) - (annReturn(a, peerPeriod) ?? 0))
     .slice(0, 5);
   const calendar = [
     ["2025", fund.y2025],
@@ -153,11 +160,26 @@ function FundDetail() {
 
       <div className="mb-8 grid gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-3">
-          <h2 className="mb-1 font-display text-lg">{zh ? "十年情景（每 1 萬港元）" : "10-year path (per HK$10,000)"}</h2>
+          <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <h2 className="font-display text-lg">{zh ? `${horizon} 年情景（每 1 萬港元）` : `${horizon}-year path (per HK$10,000)`}</h2>
+            <div className="flex gap-1">
+              {([3, 5, 10, 15, 20] as const).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setHorizon(n)}
+                  className={`h-8 rounded-md px-2.5 text-xs ${horizon === n ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border"}`}
+                >
+                  {n}
+                  {zh ? "年" : "Y"}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="mb-4 text-xs text-subtle">
             {zh
-              ? `預期年化約 ${expectedReturn(fund).toFixed(1)}%。牛／熊為波動加減，並非預測承諾。`
-              : `Base ~${expectedReturn(fund).toFixed(1)}% p.a. Bull/bear are vol bands, not promises.`}
+              ? `基本約 ${mu.toFixed(1)}% 年化：該類別長期假設（例如美股約 7%）同這隻基金的五年回報（上限 12%）各佔一半，再扣高於 0.8% 的開支。牛市每年約 ${bullPa.toFixed(1)}%、熊市每年約 ${bearPa.toFixed(1)}%，只按積金局風險級別 ${fund.riskClass ?? "—"} 加闊，不是歷史牛熊、亦非承諾。`
+              : `Base ~${mu.toFixed(1)}% p.a. blends a sleeve prior with capped 5Y, minus extra fees. Bull ~${bullPa.toFixed(1)}% and bear ~${bearPa.toFixed(1)}% use risk-class volatility, not historical bull/bear markets.`}
           </p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -181,7 +203,7 @@ function FundDetail() {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 flex gap-4 text-xs text-muted">
-            <span>{zh ? "十年基本" : "10Y base"} {fmtHkd(path.at(-1)?.base ?? 0)}</span>
+            <span>{zh ? `${horizon}年基本` : `${horizon}Y base`} {fmtHkd(path.at(-1)?.base ?? 0)}</span>
             <span className="text-up">{zh ? "牛" : "Bull"} {fmtHkd(path.at(-1)?.bull ?? 0)}</span>
             <span className="text-down">{zh ? "熊" : "Bear"} {fmtHkd(path.at(-1)?.bear ?? 0)}</span>
           </div>
@@ -222,13 +244,28 @@ function FundDetail() {
           </div>
         </Card>
         <Card>
-          <h2 className="mb-3 font-display text-lg">{zh ? "同類五年領先" : "Sleeve 5Y leaders"}</h2>
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="font-display text-lg">{zh ? "同類領先" : "Sleeve leaders"}</h2>
+            <div className="flex flex-wrap gap-1">
+              {(["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince"] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPeerPeriod(p)}
+                  className={`h-8 rounded-md px-2 text-xs ${peerPeriod === p ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border"}`}
+                >
+                  {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
+                  {p === "ret3yCal" ? (zh ? "·推算" : "·est.") : ""}
+                </button>
+              ))}
+            </div>
+          </div>
           <ul className="space-y-2 text-sm">
             {peers.map((p) => (
               <li key={p.id}>
                 <Link to="/funds/$id" params={{ id: p.id }} className="flex justify-between gap-3">
                   <span className="truncate">{zh ? p.nameZh : p.nameEn}</span>
-                  <ReturnCell value={p.ret5y} />
+                  <ReturnCell value={annReturn(p, peerPeriod)} />
                 </Link>
               </li>
             ))}
