@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/funds/$id")({ component: FundDetail });
 
 function FundDetail() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const fund = fundById(id);
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
@@ -71,6 +72,16 @@ function FundDetail() {
     ["2022", fund.y2022],
     ["2021", fund.y2021],
   ] as const;
+  const periods = [
+    ["ret1y", rank1],
+    ["ret3yCal", rank3],
+    ["ret5y", rank5],
+    ["ret10y", rank10],
+    ["retSince", rankSince],
+  ] as const;
+  const siblings = allFunds
+    .filter((f) => f.schemeEn === fund.schemeEn)
+    .sort((a, b) => (zh ? a.nameZh.localeCompare(b.nameZh, "zh-HK") : a.nameEn.localeCompare(b.nameEn)));
 
   return (
     <div>
@@ -79,8 +90,24 @@ function FundDetail() {
           {zh ? "基金庫" : "Funds"}
         </Link>
         <span className="mx-1">/</span>
-        {zh ? fund.schemeZh : fund.schemeEn}
+        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-white">
+          {zh ? fund.schemeZh : fund.schemeEn}
+        </Link>
       </p>
+      <label className="mb-1 block text-[11px] text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
+      <select
+        className="mb-4 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+        value={fund.id}
+        onChange={(e) => {
+          if (e.target.value && e.target.value !== fund.id) void navigate({ to: "/funds/$id", params: { id: e.target.value } });
+        }}
+      >
+        {siblings.map((f) => (
+          <option key={f.id} value={f.id}>
+            {zh ? f.nameZh : f.nameEn}
+          </option>
+        ))}
+      </select>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
           <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{zh ? fund.nameZh : fund.nameEn}</h1>
@@ -111,41 +138,43 @@ function FundDetail() {
         <h2 className="mb-1 font-display text-lg">{zh ? "回報時段" : "Return periods"}</h2>
         <p className="mb-3 text-[11px] text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted">
-                <th className="py-2 pr-3 text-left font-medium">{zh ? "時段" : "Period"}</th>
-                <th className="py-2 pr-3 text-right font-medium">{zh ? "年化" : "Ann."}</th>
-                <th className="py-2 pr-3 text-right font-medium">{zh ? "累積" : "Cum."}</th>
-                <th className="py-2 text-right font-medium">{zh ? "同類年化" : "Peer"}</th>
+                <th className="py-2 pr-2 text-left font-medium" />
+                {periods.map(([p]) => (
+                  <th key={p} className="px-1 py-2 text-right font-medium whitespace-nowrap">
+                    {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
+                    {p === "ret3yCal" ? <span className="block text-[10px] font-normal text-subtle">{zh ? "推算" : "est."}</span> : null}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {(
-                [
-                  ["ret1y", rank1],
-                  ["ret3yCal", rank3],
-                  ["ret5y", rank5],
-                  ["ret10y", rank10],
-                  ["retSince", rankSince],
-                ] as const
-              ).map(([p, rank]) => (
-                <tr key={p} className="border-b border-border/70 last:border-0">
-                  <td className="py-2 pr-3">
-                    {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                    {p === "ret3yCal" ? (
-                      <span className="ml-1 text-[11px] text-subtle">{zh ? "（推算）" : "(derived)"}</span>
-                    ) : null}
-                  </td>
-                  <td className="py-2 pr-3 text-right">
+              <tr className="border-b border-border/70">
+                <td className="py-2 pr-2 text-xs text-muted">{zh ? "年化" : "Ann."}</td>
+                {periods.map(([p]) => (
+                  <td key={p} className="px-1 py-2 text-right">
                     <ReturnCell value={annReturn(fund, p)} />
                   </td>
-                  <td className="py-2 pr-3 text-right">
+                ))}
+              </tr>
+              <tr className="border-b border-border/70">
+                <td className="py-2 pr-2 text-xs text-muted">{zh ? "累積" : "Cum."}</td>
+                {periods.map(([p]) => (
+                  <td key={p} className="px-1 py-2 text-right">
                     <ReturnCell value={cumReturn(fund, p)} />
                   </td>
-                  <td className="py-2 text-right font-mono text-xs text-muted">{rank ? `${rank.rank} / ${rank.total}` : "—"}</td>
-                </tr>
-              ))}
+                ))}
+              </tr>
+              <tr>
+                <td className="py-2 pr-2 text-xs text-muted">{zh ? "同類" : "Peer"}</td>
+                {periods.map(([p, rank]) => (
+                  <td key={p} className="px-1 py-2 text-right font-mono text-xs text-muted">
+                    {rank ? `${rank.rank}/${rank.total}` : "—"}
+                  </td>
+                ))}
+              </tr>
             </tbody>
           </table>
         </div>
