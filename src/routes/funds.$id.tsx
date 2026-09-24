@@ -49,6 +49,7 @@ function FundDetail() {
   const quote = markets.data?.quotes.find((q) => q.symbol === fund.bench);
   const today = estimateTodayMove(quote?.changePct ?? null, fund.beta);
   const [horizon, setHorizon] = useState<3 | 5 | 10 | 15 | 20>(10);
+  const [peerPeriod, setPeerPeriod] = useState<"ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince">("ret5y");
   const path = projectFund(fund, horizon, 10000);
   const mu = expectedReturn(fund);
   const vol = volOf(fund);
@@ -60,9 +61,9 @@ function FundDetail() {
   const rankSince = peerRank(fund, "retSince");
   const rank3 = peerRankBy(fund, calendar3yAnn);
   const rankF = peerRank(fund, "fer");
-  const peers = [...allFunds]
-    .filter((f) => f.sleeve === fund.sleeve && f.id !== fund.id && f.ret5y != null)
-    .sort((a, b) => (b.ret5y ?? 0) - (a.ret5y ?? 0))
+  const peers = allFunds
+    .filter((f) => f.sleeve === fund.sleeve && annReturn(f, peerPeriod) != null)
+    .sort((a, b) => (annReturn(b, peerPeriod) ?? 0) - (annReturn(a, peerPeriod) ?? 0))
     .slice(0, 5);
   const calendar = [
     ["2025", fund.y2025],
@@ -256,62 +257,53 @@ function FundDetail() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 font-display text-lg">{zh ? "日曆年回報" : "Calendar years"}</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs text-muted">
-                  <th className="py-2 pr-2 text-left font-medium" />
-                  {calendar.map(([y]) => (
-                    <th key={y} className="px-2 py-2 text-right font-medium">
-                      {y}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="py-2 pr-2 text-xs text-muted">{zh ? "回報" : "Return"}</td>
-                  {calendar.map(([y, v]) => (
-                    <td key={y} className="px-2 py-2 text-right">
-                      <ReturnCell value={v} />
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+          <div className="grid grid-cols-5 gap-2">
+            {calendar.map(([y, v]) => (
+              <div key={y} className="rounded-lg bg-white px-1 py-2 text-center ring-1 ring-border">
+                <p className="font-mono text-[11px] text-subtle">{y}</p>
+                <ReturnCell value={v} className="mt-1 block text-sm" />
+              </div>
+            ))}
           </div>
         </Card>
-        <Card className="overflow-x-auto">
-          <h2 className="mb-1 font-display text-lg">{zh ? "同類領先" : "Sleeve leaders"}</h2>
-          <p className="mb-3 text-[11px] text-subtle">{zh ? "按五年年化取頭五名，各年期並列。" : "Top five by 5-year return, all periods side by side."}</p>
-          <table className="w-full min-w-[420px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs text-muted">
-                <th className="py-2 pr-2 text-left font-medium">{zh ? "基金" : "Fund"}</th>
-                {(["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince"] as const).map((p) => (
-                  <th key={p} className="px-1 py-2 text-right font-medium whitespace-nowrap">
-                    {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {peers.map((p) => (
-                <tr key={p.id} className="border-b border-border/70 last:border-0">
-                  <td className="py-2 pr-2">
-                    <Link to="/funds/$id" params={{ id: p.id }} className="line-clamp-2 hover:underline">
-                      {zh ? p.nameZh : p.nameEn}
-                    </Link>
-                  </td>
-                  {(["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince"] as const).map((k) => (
-                    <td key={k} className="px-1 py-2 text-right">
-                      <ReturnCell value={annReturn(p, k)} />
-                    </td>
-                  ))}
-                </tr>
+        <Card>
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="font-display text-lg">{zh ? "同類領先" : "Sleeve leaders"}</h2>
+            <div className="flex flex-wrap gap-1">
+              {(["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince"] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPeerPeriod(p)}
+                  className={`h-8 rounded-md px-2 text-xs ${peerPeriod === p ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border"}`}
+                >
+                  {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+          <p className="mb-2 text-[11px] text-subtle">
+            {zh
+              ? `按${PERIOD_LABEL[peerPeriod].zh}年化取頭五名。換年期會換一批基金。`
+              : `Top five by ${PERIOD_LABEL[peerPeriod].en}. Changing the period changes the names.`}
+          </p>
+          <ol className="space-y-2 text-sm">
+            {peers.map((p, i) => (
+              <li key={p.id}>
+                <Link
+                  to="/funds/$id"
+                  params={{ id: p.id }}
+                  className={`flex items-baseline justify-between gap-3 rounded-md px-1 ${p.id === fund.id ? "bg-tint-sky" : ""}`}
+                >
+                  <span className="min-w-0 truncate">
+                    <span className="mr-2 font-mono text-subtle">{i + 1}</span>
+                    {zh ? p.nameZh : p.nameEn}
+                  </span>
+                  <ReturnCell value={annReturn(p, peerPeriod)} />
+                </Link>
+              </li>
+            ))}
+          </ol>
         </Card>
       </div>
     </div>
