@@ -130,7 +130,12 @@ function RecommendPage() {
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="space-y-5 lg:col-span-5">
           <Card>
-            <h2 className="mb-4 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
+            <p className="mb-4 text-[11px] text-subtle">
+              {zh
+                ? "每次開啟都由 35 歲、65 歲退休、結餘 0 開始，不會記住上一個人的數字。"
+                : "Each visit starts at age 35, retirement 65, and a zero balance. Nothing here is saved for the next person."}
+            </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={zh ? "年齡" : "Age"}>
                 <div className="flex items-center gap-3">

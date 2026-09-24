@@ -6,7 +6,7 @@ import type { GoalId, Profile, SavedMix, SwitchHorizon } from "./mpf/types";
 const defaultProfile: Profile = {
   age: 35,
   retireAge: 65,
-  balance: 400000,
+  balance: 0,
   monthly: 3000,
   account: "personal",
   schemeEn: null,
@@ -71,17 +71,13 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "mpf-compass",
+      partialize: (s) => ({ locale: s.locale, compareIds: s.compareIds }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
         return {
           ...current,
-          ...p,
-          profile: {
-            ...current.profile,
-            ...p.profile,
-            goal: normalizeGoal(p.profile?.goal ?? current.profile.goal),
-            switchHorizon: normalizeHorizon(p.profile?.switchHorizon ?? current.profile.switchHorizon),
-          },
+          locale: p.locale === "en" || p.locale === "zh" ? p.locale : current.locale,
+          compareIds: Array.isArray(p.compareIds) ? p.compareIds.slice(0, 4) : current.compareIds,
         };
       },
     },
