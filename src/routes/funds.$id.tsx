@@ -176,12 +176,7 @@ function FundDetail() {
               ))}
             </div>
           </div>
-          <p className="mb-4 text-xs text-subtle">
-            {zh
-              ? `基本約 ${mu.toFixed(1)}% 年化：該類別長期假設（例如美股約 7%）同這隻基金的五年回報（上限 12%）各佔一半，再扣高於 0.8% 的開支。牛市每年約 ${bullPa.toFixed(1)}%、熊市每年約 ${bearPa.toFixed(1)}%，只按積金局風險級別 ${fund.riskClass ?? "—"} 加闊，不是歷史牛熊、亦非承諾。`
-              : `Base ~${mu.toFixed(1)}% p.a. blends a sleeve prior with capped 5Y, minus extra fees. Bull ~${bullPa.toFixed(1)}% and bear ~${bearPa.toFixed(1)}% use risk-class volatility, not historical bull/bear markets.`}
-          </p>
-          <div className="h-56">
+          <div className="mt-3 h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={path} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                 <CartesianGrid stroke="var(--color-border)" vertical={false} />
@@ -202,11 +197,16 @@ function FundDetail() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-2 flex gap-4 text-xs text-muted">
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
             <span>{zh ? `${horizon}年基本` : `${horizon}Y base`} {fmtHkd(path.at(-1)?.base ?? 0)}</span>
             <span className="text-up">{zh ? "牛" : "Bull"} {fmtHkd(path.at(-1)?.bull ?? 0)}</span>
             <span className="text-down">{zh ? "熊" : "Bear"} {fmtHkd(path.at(-1)?.bear ?? 0)}</span>
           </div>
+          <p className="mt-3 text-xs leading-relaxed text-subtle">
+            {zh
+              ? `基本約 ${mu.toFixed(1)}% 年化。類別長期假設（例如美股約 7%）佔 55%，這隻基金的五年回報（上限 12%）佔 45%，再扣高於 0.8% 的開支。五年回報同風險級別來自積金局；類別長期假設不是積金局數字，只是本工具的規劃假設。牛市每年約 ${bullPa.toFixed(1)}%、熊市每年約 ${bearPa.toFixed(1)}%，只按風險級別 ${fund.riskClass ?? "—"} 加闊，不是歷史牛熊，亦非承諾。`
+              : `Base ~${mu.toFixed(1)}% p.a.: 55% sleeve planning prior, 45% capped 5Y (MPFA), minus extra fees. The prior is not an MPFA figure. Bull ~${bullPa.toFixed(1)}% and bear ~${bearPa.toFixed(1)}% widen by risk class ${fund.riskClass ?? "—"}, not historical bull/bear markets.`}
+          </p>
         </Card>
         <Card className="lg:col-span-2">
           <h2 className="mb-3 font-display text-lg">{zh ? "檔案" : "Profile"}</h2>
