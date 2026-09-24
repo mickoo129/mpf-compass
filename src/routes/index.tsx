@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Sparkline } from "@/components/charts/sparkline";
 import { CategoryPathChart } from "@/components/charts/category-path";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReturnCell } from "@/components/funds/return-cell";
+import { PeriodPills } from "@/components/funds/period-pills";
 import {
   allFunds,
   catalogMeta,
@@ -27,30 +28,16 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({ component: Home });
 
-const HOME_PERIODS = ["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince"] as const satisfies readonly MedianPeriod[];
-
-const CAT_ZH: Record<string, string> = {
-  equity: "股票",
-  mixed: "混合資產",
-  bond: "債券",
-  money: "貨幣市場",
-  guaranteed: "保證",
-};
-
 function Home() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
-  const [sleeveSort, setSleeveSort] = useState<(typeof HOME_PERIODS)[number]>("ret5y");
+  const [period, setPeriod] = useState<MedianPeriod>("ret1y");
 
   const schemes = uniqueSchemes();
   const totalAum = schemes.reduce((s, x) => s + x.aum, 0);
   const cats = categoryStats();
-  const sleeves = useMemo(() => {
-    return sleeveStats()
-      .filter((s) => s.count >= 3)
-      .sort((a, b) => (b[sleeveSort] ?? -999) - (a[sleeveSort] ?? -999));
-  }, [sleeveSort]);
+  const sleeves = sleeveStats(period).filter((s) => s.count >= 3).slice(0, 12);
   const lowFee = [...allFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 5);
 
   return (
@@ -73,86 +60,60 @@ function Home() {
       </div>
 
       <section className="mb-10">
-        <h2 className="mb-3 font-display text-xl">{zh ? "按類別中位回報" : "Median by type"}</h2>
-        <Card className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs text-muted">
-                <th className="py-2 pr-3 text-left font-medium">{zh ? "類別" : "Type"}</th>
-                {HOME_PERIODS.map((p) => (
-                  <th key={p} className="px-2 py-2 text-right font-medium whitespace-nowrap">
-                    {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {cats.map((c) => (
-                <tr key={c.category} className="border-b border-border/70 last:border-0">
-                  <td className="py-2 pr-3">
-                    <Link to="/funds" search={{ category: c.category }} className="font-medium text-primary hover:underline">
-                      {zh ? CAT_ZH[c.category] : c.category}
-                    </Link>
-                    <p className="text-[11px] text-subtle">
-                      {c.count} · {zh ? "開支" : "FER"} {c.fer?.toFixed(2)}%
-                    </p>
-                  </td>
-                  {HOME_PERIODS.map((p) => (
-                    <td key={p} className="px-2 py-2 text-right">
-                      <ReturnCell value={c[p]} />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="font-display text-xl">{zh ? "按類別中位回報" : "Median by type"}</h2>
+          <PeriodPills value={period} onChange={setPeriod} zh={zh} />
+        </div>
+        <Card>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {cats.map((c) => {
+              const v = c[period];
+              return (
+                <Link key={c.category} to="/funds" search={{ category: c.category }} className="block rounded-lg p-1 -m-1 hover:bg-tint-sky">
+                  <div className="mb-1 flex justify-between text-sm">
+                    <span>{zh ? { equity: "股票", mixed: "混合資產", bond: "債券", money: "貨幣市場", guaranteed: "保證" }[c.category] : c.category}</span>
+                    <ReturnCell value={v} />
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-bg-warm">
+                    <div
+                      className={cn("h-full rounded-full", (v ?? 0) >= 0 ? "bg-up" : "bg-down")}
+                      style={{ width: `${Math.min(100, Math.abs(v ?? 0) * 3)}%` }}
+                    />
+                  </div>
+                  <p className="mt-0.5 font-mono text-[11px] text-subtle">
+                    n={c.count} · {zh ? "開支" : "FER"} {c.fer?.toFixed(2)}%
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
           <p className="mt-3 text-[11px] leading-relaxed text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
         </Card>
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-1 font-display text-xl">{zh ? "策略中位回報" : "Sleeve medians"}</h2>
-        <p className="mb-3 text-[11px] leading-relaxed text-canvas-muted">
-          {zh
-            ? "每列一個策略，年期打橫。按欄位標題排序。點選策略可查看該組基金。並非預測下一時段仍會領先。"
-            : "One sleeve per row, periods across. Sort a column. Tap a sleeve to open those funds. Not a forecast."}
-        </p>
-        <div className="overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)]">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs text-muted">
-                <th className="px-3 py-2 text-left font-medium">{zh ? "策略" : "Sleeve"}</th>
-                {HOME_PERIODS.map((p) => (
-                  <th key={p} className="px-2 py-2 text-right font-medium">
-                    <button type="button" className="whitespace-nowrap hover:text-fg" onClick={() => setSleeveSort(p)}>
-                      {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                      {sleeveSort === p ? " ↓" : ""}
-                    </button>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sleeves.map((s) => (
-                <tr key={s.sleeve} className="border-b border-border/70 last:border-0">
-                  <td className="px-3 py-2">
-                    <Link to="/funds" search={{ sleeve: s.sleeve }} className="font-medium text-primary hover:underline">
-                      {SLEEVE_LABEL[s.sleeve]?.[zh ? "zh" : "en"] ?? s.sleeve}
-                    </Link>
-                    <p className="text-[11px] text-subtle">
-                      {s.count}
-                      {zh ? " 隻" : " funds"}
-                    </p>
-                  </td>
-                  {HOME_PERIODS.map((p) => (
-                    <td key={p} className="px-2 py-2 text-right">
-                      <ReturnCell value={s[p]} />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mb-3">
+          <h2 className="font-display text-xl">{zh ? "此時段中位最高的策略" : "Highest median sleeves this period"}</h2>
+          <p className="mt-1 w-full text-[11px] leading-relaxed text-canvas-muted">
+            {zh
+              ? `按上方所選時段（現為：${PERIOD_LABEL[period].zh}）將策略由高到低排列。點選可進入基金庫，查看該組基金。並非預測下一時段仍會領先。`
+              : `Ranked by the period selected above (now ${PERIOD_LABEL[period].en}). Tap a sleeve to open those funds. Not a forecast.`}
+          </p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {sleeves.map((s, i) => (
+            <Link key={s.sleeve} to="/funds" search={{ sleeve: s.sleeve }} className="rounded-lg bg-card p-3 text-fg shadow-[var(--shadow-border)] transition-transform active:scale-[0.98]">
+              <p className="text-xs text-muted">
+                <span className="mr-1.5 font-mono text-subtle">{i + 1}</span>
+                {SLEEVE_LABEL[s.sleeve]?.[zh ? "zh" : "en"] ?? s.sleeve}
+              </p>
+              <p className={cn("font-mono text-xl tabular-nums", retClass(s.ret))}>{fmtPct(s.ret)}</p>
+              <p className="text-[11px] text-subtle">
+                {zh ? PERIOD_LABEL[period].zh : PERIOD_LABEL[period].en} · {s.count}
+                {zh ? " 隻 · 查看" : " funds · view"}
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
 
