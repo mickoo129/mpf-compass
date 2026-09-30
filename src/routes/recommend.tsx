@@ -18,11 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ReturnCell } from "@/components/funds/return-cell";
+import { RangeCard } from "@/components/funds/range-card";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds, suitabilityChecks } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -72,6 +73,8 @@ function RecommendPage() {
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
   const review = resolvedReview(profile);
+  const checks = useMemo(() => suitabilityChecks(profile), [profile]);
+  const warns = checks.filter((c) => c.level === "warn");
   const [advanced, setAdvanced] = useState(
     () => profile.mixSize !== "auto" || profile.reviewEvery !== "auto",
   );
@@ -253,6 +256,7 @@ function RecommendPage() {
                 </button>
               ))}
             </div>
+            <SuitabilityList items={checks} zh={zh} />
             <div className="mt-4">
               <Label>{zh ? "今次轉換視野" : "Switch window"}</Label>
               <p className="mt-1 text-[11px] text-subtle">
@@ -392,6 +396,14 @@ function RecommendPage() {
                 {copied ? (zh ? "已複製" : "Copied") : zh ? "複製配置" : "Copy mix"}
               </Button>
             </div>
+            {warns.length ? (
+              <div className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-sm text-fg" role="alert">
+                <p className="mb-1 font-medium text-warn">{zh ? "請留意：目標同年期未必配合" : "Check: goal and horizon may not fit"}</p>
+                {warns.map((w) => (
+                  <p key={w.en} className="text-xs text-muted">{zh ? w.zh : w.en}</p>
+                ))}
+              </div>
+            ) : null}
             {profile.account === "contribution" && !profile.schemeEn ? (
               <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，才可在可轉換範圍內推介。" : "Pick your scheme to constrain the opportunity set."}</p>
             ) : null}
@@ -427,6 +439,16 @@ function RecommendPage() {
               ))}
             </div>
           </Card>
+
+          {alloc.length ? (
+            <RangeCard
+              items={alloc.map((a) => ({ fund: a.fund, weight: a.weight }))}
+              zh={zh}
+              amount={profile.balance}
+              initialMonths={({ "1m": 1, "3m": 3, "6m": 6, "1y": 12 } as const)[horizon]}
+              title={zh ? "呢個配置可能升跌幾多（歷史估算）" : "How much this mix might move (historical)"}
+            />
+          ) : null}
 
           {showCompare && comparison.status !== "none" ? (
             <Card className={comparison.status === "adjust" ? "bg-tint-sand" : "bg-tint-mint"}>
@@ -486,8 +508,8 @@ function RecommendPage() {
             <h2 className="mb-1 font-display text-lg">{zh ? "至退休的假設滾存" : "Illustrative path to retirement"}</h2>
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? `假設你長期持有今次這幾隻直至退休（${years} 年）。基本＝規則假設年化＋每月供款。牛／熊＝按風險級別的波動帶，不是預測。日常睇基本。與「${HORIZON_COPY[horizon].zh}」對照週期無關。`
-                : `The x-axis is years to retirement (${years}), not the switch window. Base compounds a rule-based return plus contributions. Bull/bear are volatility bands from risk class, not forecasts. Read the base line. Not a guarantee.`}
+                ? `假設你長期持有今次這幾隻直至退休（${years} 年），按規則假設年化回報加每月供款滾存，只係一條參考線，唔係預測。中途嘅上落可以睇上面「可能升跌範圍」。`
+                : `Years to retirement (${years}). Compounds a rule-based return plus contributions — a reference line, not a forecast. See the range card above for the ups and downs along the way.`}
             </p>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
@@ -503,27 +525,18 @@ function RecommendPage() {
                     formatter={(v: number) => fmtHkd(v)}
                     contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
                   />
-                  <Area type="monotone" dataKey="bull" stroke="var(--color-up)" fill="var(--color-up)" fillOpacity={0.07} />
                   <Area type="monotone" dataKey="base" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.12} />
-                  <Area type="monotone" dataKey="bear" stroke="var(--color-down)" fill="var(--color-down)" fillOpacity={0.06} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             {end ? (
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
-                <div>
-                  <p className="text-xs text-subtle">{zh ? "熊市" : "Bear"}</p>
-                  <p className="font-mono tabular-nums text-down">{fmtHkd(end.bear)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-subtle">{zh ? "基本" : "Base"}</p>
-                  <p className="font-mono tabular-nums">{fmtHkd(end.base)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-subtle">{zh ? "牛市" : "Bull"}</p>
-                  <p className="font-mono tabular-nums text-up">{fmtHkd(end.bull)}</p>
-                </div>
-              </div>
+              <p className="mt-3 text-sm">
+                {zh ? "退休時約 " : "At retirement about "}
+                <span className="font-mono tabular-nums">{fmtHkd(end.base)}</span>
+                {profile.balance === 0 && profile.monthly === 0 ? (
+                  <span className="ml-1 text-xs text-subtle">{zh ? "（請先填上結餘同每月供款）" : "(enter balance and monthly contribution)"}</span>
+                ) : null}
+              </p>
             ) : null}
           </Card>
 
@@ -606,5 +619,25 @@ function Choice({
       <p className="text-sm font-medium">{title}</p>
       <p className={cn("text-xs", active ? "text-primary-fg/75" : "text-muted")}>{sub}</p>
     </button>
+  );
+}
+
+function SuitabilityList({ items, zh }: { items: { level: "warn" | "note"; zh: string; en: string }[]; zh: boolean }) {
+  if (!items.length) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      {items.map((c) => (
+        <p
+          key={c.en}
+          className={cn(
+            "rounded-md px-3 py-2 text-xs leading-relaxed",
+            c.level === "warn" ? "bg-tint-sand text-fg ring-1 ring-warn/40" : "bg-tint-sky text-muted",
+          )}
+        >
+          {c.level === "warn" ? <span className="mr-1 font-medium text-warn">{zh ? "注意" : "Note"}</span> : null}
+          {zh ? c.zh : c.en}
+        </p>
+      ))}
+    </div>
   );
 }

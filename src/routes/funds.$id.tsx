@@ -1,25 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as RTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { PageTitle } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
-import { fmtAum, fmtHkd, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
-import { estimateTodayMove, projectFund, volOf } from "@/lib/mpf/forecast";
+import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
+import { estimateTodayMove } from "@/lib/mpf/forecast";
+import { RangeCard } from "@/components/funds/range-card";
 import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
-import { expectedReturn } from "@/lib/mpf/score";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 
@@ -34,7 +25,6 @@ function FundDetail() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const compared = useAppStore((s) => s.compareIds.includes(id));
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
-  const [horizon, setHorizon] = useState<3 | 5 | 10 | 15 | 20>(10);
   const [peerPeriod, setPeerPeriod] = useState<"ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince">("ret5y");
 
   if (!fund) {
@@ -50,11 +40,6 @@ function FundDetail() {
 
   const quote = markets.data?.quotes.find((q) => q.symbol === fund.bench);
   const today = estimateTodayMove(quote?.changePct ?? null, fund.beta);
-  const path = projectFund(fund, horizon, 10000);
-  const mu = expectedReturn(fund);
-  const vol = volOf(fund);
-  const bullPa = mu + 0.7 * vol;
-  const bearPa = Math.max(-25, mu - 1.05 * vol);
   const rank1 = peerRank(fund, "ret1y");
   const rank5 = peerRank(fund, "ret5y");
   const rank10 = peerRank(fund, "ret10y");
@@ -188,55 +173,7 @@ function FundDetail() {
       </Card>
 
       <div className="mb-8 grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <h2 className="font-display text-lg">{zh ? `${horizon} 年情景（每 1 萬港元）` : `${horizon}-year path (per HK$10,000)`}</h2>
-            <div className="flex gap-1">
-              {([3, 5, 10, 15, 20] as const).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setHorizon(n)}
-                  className={`h-8 rounded-md px-2.5 text-xs ${horizon === n ? "bg-primary text-primary-fg" : "bg-white ring-1 ring-border"}`}
-                >
-                  {n}
-                  {zh ? "年" : "Y"}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mt-3 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={path} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-subtle)" }} />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "var(--color-subtle)" }}
-                  tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
-                  width={40}
-                />
-                <RTooltip
-                  formatter={(v: number) => fmtHkd(v)}
-                  labelFormatter={(y) => (zh ? `第 ${y} 年` : `Year ${y}`)}
-                  contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }}
-                />
-                <Area type="monotone" dataKey="bull" stroke="var(--color-up)" fill="var(--color-up)" fillOpacity={0.08} />
-                <Area type="monotone" dataKey="base" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.12} />
-                <Area type="monotone" dataKey="bear" stroke="var(--color-down)" fill="var(--color-down)" fillOpacity={0.06} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-            <span>{zh ? `${horizon}年基本` : `${horizon}Y base`} {fmtHkd(path.at(-1)?.base ?? 0)}</span>
-            <span className="text-up">{zh ? "牛" : "Bull"} {fmtHkd(path.at(-1)?.bull ?? 0)}</span>
-            <span className="text-down">{zh ? "熊" : "Bear"} {fmtHkd(path.at(-1)?.bear ?? 0)}</span>
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-subtle">
-            {zh
-              ? `基本約 ${mu.toFixed(1)}% 年化。類別長期假設（例如美股約 7%）佔 55%，這隻基金的五年回報（上限 12%）佔 45%，再扣高於 0.8% 的開支。五年回報同風險級別來自積金局；類別長期假設不是積金局數字，只是本工具的規劃假設。牛市每年約 ${bullPa.toFixed(1)}%、熊市每年約 ${bearPa.toFixed(1)}%，只按風險級別 ${fund.riskClass ?? "—"} 加闊，不是歷史牛熊，亦非承諾。`
-              : `Base ~${mu.toFixed(1)}% p.a.: 55% sleeve planning prior, 45% capped 5Y (MPFA), minus extra fees. The prior is not an MPFA figure. Bull ~${bullPa.toFixed(1)}% and bear ~${bearPa.toFixed(1)}% widen by risk class ${fund.riskClass ?? "—"}, not historical bull/bear markets.`}
-          </p>
-        </Card>
+        <RangeCard className="lg:col-span-3" items={[{ fund, weight: 1 }]} zh={zh} initialMonths={12} />
         <Card className="lg:col-span-2">
           <h2 className="mb-3 font-display text-lg">{zh ? "檔案" : "Profile"}</h2>
           <dl className="space-y-2 text-sm">
@@ -245,9 +182,9 @@ function FundDetail() {
             <Row k={zh ? "風險級別" : "Risk class"} v={fund.riskClass != null ? String(fund.riskClass) : "—"} />
             <Row k={zh ? "基金規模" : "Fund size"} v={fmtAum(fund.aumM)} />
             <Row k={zh ? "成立" : "Launch"} v={fund.launch ?? "—"} />
-            <Row k="10Y p.a." v={fmtPct(fund.ret10y)} />
+            <Row k={zh ? "10年年化" : "10Y p.a."} v={fmtPct(fund.ret10y)} />
             <Row k={zh ? "成立至今" : "Since launch"} v={fmtPct(fund.retSince)} />
-            <Row k={zh ? "管理費" : "Mgmt fee"} v={fund.mgmtFee} />
+            <Row k={zh ? "管理費" : "Mgmt fee"} v={fmtFee(fund.mgmtFee, zh)} />
             <Row k={zh ? "積金易平台費" : "eMPF fee"} v={fund.empfFee != null ? `${fund.empfFee}%` : "—"} />
             <Row k={zh ? "同類收費" : "Peer FER"} v={rankF ? `${rankF.rank} / ${rankF.total}` : "—"} />
           </dl>
@@ -327,4 +264,13 @@ function Row({ k, v }: { k: string; v: string }) {
       <dd className="text-right">{v}</dd>
     </div>
   );
+}
+
+/** MPFA fee strings look like "Up to 0.528" or "0.14"; show them as percentages. */
+function fmtFee(raw: string | null | undefined, zh: boolean): string {
+  if (!raw) return "—";
+  const upTo = /^up to\s*/i.test(raw);
+  const body = raw.replace(/^up to\s*/i, "").trim();
+  const withPct = /^[\d.]+$/.test(body) ? `${body}%` : body;
+  return upTo ? (zh ? `最高 ${withPct}` : `Up to ${withPct}`) : withPct;
 }

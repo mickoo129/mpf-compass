@@ -158,3 +158,56 @@ export const getIndexPaths = createServerFn({ method: "GET" }).handler(async ():
   pathCache = { at: Date.now(), data };
   return data;
 });
+
+/* ------------------------------------------------------------------ */
+/* Monthly history for "可能升跌範圍" (historical range of outcomes).   */
+/* ------------------------------------------------------------------ */
+
+export const HISTORY_SYMBOLS = ["^HSI", "^HSCE", "^GSPC", "^N225", "^KS11", "000300.SS", "^STOXX50E", "AGG"] as const;
+
+export interface MonthlySeries {
+  symbol: string;
+  /** Month-end closes, oldest first; t = "YYYY-MM". */
+  points: { t: string; close: number }[];
+}
+
+export interface HistoryPayload {
+  fetchedAt: string;
+  series: MonthlySeries[];
+}
+
+let historyCache: { at: number; data: HistoryPayload } | null = null;
+const HISTORY_TTL_MS = 12 * 60 * 60 * 1000;
+
+async function fetchMonthly(symbol: string): Promise<MonthlySeries | null> {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1mo&range=20y`;
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; MPFCompass/1.0)", Accept: "application/json" },
+  });
+  if (!res.ok) return null;
+  const body = (await res.json()) as {
+    chart?: { result?: { timestamp?: number[]; indicators?: { quote?: { close?: (number | null)[] }[] } }[] };
+  };
+  const result = body.chart?.result?.[0];
+  const ts = result?.timestamp ?? [];
+  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+  const byMonth = new Map<string, number>();
+  for (let i = 0; i < ts.length; i++) {
+    const c = closes[i];
+    if (c == null || !Number.isFinite(c) || c <= 0) continue;
+    const d = new Date(ts[i]! * 1000);
+    byMonth.set(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`, c);
+  }
+  const points = [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([t, close]) => ({ t, close }));
+  return points.length >= 24 ? { symbol, points } : null;
+}
+
+export const getReturnHistory = createServerFn({ method: "GET" }).handler(async (): Promise<HistoryPayload> => {
+  if (historyCache && Date.now() - historyCache.at < HISTORY_TTL_MS) return historyCache.data;
+  const series = (await Promise.all(HISTORY_SYMBOLS.map((s) => fetchMonthly(s).catch(() => null)))).filter(
+    (s): s is MonthlySeries => s != null,
+  );
+  const data: HistoryPayload = { fetchedAt: new Date().toISOString(), series };
+  if (series.length) historyCache = { at: Date.now(), data };
+  return data;
+});

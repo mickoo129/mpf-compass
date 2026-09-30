@@ -6,6 +6,7 @@ import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Sparkline } from "@/components/charts/sparkline";
 import { CategoryPathChart } from "@/components/charts/category-path";
 import { IndexPathChart } from "@/components/charts/index-path";
+import { ReturnHeatmap } from "@/components/charts/return-heatmap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -116,6 +117,10 @@ function Home() {
           ))}
         </div>
       </section>
+
+      <div className="mb-10">
+        <ReturnHeatmap zh={zh} />
+      </div>
 
       <div className="mb-10">
         <CategoryPathChart zh={zh} />
