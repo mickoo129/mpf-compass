@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 type Col = { key: keyof Fund; zh: string; en: string };
 
+// Newest first, so a phone screen shows the most recent periods without scrolling.
 const COLS: Col[] = [
-  ...CAL_YEARS.map((y) => ({ key: `y${y}` as keyof Fund, zh: String(y), en: String(y) })),
   { key: "ret1y", zh: "近1年", en: "1Y" },
+  ...[...CAL_YEARS].reverse().map((y) => ({ key: `y${y}` as keyof Fund, zh: String(y), en: String(y) })),
 ];
 
 const GROUPS: { zh: string; en: string; sleeves: string[] }[] = [
@@ -106,8 +107,9 @@ export function ReturnHeatmap({ zh }: { zh: boolean }) {
         </div>
       </div>
 
+      <p className="mb-1 text-[11px] text-subtle sm:hidden">{zh ? "← 左右掃睇較早年份 →" : "← Swipe for earlier years →"}</p>
       <div className="-mx-1 overflow-x-auto">
-        <table className="w-full min-w-[560px] border-separate border-spacing-[3px] text-xs">
+        <table className="w-full min-w-[520px] border-separate border-spacing-[3px] text-xs">
           <thead>
             <tr>
               <th className="sticky left-0 z-10 bg-card px-2 py-1 text-left font-normal text-subtle">
@@ -156,11 +158,11 @@ function GroupRows({
       </tr>
       {group.rows.map((r) => (
         <tr key={r.sleeve}>
-          <td className="sticky left-0 z-10 bg-card px-2 py-1.5 whitespace-nowrap">
+          <td className="sticky left-0 z-10 bg-card px-1.5 py-1.5 whitespace-nowrap sm:px-2">
             <Link to="/funds" search={{ sleeve: r.sleeve }} className="text-fg hover:text-primary hover:underline">
               {SLEEVE_LABEL[r.sleeve]?.[zh ? "zh" : "en"] ?? r.sleeve}
             </Link>
-            <span className="ml-1 text-[10px] text-subtle">{r.count}</span>
+            <span className="ml-1 hidden text-[10px] text-subtle sm:inline">{r.count}</span>
           </td>
           {r.cells.map((v, ci) => {
             const pos = ranks[ci]?.pos.get(r.sleeve);
