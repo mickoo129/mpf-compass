@@ -505,3 +505,45 @@ export function compareSavedMix(
   return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序已變，請對照新的建議配置。"], alertsEn };
 }
 
+
+export type Suitability = { level: "warn" | "note"; zh: string; en: string };
+
+/**
+ * Plain-language checks on whether the chosen goal fits the member's age and
+ * horizon. They never block the page; the member can still read the mix.
+ */
+export function suitabilityChecks(profile: Profile): Suitability[] {
+  const years = Math.max(0, profile.retireAge - profile.age);
+  const out: Suitability[] = [];
+  const equity2022 = median(allFunds.filter((f) => f.category === "equity").map((f) => f.y2022 ?? NaN));
+  const drop = equity2022 != null && equity2022 < 0 ? Math.abs(equity2022).toFixed(0) : null;
+
+  if (profile.goal === "growth" && years < 10) {
+    out.push({
+      level: "warn",
+      zh: `你距離退休約 ${years} 年，進取組合未必適合。${drop ? `以 2022 年為例，股票基金中位數一年跌咗約 ${drop}%；` : ""}臨近提取時遇上跌市，可能冇足夠時間等市況回復。你仍然可以睇呢個配置，但請考慮「穩健增值」或「跟隨預設策略」。`,
+      en: `About ${years} years to retirement: a growth mix may not fit.${drop ? ` In 2022 the median equity fund fell about ${drop}%.` : ""} A fall close to withdrawal leaves little time to recover. Consider Balanced or DIS.`,
+    });
+  } else if (profile.goal === "balanced" && years < 5) {
+    out.push({
+      level: "note",
+      zh: `你距離退休約 ${years} 年。穩健組合仍有一定股票比例，如打算退休時一筆過提取，可考慮「保本為先」或「跟隨預設策略」（65歲後基金）。`,
+      en: `About ${years} years to retirement. A balanced mix still holds equities; if you plan a lump-sum withdrawal, consider Preserve or DIS.`,
+    });
+  }
+  if (profile.goal === "preserve" && years >= 20) {
+    out.push({
+      level: "note",
+      zh: `你距離退休仲有約 ${years} 年。長期全放保守類基金，回報可能追唔上通脹。如果係因為怕短期波動，可以考慮「跟隨預設策略」，佢會隨年齡自動降低風險。`,
+      en: `About ${years} years to go. Staying fully conservative that long may trail inflation. DIS de-risks automatically with age.`,
+    });
+  }
+  if (profile.switchHorizon === "1m" || profile.switchHorizon === "3m") {
+    out.push({
+      level: "note",
+      zh: "強積金轉換基金通常需時數個工作日，期間資金唔喺市場入面，短線轉換未必追到升幅。短期回顧可以，但唔建議每次都轉。",
+      en: "An MPF switch usually takes several working days out of the market, so short-term switching often misses the move.",
+    });
+  }
+  return out;
+}
