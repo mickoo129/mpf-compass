@@ -24,20 +24,28 @@ import {
 } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPctPlain } from "@/lib/mpf/format";
 import { annReturn, calendar3yAnn } from "@/lib/mpf/returns";
+import { indexFund, scoreQuery } from "@/lib/mpf/search";
 import type { Fund, FundCategory } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 type SortKey = "ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince" | "y2025" | "fer" | "aumM" | "riskClass";
 type FundsSearch = {
+  q?: string;
+  focus?: boolean;
   sleeve?: string;
   scheme?: string;
   provider?: string;
   category?: FundCategory;
 };
 
+const PAGE = 100;
+const SEARCH_INDEX = new Map(allFunds.map((f) => [f.id, indexFund(f, [SLEEVE_LABEL[f.sleeve]?.zh ?? "", SLEEVE_LABEL[f.sleeve]?.en ?? ""])]));
+
 export const Route = createFileRoute("/funds/")({
   validateSearch: (raw: Record<string, unknown>): FundsSearch => ({
+    q: typeof raw.q === "string" && raw.q ? raw.q : undefined,
+    focus: raw.focus === true || raw.focus === "1" || raw.focus === 1 ? true : undefined,
     sleeve: typeof raw.sleeve === "string" ? raw.sleeve : undefined,
     scheme: typeof raw.scheme === "string" ? raw.scheme : undefined,
     provider: typeof raw.provider === "string" ? raw.provider : undefined,
@@ -60,7 +68,13 @@ function FundsPage() {
   const navigate = useNavigate({ from: "/funds/" });
   const compareIds = useAppStore((s) => s.compareIds);
   const toggle = useAppStore((s) => s.toggleCompare);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(search.q ?? "");
+  const [limit, setLimit] = useState(PAGE);
+  // While searching, best name matches come first until the member picks a column to sort by.
+  const [byRelevance, setByRelevance] = useState(true);
+  useEffect(() => {
+    if (q.trim()) setByRelevance(true);
+  }, [q]);
   const [cat, setCat] = useState<FundCategory | "all">(search.category ?? "all");
   const [region, setRegion] = useState<RegionId | "all">("all");
   const [theme, setTheme] = useState<ThemeId | "all">("all");
@@ -69,6 +83,16 @@ function FundsPage() {
   const [sleeve, setSleeve] = useState(search.sleeve ?? "all");
   const [sort, setSort] = useState<SortKey>("ret1y");
   const [dir, setDir] = useState<"desc" | "asc">("desc");
+
+  // Keep ?q= in the address bar so a search can be bookmarked or sent to a client.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const next = q.trim() || undefined;
+      if (next !== search.q) void navigate({ search: (prev) => ({ ...prev, q: next, focus: undefined }), replace: true });
+    }, 350);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
   useEffect(() => {
     if (search.sleeve) setSleeve(search.sleeve);
@@ -105,7 +129,8 @@ function FundsPage() {
   const schemeValue = schemeOptions.some((s) => s.en === scheme) ? scheme : "all";
 
   const rows = useMemo(() => {
-    const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const query = q.trim();
+    const scores = new Map<string, number>();
     let list = allFunds.filter((f) => {
       if (sleeve !== "all" && f.sleeve !== sleeve) return false;
       if (cat !== "all" && f.category !== cat) return false;
@@ -113,17 +138,35 @@ function FundsPage() {
       if (theme !== "all" && !fundThemes(f).includes(theme)) return false;
       if (provider !== "all" && f.providerCode !== provider) return false;
       if (schemeValue !== "all" && f.schemeEn !== schemeValue) return false;
-      if (!tokens.length) return true;
-      const blob = `${f.nameZh} ${f.nameEn} ${f.schemeZh} ${f.schemeEn} ${f.providerZh} ${f.providerEn} ${f.typeZh} ${f.typeEn}`.toLowerCase();
-      return tokens.every((t) => blob.includes(t));
+      if (!query) return true;
+      const score = scoreQuery(query, SEARCH_INDEX.get(f.id)!);
+      if (score > 0) scores.set(f.id, score);
+      return score > 0;
     });
     list = [...list].sort((a, b) => {
+      if (query && byRelevance) {
+        const d = (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0);
+        if (d) return d;
+      }
       const av = sortValue(a, sort) ?? (dir === "asc" ? Infinity : -Infinity);
       const bv = sortValue(b, sort) ?? (dir === "asc" ? Infinity : -Infinity);
       return dir === "asc" ? av - bv : bv - av;
     });
     return list;
-  }, [q, cat, region, theme, provider, schemeValue, sleeve, sort, dir]);
+  }, [q, cat, region, theme, provider, schemeValue, sleeve, sort, dir, byRelevance]);
+
+  useEffect(() => setLimit(PAGE), [q, cat, region, theme, provider, schemeValue, sleeve]);
+  const filtersActive =
+    cat !== "all" || region !== "all" || theme !== "all" || provider !== "all" || schemeValue !== "all" || sleeve !== "all";
+  function clearFilters() {
+    setCat("all");
+    setRegion("all");
+    setTheme("all");
+    setProvider("all");
+    setScheme("all");
+    setSleeve("all");
+    void navigate({ search: (prev) => ({ q: prev.q }), replace: true });
+  }
 
   function header(key: SortKey, label: string) {
     const active = sort === key;
@@ -132,6 +175,7 @@ function FundsPage() {
         type="button"
         className={cn("text-right font-medium", active ? "text-fg" : "text-muted")}
         onClick={() => {
+          setByRelevance(false);
           if (sort === key) setDir(dir === "desc" ? "asc" : "desc");
           else {
             setSort(key);
@@ -201,9 +245,23 @@ function FundsPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={zh ? "搜尋基金、計劃、受託人" : "Search fund, scheme, trustee"}
-            className="pl-9"
+            placeholder={zh ? "搜尋基金名，例如：宏利北美、友邦亞洲、盈富" : "Search fund name, e.g. Manulife North America"}
+            className="pr-9 pl-9"
+            type="search"
+            enterKeyHint="search"
+            autoFocus={search.focus}
+            aria-label={zh ? "搜尋基金" : "Search funds"}
           />
+          {q ? (
+            <button
+              type="button"
+              onClick={() => setQ("")}
+              className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-1.5 text-subtle hover:text-fg"
+              aria-label={zh ? "清除搜尋" : "Clear search"}
+            >
+              ×
+            </button>
+          ) : null}
         </div>
         <select
           value={cat}
@@ -308,7 +366,7 @@ function FundsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.slice(0, 250).map((f) => (
+            {rows.slice(0, limit).map((f) => (
               <FundRow key={f.id} fund={f} zh={zh} compared={compareIds.includes(f.id)} onToggle={() => toggle(f.id)} />
             ))}
           </tbody>
@@ -316,7 +374,7 @@ function FundsPage() {
       </div>
 
       <div className="space-y-2 md:hidden">
-        {rows.slice(0, 80).map((f) => (
+        {rows.slice(0, limit).map((f) => (
           <Link
             key={f.id}
             to="/funds/$id"
@@ -342,10 +400,29 @@ function FundsPage() {
         ))}
       </div>
       {rows.length === 0 ? (
-        <p className="py-10 text-center text-sm text-canvas-muted">{zh ? "沒有符合篩選的基金。" : "No funds match these filters."}</p>
+        <div className="py-10 text-center text-sm text-canvas-muted">
+          <p>
+            {q.trim()
+              ? zh
+                ? `搵唔到「${q.trim()}」。可以試下少打幾個字，例如公司名加地區（「宏利 北美」）。`
+                : `Nothing matches “${q.trim()}”. Try fewer words, e.g. trustee plus region.`
+              : zh
+                ? "沒有符合篩選的基金。"
+                : "No funds match these filters."}
+          </p>
+          {filtersActive ? (
+            <Button variant="outline" size="sm" className="mt-3" onClick={clearFilters}>
+              {zh ? "清除其他篩選再搜" : "Clear other filters"}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
-      {rows.length > 250 ? (
-        <p className="mt-3 text-xs text-canvas-muted">{zh ? "請收窄篩選以看其餘基金。" : "Narrow filters to see the rest."}</p>
+      {rows.length > limit ? (
+        <div className="mt-4 text-center">
+          <Button variant="outline" size="sm" onClick={() => setLimit((n) => n + PAGE)}>
+            {zh ? `顯示更多（仲有 ${rows.length - limit} 隻）` : `Show more (${rows.length - limit} left)`}
+          </Button>
+        </div>
       ) : null}
       <p className="mt-3 text-[11px] text-canvas-muted">
         {zh
