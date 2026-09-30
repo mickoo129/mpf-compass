@@ -1,5 +1,5 @@
 import type { Allocation, Fund, GoalId, MixSize, Profile, ReviewCadence, RiskAppetite, ScoredFund } from "./types";
-import { allFunds, median } from "./catalog";
+import { allFunds, fundRegion, median } from "./catalog";
 import { HORIZON_COPY, horizonWeights, type Regime } from "./regime";
 
 const SLEEVE_PRIOR: Record<string, number> = {
@@ -51,13 +51,17 @@ export function expectedReturn(fund: Fund, regime?: Regime | null, horizon?: Pro
 
 export function targetRisk(profile: Profile): number {
   const years = Math.max(0, profile.retireAge - profile.age);
+  // Most diversified global/US equity funds sit at risk class 5; single-market
+  // HK / China / Asia funds sit at 6. A long horizon alone should aim at 5,
+  // otherwise risk-fit quietly pushes long-horizon members into one market.
   let t = 2;
-  if (years >= 25) t = 6;
-  else if (years >= 15) t = 5;
+  if (years >= 15) t = 5;
   else if (years >= 8) t = 4;
   else if (years >= 3) t = 3;
   if (profile.goal === "preserve") t -= 1;
   if (profile.goal === "growth") t += 1;
+  // "Balanced" is described as close to DIS risk (Core Accumulation ≈ class 4).
+  if (profile.goal === "balanced") t = Math.min(t, 4);
   return Math.max(1, Math.min(7, t));
 }
 
@@ -268,11 +272,23 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
   const out: ScoredFund[] = [];
   const usedIds = new Set<string>();
   const usedSleeves = new Set<string>();
+  const usedRegions = new Set<string>();
 
   const take = (s: ScoredFund) => {
     out.push(s);
     usedIds.add(s.fund.id);
     usedSleeves.add(s.fund.sleeve);
+    const region = fundRegion(s.fund);
+    if (region !== "multi") usedRegions.add(region);
+  };
+  // "hk", "hk-china", "china" and "greater-china" are different sleeves but the
+  // same market risk; a diversifier must add a different region.
+  const sameMarket = (s: ScoredFund) => {
+    const region = fundRegion(s.fund);
+    if (region === "multi") return false;
+    if (usedRegions.has(region)) return true;
+    const chinaBloc = ["hk", "china", "greater-china"];
+    return chinaBloc.includes(region) && chinaBloc.some((r) => usedRegions.has(r));
   };
 
   const first = top.find((s) => prefer(s)) ?? top[0];
@@ -280,8 +296,13 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
 
   for (const s of top) {
     if (out.length >= n) break;
-    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve)) continue;
+    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve) || sameMarket(s)) continue;
     if (profile.goal === "preserve" && !prefer(s) && out.length < n - 1) continue;
+    take(s);
+  }
+  for (const s of top) {
+    if (out.length >= n) break;
+    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve) || sameMarket(s)) continue;
     take(s);
   }
   for (const s of top) {
@@ -317,11 +338,45 @@ function holdingReason(s: ScoredFund, i: number, n: number, profile: Profile): {
   return { zh: "分散倉：與核心不同地區／類別，降低單一市場風險。", en: "Diversifier: different region or asset class than the core." };
 }
 
+/**
+ * A member holds one account in one scheme, so every fund in a mix must come
+ * from the same scheme. With no scheme locked (a personal account that may
+ * transfer), build the best mix inside each scheme and keep the strongest.
+ */
+function pickWithinOneScheme(profile: Profile, top: ScoredFund[]): ScoredFund[] {
+  const years = Math.max(0, profile.retireAge - profile.age);
+  if (profile.schemeEn) {
+    return pickHoldings(top, resolvedMixSize(profile, top.length), profile);
+  }
+  const byScheme = new Map<string, ScoredFund[]>();
+  for (const s of top) {
+    // Employer-sponsored and industry schemes only take their own employees /
+    // industry workers, so a member cannot transfer a personal account into them.
+    if (/employer sponsored|industry/i.test(s.fund.schemeEn)) continue;
+    const arr = byScheme.get(s.fund.schemeEn) ?? [];
+    arr.push(s);
+    byScheme.set(s.fund.schemeEn, arr);
+  }
+  let best: ScoredFund[] = [];
+  let bestScore = -Infinity;
+  for (const ranked of byScheme.values()) {
+    const n = resolvedMixSize(profile, ranked.length);
+    const picks = pickHoldings(ranked, n, profile);
+    if (picks.length < Math.min(n, 2)) continue;
+    const w = weightsFor(picks.length, years);
+    const score = picks.reduce((sum, p, i) => sum + p.score * (w[i] ?? 0), 0);
+    if (score > bestScore) {
+      bestScore = score;
+      best = picks;
+    }
+  }
+  return best;
+}
+
 export function buildAllocation(profile: Profile, top: ScoredFund[]): Allocation[] {
   if (profile.account === "contribution" && !profile.schemeEn) return [];
   const years = Math.max(0, profile.retireAge - profile.age);
-  const n = resolvedMixSize(profile, top.length);
-  const holdings = pickHoldings(top, n, profile);
+  const holdings = pickWithinOneScheme(profile, top);
   if (!holdings.length) return [];
 
   if (profile.goal === "dis" && holdings.length === 2 && holdings[0]?.fund.isCaf && holdings[1]?.fund.isA65) {
