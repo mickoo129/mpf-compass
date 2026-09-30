@@ -85,6 +85,7 @@ function SchemesPage() {
                 <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <Link
                     to="/recommend"
+                    search={{ scheme: s.en }}
                     className="text-xs text-muted underline-offset-2 hover:text-primary hover:underline"
                     onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
                   >
@@ -116,6 +117,7 @@ function SchemesPage() {
             <div className="border-t border-border px-4 py-2">
               <Link
                 to="/recommend"
+                search={{ scheme: s.en }}
                 className="text-xs text-muted"
                 onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
               >

@@ -34,6 +34,8 @@ function FundDetail() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const compared = useAppStore((s) => s.compareIds.includes(id));
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
+  const [horizon, setHorizon] = useState<3 | 5 | 10 | 15 | 20>(10);
+  const [peerPeriod, setPeerPeriod] = useState<"ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince">("ret5y");
 
   if (!fund) {
     return (
@@ -48,8 +50,6 @@ function FundDetail() {
 
   const quote = markets.data?.quotes.find((q) => q.symbol === fund.bench);
   const today = estimateTodayMove(quote?.changePct ?? null, fund.beta);
-  const [horizon, setHorizon] = useState<3 | 5 | 10 | 15 | 20>(10);
-  const [peerPeriod, setPeerPeriod] = useState<"ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince">("ret5y");
   const path = projectFund(fund, horizon, 10000);
   const mu = expectedReturn(fund);
   const vol = volOf(fund);
@@ -298,6 +298,7 @@ function FundDetail() {
                   <span className="min-w-0 truncate">
                     <span className="mr-2 font-mono text-subtle">{i + 1}</span>
                     {zh ? p.nameZh : p.nameEn}
+                    <span className="ml-1.5 text-xs text-subtle">{zh ? p.schemeZh : p.schemeEn}</span>
                   </span>
                   <ReturnCell value={annReturn(p, peerPeriod)} />
                 </Link>

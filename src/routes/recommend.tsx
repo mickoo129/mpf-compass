@@ -28,7 +28,14 @@ import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/recommend")({ component: RecommendPage });
+type RecommendSearch = { scheme?: string };
+
+export const Route = createFileRoute("/recommend")({
+  // ?scheme=<schemeEn> lets a scheme page (or an adviser's WhatsApp link) open 智選 locked to one scheme.
+  validateSearch: (raw: Record<string, unknown>): RecommendSearch =>
+    typeof raw.scheme === "string" && raw.scheme ? { scheme: raw.scheme } : {},
+  component: RecommendPage,
+});
 
 const GOALS: GoalId[] = ["growth", "balanced", "preserve", "lowfee", "dis"];
 
@@ -40,6 +47,13 @@ function RecommendPage() {
   const lastMix = useAppStore((s) => s.lastMix);
   const saveMix = useAppStore((s) => s.saveMix);
   const schemes = uniqueSchemes();
+  const search = Route.useSearch();
+  useEffect(() => {
+    if (search.scheme && schemes.some((s) => s.en === search.scheme)) {
+      setProfile({ account: "contribution", schemeEn: search.scheme });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.scheme]);
   const horizon = profile.switchHorizon ?? "6m";
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
   const regime = useMemo(
@@ -365,8 +379,8 @@ function RecommendPage() {
               <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
-                  ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : "全港可轉"} · ${mixSize === "auto" ? "自動" : "指定"} ${alloc.length} 檔 · 剩餘 ${years} 年`
-                  : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : "all schemes"} · ${alloc.length} funds · ${years}y`}
+                  ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : `全港比較後最佳計劃：${alloc[0]?.fund.schemeZh ?? "—"}`} · ${mixSize === "auto" ? "自動" : "指定"} ${alloc.length} 檔 · 剩餘 ${years} 年`
+                  : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : `best scheme across HK: ${alloc[0]?.fund.schemeEn ?? "—"}`} · ${alloc.length} funds · ${years}y`}
               </p>
               <p className="mt-1 text-[11px] leading-relaxed text-subtle">
                 {zh
@@ -393,7 +407,7 @@ function RecommendPage() {
                     <div className="min-w-0">
                       <p className="truncate font-medium">{zh ? a.fund.nameZh : a.fund.nameEn}</p>
                       <p className="text-xs text-subtle">
-                        {zh ? a.fund.providerZh : a.fund.providerEn} · {zh ? "開支" : "FER"} {fmtPctPlain(a.fund.fer)} ·{" "}
+                        {zh ? a.fund.schemeZh : a.fund.schemeEn} · {zh ? "開支" : "FER"} {fmtPctPlain(a.fund.fer)} ·{" "}
                         {zh ? "風險" : "R"}
                         {a.fund.riskClass ?? "—"}
                       </p>
@@ -522,6 +536,7 @@ function RecommendPage() {
                     <span className="min-w-0 truncate">
                       <span className="mr-2 font-mono text-subtle">{i + 1}</span>
                       {zh ? s.fund.nameZh : s.fund.nameEn}
+                      <span className="ml-1.5 text-xs text-subtle">{zh ? s.fund.schemeZh : s.fund.schemeEn}</span>
                       {s.reasons[0] ? (
                         <Badge className="ml-2" tone="neutral">
                           {s.reasons[0]}

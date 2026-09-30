@@ -134,7 +134,8 @@ function classifySleeve(typeEn, nameEn) {
   if (t.includes("china equity")) return "china";
   if (t.includes("hong kong equity")) return n.includes("china") ? "hk-china" : "hk";
   if (t.includes("asia equity")) return "asia";
-  if (t.includes("global equity")) return n.includes("china") ? "china" : "global";
+  // "China Life ... Global Equity" is a global fund; the trustee name must not force a China sleeve.
+  if (t.includes("global equity")) return "global";
   if (t.includes("rmb bond")) return "bond-cn";
   if (t.includes("asia bond")) return "bond-asia";
   if (t.includes("hong kong dollar bond") || t.includes("hkd bond")) return "bond-hk";
@@ -144,7 +145,9 @@ function classifySleeve(typeEn, nameEn) {
   if (t.includes("41% to 60%")) return "mixed-balanced";
   if (t.includes("61% to 80%")) return "mixed-growth";
   if (t.includes("81% to 100%")) return "mixed-aggressive";
-  if (n.includes("saveeasy") || n.includes("target date") || n.includes("retirement fund")) return "mixed-target";
+  // Target-date funds carry a year (2030, 2045 …) or an explicit SaveEasy/target label.
+  // "Stable Retirement" / "Income Retirement" funds have no glide path and stay out.
+  if (n.includes("saveeasy") || n.includes("target") || /\b20\d\d\b/.test(n)) return "mixed-target";
   if (t.includes("mixed")) return "mixed-global";
   if (t.includes("equity")) return "global";
   return "mixed-global";
