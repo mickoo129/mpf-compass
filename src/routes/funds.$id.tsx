@@ -10,6 +10,7 @@ import { allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mp
 import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
+import { FeeAmount, FeeCard } from "@/components/funds/fee-card";
 import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -116,7 +117,15 @@ function FundDetail() {
         <Metric label={zh ? "1年年化" : "1Y p.a."} value={<ReturnCell value={fund.ret1y} className="text-xl" />} />
         <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-xl" />} />
         <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-xl" />} />
-        <Metric label={zh ? "開支比率 FER" : "FER"} value={<span className="font-mono text-xl tabular-nums">{fmtPctPlain(fund.fer)}</span>} />
+        <Metric
+          label={zh ? "開支比率" : "FER"}
+          value={
+            <span className="font-mono text-xl tabular-nums">
+              {fmtPctPlain(fund.fer)}
+              <FeeAmount fer={fund.fer} zh={zh} className="block text-xs text-muted" />
+            </span>
+          }
+        />
       </div>
 
       <Card className="mb-8">
@@ -171,6 +180,8 @@ function FundDetail() {
           </p>
         ) : null}
       </Card>
+
+      <FeeCard fund={fund} zh={zh} className="mb-8" />
 
       <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
         <RangeCard className="lg:col-span-3" items={[{ fund, weight: 1 }]} zh={zh} initialMonths={12} />

@@ -19,6 +19,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { RangeCard } from "@/components/funds/range-card";
+import { FeeAmount } from "@/components/funds/fee-card";
+import { mixFer } from "@/lib/mpf/fees";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
@@ -440,6 +442,17 @@ function RecommendPage() {
                 {copied ? (zh ? "已複製" : "Copied") : zh ? "分享配置" : "Share mix"}
               </Button>
             </div>
+            {alloc.length ? (
+              <p className="mb-3 rounded-md bg-tint-mint px-3 py-2 text-sm">
+                {zh ? "呢個配置平均開支比率 " : "Weighted FER "}
+                <b className="font-mono">{fmtPctPlain(mixFer(alloc))}</b>
+                {zh ? "，即係每年約 " : ", about "}
+                <FeeAmount fer={mixFer(alloc)} zh={zh} className="font-mono font-medium" />
+                {profile.balance > 0 ? null : (
+                  <span className="block text-xs text-muted">{zh ? "喺「你的情況」填上結餘，就會用你自己嘅金額計。" : "Enter your balance to see your own amount."}</span>
+                )}
+              </p>
+            ) : null}
             {warns.length ? (
               <div className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-sm text-fg" role="alert">
                 <p className="mb-1 font-medium text-warn">{zh ? "請留意：目標同年期未必配合" : "Check: goal and horizon may not fit"}</p>

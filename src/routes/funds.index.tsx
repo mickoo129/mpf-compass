@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReturnCell } from "@/components/funds/return-cell";
+import { FeeAmount } from "@/components/funds/fee-card";
 import {
   allFunds,
   CATEGORY_LABEL,
@@ -391,7 +392,9 @@ function FundsPage() {
               <ReturnCell value={f.ret1y} />
             </div>
             <div className="mt-2 flex flex-wrap gap-3 font-mono text-[11px] text-muted">
-              <span>{zh ? "開支" : "FER"} {fmtPctPlain(f.fer)}</span>
+              <span>
+                {zh ? "開支比率" : "FER"} {fmtPctPlain(f.fer)} ≈ <FeeAmount fer={f.fer} zh={zh} />
+              </span>
               <span>5Y {fmtPctPlain(f.ret5y)}</span>
               <span>{zh ? "成立" : "Incep."} {fmtPctPlain(f.retSince)}</span>
               <span>R{f.riskClass ?? "—"}</span>
@@ -464,7 +467,10 @@ function FundRow({
         {fund.isTracker ? <Badge className="ml-1">Index</Badge> : null}
       </td>
       <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fund.riskClass ?? "—"}</td>
-      <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fund.fer?.toFixed(2) ?? "—"}</td>
+      <td className="px-3 py-2.5 text-right font-mono tabular-nums">
+        {fund.fer != null ? `${fund.fer.toFixed(2)}%` : "—"}
+        <FeeAmount fer={fund.fer} zh={zh} className="block text-[11px] text-muted" />
+      </td>
       <td className="px-3 py-2.5 text-right">
         <ReturnCell value={fund.ret1y} />
       </td>
