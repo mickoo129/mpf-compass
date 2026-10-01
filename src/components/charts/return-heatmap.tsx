@@ -28,7 +28,7 @@ const GROUPS: { zh: string; en: string; sleeves: string[] }[] = [
   {
     zh: "債券及保守",
     en: "Bonds & cash",
-    sleeves: ["bond-global", "bond-cn", "guaranteed", "conservative"],
+    sleeves: ["bond-global", "bond-asia", "bond-hk", "bond-cn", "guaranteed", "conservative"],
   },
 ];
 

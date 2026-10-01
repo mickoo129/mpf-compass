@@ -11,6 +11,7 @@ export const copy = {
     funds: { zh: "基金庫", en: "Funds" },
     schemes: { zh: "計劃", en: "Schemes" },
     compare: { zh: "比較", en: "Compare" },
+    checkup: { zh: "健康檢查", en: "Checkup" },
     recommend: { zh: "智選", en: "Recommend" },
   },
   disclaimer: {

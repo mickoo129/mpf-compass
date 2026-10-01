@@ -13,6 +13,7 @@ const NAV = [
   { to: "/funds", key: "funds" as const },
   { to: "/schemes", key: "schemes" as const },
   { to: "/compare", key: "compare" as const },
+  { to: "/checkup", key: "checkup" as const },
   { to: "/recommend", key: "recommend" as const },
 ];
 
