@@ -23,7 +23,7 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, scoreFunds, suitabilityChecks } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -77,6 +77,16 @@ function RecommendPage() {
     [alloc, years, projBalance, projMonthly],
   );
   const end = path.at(-1);
+  const assumed = useMemo(
+    () =>
+      alloc.map((a) => ({
+        a,
+        prior: sleevePrior(a.fund),
+        r: expectedReturn(a.fund),
+      })),
+    [alloc],
+  );
+  const assumedTotal = assumed.reduce((s, x) => s + x.a.weight * x.r, 0);
   const mixSize = profile.mixSize ?? "auto";
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
@@ -108,21 +118,40 @@ function RecommendPage() {
     });
   }, [alloc, lastMix, saveMix, horizon, profile.schemeEn, profile.goal]);
 
-  function copyMix() {
-    const scheme = schemes.find((s) => s.en === profile.schemeEn);
-    const lines = [
-      zh ? "積金羅盤建議配置（研究用，並非投資建議）" : "MPF Compass mix (research only, not advice)",
-      `${zh ? "計劃" : "Scheme"}: ${scheme ? (zh ? scheme.zh : scheme.en) : zh ? "不限" : "unrestricted"}`,
+  function mixText(): string {
+    const scheme = alloc[0] ? (zh ? alloc[0].fund.schemeZh : alloc[0].fund.schemeEn) : "";
+    const url = new URL("/recommend", window.location.origin);
+    if (alloc[0]) url.searchParams.set("scheme", alloc[0].fund.schemeEn);
+    return [
+      zh ? "積金羅盤 · 配置參考（研究用，並非投資建議）" : "MPF Compass mix (research only, not advice)",
+      `${zh ? "計劃" : "Scheme"}：${scheme}`,
+      `${zh ? "目標" : "Goal"}：${zh ? GOAL_COPY[profile.goal].zh : GOAL_COPY[profile.goal].en} · ${zh ? `${profile.age} 歲` : `age ${profile.age}`}`,
+      "",
+      ...alloc.map((a) => `${Math.round(a.weight * 100)}%  ${zh ? a.fund.nameZh : a.fund.nameEn}`),
+      "",
       `${zh ? "基金數字截至" : "Fund figures as of"} ${catalogMeta.asOf}`,
-      ...alloc.map(
-        (a) =>
-          `${Math.round(a.weight * 100)}%  ${zh ? a.fund.nameZh : a.fund.nameEn}  (${zh ? a.fund.schemeZh : a.fund.schemeEn})`,
-      ),
-    ];
-    void navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      url.toString(),
+    ].join("\n");
+  }
+
+  async function shareMix() {
+    const text = mixText();
+    // Phones: open the share sheet (WhatsApp, Messages…). Desktop: copy to clipboard.
+    if (typeof navigator.share === "function" && window.matchMedia("(pointer: coarse)").matches) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        /* cancelled or unsupported: fall back to copying */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-    });
+    } catch {
+      window.prompt(zh ? "複製以下內容：" : "Copy this:", text);
+    }
   }
 
   return (
@@ -400,8 +429,15 @@ function RecommendPage() {
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
-              <Button variant="outline" size="sm" onClick={copyMix} disabled={!alloc.length}>
-                {copied ? (zh ? "已複製" : "Copied") : zh ? "複製配置" : "Copy mix"}
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 whitespace-nowrap"
+                onClick={() => void shareMix()}
+                disabled={!alloc.length}
+                title={zh ? "分享或複製呢個配置，可以直接貼落 WhatsApp" : "Share or copy this mix"}
+              >
+                {copied ? (zh ? "已複製" : "Copied") : zh ? "分享配置" : "Share mix"}
               </Button>
             </div>
             {warns.length ? (
@@ -551,6 +587,45 @@ function RecommendPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            {assumed.length ? (
+              <details className="mt-3 rounded-md bg-tint-sky px-3 py-2 text-xs text-muted">
+                <summary className="cursor-pointer text-fg">
+                  {zh ? `假設年化回報約 ${assumedTotal.toFixed(1)}%，點樣計？` : `Assumed ${assumedTotal.toFixed(1)}% a year — how?`}
+                </summary>
+                <p className="mt-2">
+                  {zh
+                    ? "每隻基金：55% 用該類資產嘅長期規劃假設，45% 用該基金積金局五年年化回報（上限 12%、下限 -2%，避免短期好景誇大），再扣開支比率高過 0.8% 嘅部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
+                    : "Per fund: 55% long-run planning assumption for its asset class, 45% its MPFA 5-year return (capped 12%, floored −2%), less a fee drag for FER above 0.8%. Then weighted by the mix."}
+                </p>
+                <table className="mt-2 w-full text-left">
+                  <thead>
+                    <tr className="text-subtle">
+                      <th className="py-1 font-normal">{zh ? "基金" : "Fund"}</th>
+                      <th className="py-1 pl-2 text-right font-normal whitespace-nowrap">{zh ? "類別假設" : "Class"}</th>
+                      <th className="py-1 pl-2 text-right font-normal whitespace-nowrap">{zh ? "五年" : "5Y"}</th>
+                      <th className="py-1 pl-2 text-right font-normal whitespace-nowrap">{zh ? "假設" : "Used"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assumed.map(({ a, prior, r }) => (
+                      <tr key={a.fund.id} className="border-t border-border">
+                        <td className="py-1 pr-2">
+                          {Math.round(a.weight * 100)}% {zh ? a.fund.nameZh : a.fund.nameEn}
+                        </td>
+                        <td className="py-1 pl-2 text-right font-mono whitespace-nowrap">{prior.toFixed(1)}%</td>
+                        <td className="py-1 pl-2 text-right font-mono whitespace-nowrap">{fmtPctPlain(a.fund.ret5y, 1)}</td>
+                        <td className="py-1 pl-2 text-right font-mono whitespace-nowrap text-fg">{r.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-2">
+                  {zh
+                    ? "類別長期假設係本工具嘅規劃數字（例如美股 7.4%、核心累積 6.0%、環球債券 3.3%），唔係積金局數字，亦唔係保證。實際回報可以高好多或者低好多。"
+                    : "Class assumptions are this tool's planning figures, not MPFA numbers and not guarantees."}
+                </p>
+              </details>
+            ) : null}
             {end ? (
               <p className="mt-3 text-sm">
                 {zh ? `${profile.retireAge} 歲退休時約 ` : `At ${profile.retireAge}, about `}
@@ -569,16 +644,20 @@ function RecommendPage() {
             <ul className="space-y-2 text-sm">
               {ranked.slice(0, 8).map((s, i) => (
                 <li key={s.fund.id}>
-                  <Link to="/funds/$id" params={{ id: s.fund.id }} className="flex items-center justify-between gap-3">
-                    <span className="min-w-0 truncate">
-                      <span className="mr-2 font-mono text-subtle">{i + 1}</span>
-                      {zh ? s.fund.nameZh : s.fund.nameEn}
-                      <span className="ml-1.5 text-xs text-subtle">{zh ? s.fund.schemeZh : s.fund.schemeEn}</span>
-                      {s.reasons[0] ? (
-                        <Badge className="ml-2" tone="neutral">
-                          {s.reasons[0]}
-                        </Badge>
-                      ) : null}
+                  <Link to="/funds/$id" params={{ id: s.fund.id }} className="flex items-start justify-between gap-3">
+                    <span className="flex min-w-0 gap-2">
+                      <span className="font-mono text-subtle">{i + 1}</span>
+                      <span className="min-w-0">
+                        <span className="block">{zh ? s.fund.nameZh : s.fund.nameEn}</span>
+                        <span className="block text-xs text-subtle">
+                          {zh ? s.fund.schemeZh : s.fund.schemeEn}
+                          {s.reasons[0] ? (
+                            <Badge className="ml-1.5 align-middle" tone="neutral">
+                              {s.reasons[0]}
+                            </Badge>
+                          ) : null}
+                        </span>
+                      </span>
                     </span>
                     <span className="flex items-center gap-3">
                       <ReturnCell value={s.fund.ret5y} />

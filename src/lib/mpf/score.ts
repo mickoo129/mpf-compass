@@ -33,6 +33,11 @@ const SLEEVE_PRIOR: Record<string, number> = {
   guaranteed: 1.4,
 };
 
+/** Long-run planning assumption (% a year) for the fund's asset class. */
+export function sleevePrior(fund: Fund): number {
+  return SLEEVE_PRIOR[fund.sleeve] ?? 5.5;
+}
+
 export function expectedReturn(fund: Fund, regime?: Regime | null, horizon?: Profile["switchHorizon"]): number {
   const prior = SLEEVE_PRIOR[fund.sleeve] ?? 5.5;
   const hist = fund.ret5y ?? fund.ret1y ?? prior;
