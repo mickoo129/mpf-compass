@@ -1,0 +1,21 @@
+{
+  "name": "積金羅盤 MPF Compass",
+  "short_name": "積金羅盤",
+  "description": "全港強積金成分基金比較、健康檢查同參考配置。數據來自積金局。",
+  "lang": "zh-Hant-HK",
+  "start_url": "/?source=homescreen",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b2a4a",
+  "theme_color": "#0b2a4a",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "健康檢查", "url": "/checkup" },
+    { "name": "智選配置", "url": "/recommend" },
+    { "name": "搵基金", "url": "/funds?focus=1" }
+  ]
+}
