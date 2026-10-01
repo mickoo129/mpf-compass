@@ -162,7 +162,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (fund.isDis) reasons.push("預設投資策略");
     if (horizon === "1y" && skill > 0.65) reasons.push("五年同類領先");
     if (regime && fit >= 0.62) reasons.push("展望偏有利");
-    if (regime && fit <= 0.32) reasons.push("展望偏弱，不宜追入");
+    if (regime && fit <= 0.32) reasons.push("展望偏弱");
     if (fund.sleeve === "korea") reasons.push("一年升幅較大，短線不宜作為核心");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
 
@@ -196,7 +196,7 @@ export function resolvedReview(profile: Profile): {
     month: {
       labelZh: "一個月後",
       labelEn: "In 1 month",
-      zh: "請於一個月後返回本頁，對照今次建議。積金局數字按月公布，一個月內單位價未必已更新。",
+      zh: "一個月後可以返嚟對照今次參考配置。積金局數字按月公布，一個月內未必已更新。",
       en: "Come back in a month to compare with this mix. Official NAVs are monthly.",
     },
     quarter: {
@@ -481,9 +481,9 @@ export function compareSavedMix(
 
   for (const a of next) {
     const row = ranked.find((s) => s.fund.id === a.fund.id);
-    if (row?.reasons.includes("展望偏弱，不宜追入")) {
-      alertsZh.push(`${a.fund.nameZh}：展望偏弱，不宜加碼。`);
-      alertsEn.push(`${a.fund.nameEn}: outlook is weak; do not add.`);
+    if (row?.reasons.includes("展望偏弱")) {
+      alertsZh.push(`${a.fund.nameZh}：展望偏弱。`);
+      alertsEn.push(`${a.fund.nameEn}: outlook is weak.`);
     }
   }
 
@@ -493,7 +493,7 @@ export function compareSavedMix(
     const addNames = added.map((a) => a.fund.nameZh).join("、");
     alertsZh.push(
       added.length
-        ? `今次評分／展望已變，建議調整配置${addNames ? `（新入：${addNames}）` : ""}。`
+        ? `今次評分／展望同上次唔同${addNames ? `，新入選：${addNames}` : ""}。`
         : "今次評分／展望已變，部分先前持倉不再列入。",
     );
     alertsEn.push("Scores or outlook changed; the mix was adjusted.");
@@ -502,12 +502,12 @@ export function compareSavedMix(
   if (same && !alertsZh.length) {
     return {
       status: "keep",
-      alertsZh: ["與上次相同。展望與評分未出現明顯更佳替代，可繼續持有。"],
+      alertsZh: ["同上次一樣。評分同展望未見明顯更高分嘅同類選擇。"],
       alertsEn: ["Same mix. No stronger replacement — hold."],
     };
   }
   if (same) return { status: "keep", alertsZh, alertsEn };
-  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序已變，請對照新的建議配置。"], alertsEn };
+  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序同上次唔同，可以對照下面嘅參考配置。"], alertsEn };
 }
 
 
@@ -546,7 +546,7 @@ export function suitabilityChecks(profile: Profile): Suitability[] {
   if (profile.switchHorizon === "1m" || profile.switchHorizon === "3m") {
     out.push({
       level: "note",
-      zh: "強積金轉換基金通常需時數個工作日，期間資金唔喺市場入面，短線轉換未必追到升幅。短期回顧可以，但唔建議每次都轉。",
+      zh: "強積金轉換基金通常需時數個工作日，期間資金唔喺市場入面，短線轉換未必追到升幅。短期回顧冇問題，但頻密轉換未必有利。",
       en: "An MPF switch usually takes several working days out of the market, so short-term switching often misses the move.",
     });
   }

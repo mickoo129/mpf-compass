@@ -17,7 +17,7 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       {
         name: "description",
-        content: "全港強積金成分基金比較與目標推介。回報與收費來自積金局；指數僅作市況參考。",
+        content: "全港強積金成分基金比較、健康檢查同參考配置。回報與收費來自積金局；指數僅作市況參考。",
       },
       { name: "theme-color", content: "#0b2a4a" },
       { name: "apple-mobile-web-app-capable", content: "yes" },

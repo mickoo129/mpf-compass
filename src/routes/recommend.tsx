@@ -404,7 +404,7 @@ function RecommendPage() {
           <Card>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-              <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
+              <h2 className="font-display text-xl">{zh ? "參考配置" : "Reference mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
                   ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : `全港比較後最佳計劃：${alloc[0]?.fund.schemeZh ?? "—"}`} · ${mixSize === "auto" ? "自動" : "指定"} ${alloc.length} 檔 · 剩餘 ${years} 年`
@@ -447,7 +447,7 @@ function RecommendPage() {
               </div>
             ) : null}
             {profile.account === "contribution" && !profile.schemeEn ? (
-              <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，才可在可轉換範圍內推介。" : "Pick your scheme to constrain the opportunity set."}</p>
+              <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，先可以喺可轉換範圍內篩選。" : "Pick your scheme to constrain the opportunity set."}</p>
             ) : null}
             <div className="space-y-3">
               {alloc.map((a) => (
@@ -498,10 +498,10 @@ function RecommendPage() {
 
           {showCompare && comparison.status !== "none" ? (
             <Card className={comparison.status === "adjust" ? "bg-tint-sand" : "bg-tint-mint"}>
-              <h2 className="mb-1 font-display text-lg">{zh ? "對照上次建議" : "Versus last mix"}</h2>
+              <h2 className="mb-1 font-display text-lg">{zh ? "同上次比較" : "Versus last mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
-                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "可繼續持有" : "建議調整"}`
+                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "排序冇變" : "排序有變"}`
                   : `Saved ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status}`}
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted">
@@ -511,7 +511,7 @@ function RecommendPage() {
               </ul>
               <p className="mt-2 text-xs text-subtle">
                 {zh
-                  ? "上面嘅升跌只係估算，唔應該單憑升跌決定轉倉。值得調整嘅訊號係展望轉弱，或者同類出現明顯更高分、更低收費嘅選擇。"
+                  ? "上面嘅升跌只係估算，唔應該單憑升跌決定轉換。排序有變通常係因為展望轉弱，或者同類出現更高分、更低收費嘅選擇。"
                   : "No daily NAVs, so there is no +X% / −X% switch trigger. Alerts are a weaker outlook or a clearly better-scoring, cheaper peer."}
               </p>
             </Card>
@@ -523,7 +523,7 @@ function RecommendPage() {
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
             <p className="mt-2 text-xs text-subtle">
               {zh
-                ? "撳「記住今次建議」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
+                ? "撳「記住今次配置」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
                 : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}
             </p>
             <Button
@@ -533,7 +533,7 @@ function RecommendPage() {
               disabled={!alloc.length}
               onClick={() => saveMix(buildSaved())}
             >
-              {zh ? "記住今次建議" : "Save this mix"}
+              {zh ? "記住今次配置" : "Save this mix"}
             </Button>
             {lastMix ? (
               <p className="mt-2 text-xs text-subtle">

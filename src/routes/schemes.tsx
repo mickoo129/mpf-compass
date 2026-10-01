@@ -38,7 +38,7 @@ function SchemesPage() {
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "按計劃可查看其成分基金（與基金庫相同篩選）。若要只在該計劃內推介配置，再用「智選」。"
+            ? "按計劃可查看其成分基金（與基金庫相同篩選）。想只喺該計劃內篩選參考配置，可以用「智選」。"
             : "Tap a scheme to see its constituent funds in the library. Use Recommend to score only within that scheme."
         }
       />

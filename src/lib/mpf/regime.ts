@@ -198,21 +198,21 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   const outlookEn: string[] = [];
   outlookZh.push(
     usStretch != null && usStretch > 0.88
-      ? `${outlookLabelZh}：美股靠近 52 週高位，宜作核心、不宜加碼追入。`
-      : `${outlookLabelZh}：美股未見極端過熱，環球／美股可作核心。`,
+      ? `${outlookLabelZh}：美股靠近 52 週高位，短期回吐風險較高。`
+      : `${outlookLabelZh}：美股未見極端過熱。`,
   );
   outlookEn.push(
     usStretch != null && usStretch > 0.88
-      ? `${outEn}: US near 52-week highs — keep as core, do not chase.`
-      : `${outEn}: US not stretched; global/US can stay core.`,
+      ? `${outEn}: US near 52-week highs; pull-back risk is higher.`
+      : `${outEn}: US not stretched.`,
   );
   if ((koreaYtd ?? 0) > 28) {
-    outlookZh.push(`${outlookLabelZh}：韓股今年累積升幅大，展望以回吐風險為主，新資金不當核心。`);
-    outlookEn.push(`${outEn}: Korea’s YTD run is extreme — fade as a new core.`);
+    outlookZh.push(`${outlookLabelZh}：韓股今年累積升幅大，回吐風險較高。`);
+    outlookEn.push(`${outEn}: Korea’s YTD run is large; pull-back risk is higher.`);
   }
   if (hk != null && us != null && hk + 6 < us) {
-    outlookZh.push(`${outlookLabelZh}：港股相對美股滯後，可作衛星分散，不是保證補升。`);
-    outlookEn.push(`${outEn}: HK has lagged the US — a satellite, not a guaranteed catch-up.`);
+    outlookZh.push(`${outlookLabelZh}：港股相對美股滯後，唔代表一定會追返。`);
+    outlookEn.push(`${outEn}: HK has lagged the US; that does not mean it will catch up.`);
   }
   if (yieldLevel != null) {
     outlookZh.push(
@@ -243,7 +243,7 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
 export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "3m", "6m", "1y"];
 
 export const HORIZON_COPY: Record<SwitchHorizon, { zh: string; en: string; blurbZh: string }> = {
-  "1m": { zh: "1 個月", en: "1 month", blurbZh: "一個月後請返回對照今次建議。展望看未來一個月；不是保證這一個月增值。" },
+  "1m": { zh: "1 個月", en: "1 month", blurbZh: "一個月後可以返嚟對照今次參考配置。唔保證呢一個月會升。" },
   "3m": { zh: "3 個月", en: "3 months", blurbZh: "三個月後返回對照。動量與回吐並重，避免以一年急升的基金作為核心。" },
   "6m": { zh: "半年", en: "6 months", blurbZh: "半年後返回對照。以起始孳息、相對滯後與收費為主。" },
   "1y": { zh: "1 年", en: "1 year", blurbZh: "一年後返回對照。收費、五年質素與孳息為主。" },
