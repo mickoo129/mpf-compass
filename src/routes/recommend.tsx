@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { RangeCard } from "@/components/funds/range-card";
+import { Term } from "@/components/ui/term";
 import { FeeAmount } from "@/components/funds/fee-card";
 import { mixFer } from "@/lib/mpf/fees";
 import { estimateSince, levelsFrom } from "@/lib/mpf/review";
@@ -240,7 +241,7 @@ function RecommendPage() {
               </Field>
             </div>
             <div className="mt-4">
-              <Label>{zh ? "帳戶類型" : "Account"}</Label>
+              <Label><Term k="account">{zh ? "帳戶類型" : "Account"}</Term></Label>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Choice
                   active={profile.account === "contribution"}

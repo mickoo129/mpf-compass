@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { FeeAmount } from "@/components/funds/fee-card";
+import { Term } from "@/components/ui/term";
 import {
   allFunds,
   CATEGORY_LABEL,
@@ -354,10 +355,10 @@ function FundsPage() {
             <tr className="text-muted">
               <th className="px-3 py-3 text-left font-medium">{zh ? "基金" : "Fund"}</th>
               <th className="px-3 py-3 text-left font-medium">{zh ? "類別" : "Type"}</th>
-              <th className="px-3 py-3">{header("riskClass", zh ? "風險" : "Risk")}</th>
-              <th className="px-3 py-3">{header("fer", zh ? "開支比率" : "FER")}</th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("riskClass", zh ? "風險" : "Risk")}<Term k="risk">{""}</Term></span></th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("fer", zh ? "開支比率" : "FER")}<Term k="fer">{""}</Term></span></th>
               <th className="px-3 py-3">{header("ret1y", zh ? "1年" : "1Y")}</th>
-              <th className="px-3 py-3">{header("ret3yCal", zh ? "3年" : "3Y")}</th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("ret3yCal", zh ? "3年" : "3Y")}<Term k="est3y">{""}</Term></span></th>
               <th className="px-3 py-3">{header("ret5y", zh ? "5年" : "5Y")}</th>
               <th className="px-3 py-3">{header("ret10y", zh ? "10年" : "10Y")}</th>
               <th className="px-3 py-3">{header("retSince", zh ? "成立" : "Since")}</th>

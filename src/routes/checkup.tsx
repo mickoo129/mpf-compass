@@ -6,6 +6,7 @@ import { BalanceInput } from "@/components/funds/fee-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Term } from "@/components/ui/term";
 import { allFunds, fundById, SLEEVE_LABEL, uniqueSchemes } from "@/lib/mpf/catalog";
 import { regionLabel, runCheckup, type Light } from "@/lib/mpf/checkup";
 import { fmtPctPlain } from "@/lib/mpf/format";
@@ -297,8 +298,8 @@ function CheckupPage() {
                   </Button>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <Stat label={zh ? "平均開支比率" : "Avg FER"} value={result.fer != null ? `${result.fer.toFixed(2)}%` : "—"} />
-                  <Stat label={zh ? "平均風險級別" : "Avg risk"} value={result.riskClass != null ? result.riskClass.toFixed(1) : "—"} />
+                  <Stat label={<Term k="fer">{zh ? "平均開支比率" : "Avg FER"}</Term>} value={result.fer != null ? `${result.fer.toFixed(2)}%` : "—"} />
+                  <Stat label={<Term k="risk">{zh ? "平均風險級別" : "Avg risk"}</Term>} value={result.riskClass != null ? result.riskClass.toFixed(1) : "—"} />
                   <Stat label={zh ? "股票比重（估計）" : "Equity (est.)"} value={`${Math.round(result.equityShare * 100)}%`} />
                 </div>
                 <div className="mt-3">
@@ -358,7 +359,7 @@ function CheckupPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: React.ReactNode; value: string }) {
   return (
     <div className="rounded-lg bg-tint-sky px-2 py-2">
       <p className="text-xs text-muted">{label}</p>
