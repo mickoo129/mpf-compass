@@ -23,3 +23,14 @@ test("mixFer weights by allocation", () => {
   assert.equal(mixFer([{ fund: f(1), weight: 0.5 }, { fund: f(2), weight: 0.5 }]), 1.5);
   assert.equal(mixFer([{ fund: f(null), weight: 1 }]), null);
 });
+
+import { projectScenarios, scenarioRates } from "./forecast.ts";
+
+test("scenario paths are ordered and widen with risk", () => {
+  const r = scenarioRates(5, 5);
+  assert.ok(r.low < r.mid && r.mid < r.high);
+  assert.ok(scenarioRates(5, 6).high - scenarioRates(5, 6).low > scenarioRates(5, 3).high - scenarioRates(5, 3).low);
+  const p = projectScenarios(100_000, 1_000, 10, r).at(-1)!;
+  assert.ok(p.low < p.mid && p.mid < p.high);
+  assert.ok(Math.abs(projectScenarios(1000, 0, 1, { low: 0, mid: 10, high: 20 })[1]!.mid - 1100) < 1e-9);
+});
