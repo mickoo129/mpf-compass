@@ -1,8 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { AuthProvider } from "@/lib/auth/provider";
-import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppShell, CompareHint } from "@/components/layout/app-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
@@ -25,8 +23,8 @@ export const Route = createRootRoute({
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/icon-180.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -52,8 +50,6 @@ function Root() {
         <HeadContent />
       </head>
       <body className="antialiased">
-        <PreviewHostBridge />
-        <AuthProvider>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider delayDuration={200}>
               <AppShell>
@@ -63,7 +59,6 @@ function Root() {
               <Toaster position="top-center" richColors={false} />
             </TooltipProvider>
           </QueryClientProvider>
-        </AuthProvider>
         <Scripts />
       </body>
     </html>

@@ -144,7 +144,6 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   const bondFwd = bondForward(yieldLevel, yieldMove, horizon);
   const equityHot = usStretch != null && usStretch > 0.88;
   const cashFwd = short && ((yieldLevel ?? 0) >= 4.2 || equityHot) ? 0.74 : tone === "risk-off" ? 0.68 : 0.4;
-  const goldFwd = forwardFit(fitFromMove(gold, 16), pos52(goldQ), goldQ?.ytdPct ?? gold, null, horizon);
 
   const sleeveFit: Record<string, number> = {
     us: usFwd,
