@@ -42,8 +42,12 @@ export function sleevePrior(fund: Fund): number {
 
 export function expectedReturn(fund: Fund, regime?: Regime | null, horizon?: Profile["switchHorizon"]): number {
   const prior = SLEEVE_PRIOR[fund.sleeve] ?? 5.5;
-  const hist = fund.ret5y ?? fund.ret1y ?? prior;
-  const cappedHist = Math.max(-2, Math.min(12, hist));
+  // Only a 5-year record (or 10-year) counts; a lone 1-year figure is too noisy and
+  // let young funds with one hot year inflate the projection.
+  const hist = fund.ret5y ?? fund.ret10y ?? prior;
+  // Keep the fund's own record within ±2–4 points of its asset class so one strong
+  // (or weak) five years cannot dominate a 30-year projection.
+  const cappedHist = Math.max(prior - 4, Math.min(prior + 2, hist));
   const blended = 0.55 * prior + 0.45 * cappedHist;
   const ferDrag = fund.fer ?? 1.3;
   const extraFee = Math.max(0, ferDrag - 0.8) * 0.25;
@@ -142,6 +146,8 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     const size = aum >= 2000 ? 1 : aum >= 400 ? 0.75 : aum >= 80 ? 0.5 : 0.25;
     const tracker = fund.isTracker && profile.goal === "lowfee" ? 0.12 : fund.isTracker ? 0.04 : 0;
     const guarPenalty = fund.category === "guaranteed" && profile.goal !== "preserve" ? -0.16 : 0;
+    // Funds under five years old have no comparable track record yet.
+    const youngPenalty = fund.ret5y == null && !fund.isDis ? -0.06 : 0;
     const fit = regime?.sleeveFit[fund.sleeve] ?? 0.5;
     const regimeFit = clamp01(0.35 * sb + 0.65 * fit);
 
@@ -152,7 +158,8 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
       w.skill * skill +
       w.size * size +
       tracker +
-      guarPenalty;
+      guarPenalty +
+      youngPenalty;
 
     if (profile.goal === "dis" && (fund.isCaf || fund.isA65)) {
       const years = profile.retireAge - profile.age;
@@ -167,6 +174,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (regime && fit <= 0.32) reasons.push("展望偏弱");
     if (fund.sleeve === "korea") reasons.push("一年升幅較大");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
+    if (fund.ret5y == null) reasons.push("成立未夠五年");
 
     return { fund, score, reasons, expectedReturn: expectedReturn(fund, regime, horizon) };
   });
@@ -565,4 +573,5 @@ export const REASON_EN: Record<string, string> = {
   展望偏弱: "Outlook weak",
   一年升幅較大: "Big 1-year run",
   保證成本高: "Costly guarantee",
+  成立未夠五年: "Under 5 years old",
 };

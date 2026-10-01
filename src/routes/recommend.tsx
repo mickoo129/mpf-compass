@@ -613,7 +613,7 @@ function RecommendPage() {
                 </summary>
                 <p className="mt-2">
                   {zh
-                    ? "每隻基金：55% 用該類資產嘅長期規劃假設，45% 用該基金積金局五年年化回報（上限 12%、下限 -2%，避免短期好景誇大），再扣開支比率高過 0.8% 嘅部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
+                    ? "每隻基金：55% 用該類資產嘅長期規劃假設，45% 用該基金積金局五年年化回報（最多比類別假設高 2%、低 4%；未夠五年嘅基金就全用類別假設），再扣開支比率高過 0.8% 嘅部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
                     : "Per fund: 55% long-run planning assumption for its asset class, 45% its MPFA 5-year return (capped 12%, floored −2%), less a fee drag for FER above 0.8%. Then weighted by the mix."}
                 </p>
                 <table className="mt-2 w-full text-left">
