@@ -71,13 +71,17 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "mpf-compass",
-      partialize: (s) => ({ locale: s.locale, compareIds: s.compareIds }),
+      // The saved mix stays on this device so a member can come back in a month and compare.
+      // Personal figures (age, balance) are deliberately not kept.
+      partialize: (s) => ({ locale: s.locale, compareIds: s.compareIds, lastMix: s.lastMix }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
         return {
           ...current,
           locale: p.locale === "en" || p.locale === "zh" ? p.locale : current.locale,
           compareIds: Array.isArray(p.compareIds) ? p.compareIds.slice(0, 4) : current.compareIds,
+          lastMix:
+            p.lastMix && typeof p.lastMix.at === "string" && Array.isArray(p.lastMix.holdings) ? p.lastMix : current.lastMix,
         };
       },
     },

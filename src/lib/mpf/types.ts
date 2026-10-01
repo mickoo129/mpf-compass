@@ -137,5 +137,17 @@ export interface SavedMix {
   horizon: SwitchHorizon;
   schemeEn: string | null;
   goal: GoalId;
-  holdings: { id: string; weight: number; nameZh: string; nameEn: string }[];
+  holdings: {
+    id: string;
+    weight: number;
+    nameZh: string;
+    nameEn: string;
+    bench?: string;
+    beta?: number;
+    fer?: number | null;
+    ret1y?: number | null;
+    cashLike?: boolean;
+  }[];
+  /** Index / yield levels when saved, for the "since last time" estimate. */
+  levels?: Record<string, number>;
 }

@@ -21,6 +21,9 @@ import { ReturnCell } from "@/components/funds/return-cell";
 import { RangeCard } from "@/components/funds/range-card";
 import { FeeAmount } from "@/components/funds/fee-card";
 import { mixFer } from "@/lib/mpf/fees";
+import { estimateSince, levelsFrom } from "@/lib/mpf/review";
+import { fundById } from "@/lib/mpf/catalog";
+import type { SavedMix } from "@/lib/mpf/types";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectPortfolio } from "@/lib/mpf/forecast";
@@ -31,12 +34,15 @@ import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-type RecommendSearch = { scheme?: string };
+type RecommendSearch = { scheme?: string; r?: string };
 
 export const Route = createFileRoute("/recommend")({
   // ?scheme=<schemeEn> lets a scheme page (or an adviser's WhatsApp link) open 智選 locked to one scheme.
   validateSearch: (raw: Record<string, unknown>): RecommendSearch =>
-    typeof raw.scheme === "string" && raw.scheme ? { scheme: raw.scheme } : {},
+    ({
+      scheme: typeof raw.scheme === "string" && raw.scheme ? raw.scheme : undefined,
+      r: typeof raw.r === "string" && raw.r ? raw.r : undefined,
+    }),
   component: RecommendPage,
 });
 
@@ -104,26 +110,46 @@ function RecommendPage() {
   const mixAgeMs = lastMix ? Date.now() - new Date(lastMix.at).getTime() : 0;
   const showCompare = comparison.status === "adjust" || mixAgeMs > 12 * 60 * 60 * 1000;
 
+  // A saved mix can arrive in a shared link (?r=…) so the member can compare on any device.
   useEffect(() => {
-    if (!alloc.length || lastMix) return;
-    saveMix({
+    const fromLink = decodeMix(search.r);
+    if (fromLink && fromLink.at !== lastMix?.at) saveMix(fromLink);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.r]);
+
+  function buildSaved(): SavedMix {
+    return {
       at: new Date().toISOString(),
       horizon,
-      schemeEn: profile.schemeEn,
+      schemeEn: alloc[0]?.fund.schemeEn ?? profile.schemeEn,
       goal: profile.goal,
       holdings: alloc.map((a) => ({
         id: a.fund.id,
         weight: a.weight,
         nameZh: a.fund.nameZh,
         nameEn: a.fund.nameEn,
+        bench: a.fund.bench,
+        beta: a.fund.beta,
+        fer: a.fund.fer,
+        ret1y: a.fund.ret1y,
+        cashLike: a.fund.category === "money" || a.fund.category === "guaranteed" || a.fund.isConservative,
       })),
-    });
-  }, [alloc, lastMix, saveMix, horizon, profile.schemeEn, profile.goal]);
+      levels: levelsFrom(markets.data?.quotes ?? []),
+    };
+  }
+  const since = useMemo(
+    () => (lastMix && markets.data ? estimateSince(lastMix, levelsFrom(markets.data.quotes)) : null),
+    [lastMix, markets.data],
+  );
 
   function mixText(): string {
     const scheme = alloc[0] ? (zh ? alloc[0].fund.schemeZh : alloc[0].fund.schemeEn) : "";
     const url = new URL("/recommend", window.location.origin);
     if (alloc[0]) url.searchParams.set("scheme", alloc[0].fund.schemeEn);
+    // Saving on share means the link also carries "since last time" for the next visit.
+    const saved = buildSaved();
+    saveMix(saved);
+    url.searchParams.set("r", encodeMix(saved));
     return [
       zh ? "積金羅盤 · 配置參考（研究用，並非投資建議）" : "MPF Compass mix (research only, not advice)",
       `${zh ? "計劃" : "Scheme"}：${scheme}`,
@@ -507,6 +533,10 @@ function RecommendPage() {
             />
           ) : null}
 
+          {lastMix && since ? (
+            <SinceCard since={since} savedAt={lastMix.at} balance={profile.balance} zh={zh} />
+          ) : null}
+
           {showCompare && comparison.status !== "none" ? (
             <Card className={comparison.status === "adjust" ? "bg-tint-sand" : "bg-tint-mint"}>
               <h2 className="mb-1 font-display text-lg">{zh ? "對照上次建議" : "Versus last mix"}</h2>
@@ -522,7 +552,7 @@ function RecommendPage() {
               </ul>
               <p className="mt-2 text-xs text-subtle">
                 {zh
-                  ? "沒有每日單位價，不能用「升幾多／跌幾多」作為轉倉警號。警號是展望變弱，或同類出現明顯更高分、更低收費的替代。"
+                  ? "上面嘅升跌只係估算，唔應該單憑升跌決定轉倉。值得調整嘅訊號係展望轉弱，或者同類出現明顯更高分、更低收費嘅選擇。"
                   : "No daily NAVs, so there is no +X% / −X% switch trigger. Alerts are a weaker outlook or a clearly better-scoring, cheaper peer."}
               </p>
             </Card>
@@ -534,7 +564,7 @@ function RecommendPage() {
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
             <p className="mt-2 text-xs text-subtle">
               {zh
-                ? "轉換視野同再看一次係同一件事：揀一個月，就一個月後返嚟對照今次建議。不是保證該段一定升。回來時系統用展望同評分決定維持定調整，不是用你帳戶的升跌幅（我們沒有單位價）。"
+                ? "撳「記住今次建議」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
                 : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}
             </p>
             <Button
@@ -542,23 +572,17 @@ function RecommendPage() {
               variant="outline"
               size="sm"
               disabled={!alloc.length}
-              onClick={() =>
-                saveMix({
-                  at: new Date().toISOString(),
-                  horizon,
-                  schemeEn: profile.schemeEn,
-                  goal: profile.goal,
-                  holdings: alloc.map((a) => ({
-                    id: a.fund.id,
-                    weight: a.weight,
-                    nameZh: a.fund.nameZh,
-                    nameEn: a.fund.nameEn,
-                  })),
-                })
-              }
+              onClick={() => saveMix(buildSaved())}
             >
               {zh ? "記住今次建議" : "Save this mix"}
             </Button>
+            {lastMix ? (
+              <p className="mt-2 text-xs text-subtle">
+                {zh
+                  ? `已記低 ${lastMix.at.slice(0, 10)} 嘅配置（只存喺呢部機）。用「分享配置」send 出去嘅連結亦帶住佢，喺其他手機打開都對照到。`
+                  : `Saved ${lastMix.at.slice(0, 10)} on this device. Links from "Share mix" carry it too.`}
+              </p>
+            ) : null}
           </Card>
 
           <Card>
@@ -756,4 +780,95 @@ function SuitabilityList({ items, zh }: { items: { level: "warn" | "note"; zh: s
       ))}
     </div>
   );
+}
+
+/* ---------- since-last-time card and link encoding ---------- */
+
+function SinceCard({
+  since,
+  savedAt,
+  balance,
+  zh,
+}: {
+  since: ReturnType<typeof estimateSince>;
+  savedAt: string;
+  balance: number;
+  zh: boolean;
+}) {
+  const fmt = (v: number | null) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`);
+  return (
+    <Card className="bg-tint-sky">
+      <h2 className="mb-1 font-display text-lg">{zh ? "上次記低嘅配置，至今大約" : "Since your saved mix (est.)"}</h2>
+      <p className="text-xs text-muted">
+        {zh ? `${savedAt.slice(0, 10)} 記低 · 過咗 ${since.days} 日` : `Saved ${savedAt.slice(0, 10)} · ${since.days} days ago`}
+      </p>
+      {since.days < 1 ? (
+        <p className="mt-2 text-sm text-muted">{zh ? "今日先記低，過一排返嚟就會見到升跌估算。" : "Saved today. Come back later to see the estimate."}</p>
+      ) : (
+        <>
+          <p className="mt-2 text-sm">
+            {zh ? "整體估算 " : "Overall "}
+            <b className={cn("font-mono text-xl", (since.pct ?? 0) >= 0 ? "text-up" : "text-down")}>{fmt(since.pct)}</b>
+            {balance > 0 && since.pct != null ? (
+              <span className="ml-1 text-muted">
+                {zh ? "（以你結餘計約 " : " (about "}
+                {since.pct >= 0 ? "+" : "−"}
+                {fmtHkd(Math.abs((balance * since.pct) / 100))}
+                {zh ? "）" : ")"}
+              </span>
+            ) : null}
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {since.holdings.map((h) => (
+              <li key={h.id} className="flex items-baseline justify-between gap-3">
+                <span className="min-w-0">
+                  {Math.round(h.weight * 100)}% {zh ? h.nameZh : h.nameEn}
+                </span>
+                <span className={cn("shrink-0 font-mono", (h.pct ?? 0) >= 0 ? "text-up" : "text-down")}>{fmt(h.pct)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="mt-2 text-xs leading-relaxed text-muted">
+        {zh
+          ? "估算方法：積金局每月先公布基金回報，所以用每隻基金對應嘅市場指數（混合及債券部分用美債息變化）由記低嗰日計到今日，再扣開支比率。唔係基金實際單位價，可能同你戶口有出入。"
+          : "Estimated from each fund's reference index (bond part from the US 10-year yield) since the save date, minus fees. Not actual unit prices."}
+      </p>
+    </Card>
+  );
+}
+
+function encodeMix(m: SavedMix): string {
+  const compact = { a: m.at, g: m.goal, s: m.schemeEn, h: m.holdings.map((h) => [h.id, Math.round(h.weight * 1000)]), l: m.levels ?? {} };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(compact)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function decodeMix(r: string | undefined): SavedMix | null {
+  if (!r) return null;
+  try {
+    const json = decodeURIComponent(escape(atob(r.replace(/-/g, "+").replace(/_/g, "/"))));
+    const c = JSON.parse(json) as { a: string; g: SavedMix["goal"]; s: string | null; h: [string, number][]; l: Record<string, number> };
+    const holdings = c.h
+      .map(([id, w]) => {
+        const f = fundById(id);
+        if (!f) return null;
+        return {
+          id,
+          weight: w / 1000,
+          nameZh: f.nameZh,
+          nameEn: f.nameEn,
+          bench: f.bench,
+          beta: f.beta,
+          fer: f.fer,
+          ret1y: f.ret1y,
+          cashLike: f.category === "money" || f.category === "guaranteed" || f.isConservative,
+        };
+      })
+      .filter((h): h is NonNullable<typeof h> => h != null);
+    if (!holdings.length || Number.isNaN(Date.parse(c.a))) return null;
+    return { at: c.a, horizon: "6m", schemeEn: c.s, goal: c.g, holdings, levels: c.l };
+  } catch {
+    return null;
+  }
 }
