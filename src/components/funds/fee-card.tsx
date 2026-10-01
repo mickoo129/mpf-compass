@@ -59,7 +59,7 @@ export function FeeAmount({ fer, zh, className }: { fer: number | null | undefin
   return (
     <span className={className}>
       {fmtHkd(fee)}
-      <span className="text-subtle">{balance > 0 ? (zh ? "／年" : "/yr") : zh ? "／年 每萬" : "/yr per 10k"}</span>
+      <span className="text-subtle">{balance > 0 ? (zh ? "／年" : "/yr") : zh ? "／年（每 $1 萬）" : "/yr per 10k"}</span>
     </span>
   );
 }

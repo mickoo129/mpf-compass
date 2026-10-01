@@ -40,7 +40,7 @@ type FundsSearch = {
   category?: FundCategory;
 };
 
-const PAGE = 100;
+const PAGE = 40;
 const SEARCH_INDEX = new Map(allFunds.map((f) => [f.id, indexFund(f, [SLEEVE_LABEL[f.sleeve]?.zh ?? "", SLEEVE_LABEL[f.sleeve]?.en ?? ""])]));
 
 export const Route = createFileRoute("/funds/")({

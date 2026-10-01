@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
+import { PageTitle } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -185,32 +185,24 @@ function RecommendPage() {
   return (
     <div>
       <PageTitle
-        kicker={zh ? "目標推介" : "Goal-based"}
-        title={zh ? "先設定目標，再在可選範圍內評分。" : "State the goal, then score inside your opportunity set."}
-        subtitle={
-          zh
-            ? "供款帳戶通常只能在僱主計劃內轉換。轉換視野是未來持有期；配置跟隨展望（利率、52 週位置、過熱），不會把過去半年視為未來。並非投資建議，亦不保證獲利。"
-            : "Contribution accounts switch inside the employer scheme. The window is forward-looking: yield, 52-week stretch and overheat — not “past 6 months = next 6 months”. Not advice and not a profit guarantee."
-        }
+        kicker={zh ? "智選配置" : "Goal-based mix"}
+        title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
+        subtitle={zh ? "結果喺下面，想改條件撳「修改條件」。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      <AsOfLine zh={zh} />
-
-      <Card className="mb-6 bg-tint-sand">
-        <h2 className="mb-1 font-display text-lg">{zh ? "策略來源" : "Where the mix comes from"}</h2>
-        <p className="mb-3 text-sm text-muted">
+      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0b2a4a]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+        <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
-            ? "此並非積金局或受託人的官方部署，亦非預測必賺。配置是一條公開規則：按你填寫的目標，結合積金局長線數字，再用最新指數避免追趕過熱。"
-            : "This is not an MPFA or trustee allocation, and not a profit forecast. The mix is a published rule: your goal, MPFA long-horizon figures, then live indices to avoid chasing heat."}
+            ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}檢討`
+            : `Age ${profile.age} · ${GOAL_COPY[profile.goal].en} · ${profile.schemeEn ?? "all schemes"}`}
         </p>
-        <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
-            <li>{zh ? "你：目標、轉換視野（未來持有多久）、現時計劃可選範圍。" : "You: goal, switch window, and the scheme menu you can actually use."}</li>
-          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現——用以判斷基金是否偏貴、風險是否合適、同類之中是否落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
-          <li>{zh ? "Yahoo 指數（開啟頁面時更新）：利率起始孳息、距離 52 週高位、過熱——用作調整比重，不會把過去半年視為未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
-        </ol>
-      </Card>
+        <Button asChild size="sm" variant="outline" className="shrink-0 whitespace-nowrap">
+          <a href="#inputs">{zh ? "修改條件" : "Edit"}</a>
+        </Button>
+      </div>
+
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="min-w-0 space-y-5 lg:col-span-5">
+        <div id="inputs" className="order-2 min-w-0 scroll-mt-28 space-y-5 lg:order-1 lg:col-span-5">
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
             <p className="mb-4 text-xs text-subtle">
@@ -408,40 +400,7 @@ function RecommendPage() {
           </Card>
         </div>
 
-        <div className="min-w-0 space-y-5 lg:col-span-7">
-          <Card className="bg-tint-sky">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="font-display text-lg">{zh ? "窗口：已發生／展望" : "Window: lookback / outlook"}</h2>
-              <Badge tone="primary">{zh ? regime.outlookLabelZh : horizon}</Badge>
-            </div>
-            <p className="mb-3 text-xs text-muted">
-              {zh
-                ? `Yahoo 指數，開啟本頁時更新${markets.data?.fetchedAt ? `（${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC）` : ""}。左側是該時段已經發生的走勢；右側是同一時段的規則展望（利率、52 週位置、過熱），不是預測必升。`
-                : `Yahoo indices as of page load. Left = what already happened in the window; right = a rule-based tilt, not a forecast.`}
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg bg-white/80 p-3">
-                <p className="mb-1 text-xs font-medium tracking-wide text-subtle uppercase">
-                  {zh ? `已發生 · ${regime.lookbackLabelZh}` : "Lookback"}
-                </p>
-                <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
-                  {(zh ? regime.lookbackZh : regime.lookbackEn).map((n) => (
-                    <li key={n}>{n}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg bg-white p-3 shadow-[var(--shadow-border)]">
-                <p className="mb-1 text-xs font-medium tracking-wide text-primary uppercase">
-                  {zh ? `展望 · ${regime.outlookLabelZh}` : "Outlook"}
-                </p>
-                <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
-                  {(zh ? regime.outlookZh : regime.outlookEn).slice(0, 4).map((n) => (
-                    <li key={n}>{n}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </Card>
+        <div className="order-1 min-w-0 space-y-5 lg:order-2 lg:col-span-7">
           <Card>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
@@ -453,7 +412,7 @@ function RecommendPage() {
               </p>
               <p className="mt-1 text-xs leading-relaxed text-subtle">
                 {zh
-                  ? `檔數按目標與距離退休自動決定（穩健、年期較長通常 3 檔）。排序用收費、風險、五年同類，再加「${HORIZON_COPY[horizon].zh}」展望（利率、過熱、滯後），不是隨便派保守或進取基金，亦不是保證該段增值。`
+                  ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。"
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
@@ -675,6 +634,64 @@ function RecommendPage() {
               </p>
             ) : null}
           </Card>
+
+          <details className="group rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)] sm:p-5">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+              <span>
+                <span className="font-display text-lg">{zh ? "點樣揀出嚟？" : "How was this picked?"}</span>
+                <span className="block text-xs text-muted">{zh ? "評分規則、市況展望（利率、52 週位置、過熱）" : "Scoring rule and market outlook"}</span>
+              </span>
+              <span className="text-xs text-primary group-open:hidden">{zh ? "展開" : "Show"}</span>
+            </summary>
+            <div className="mt-4 space-y-5">
+      <div>
+        <h2 className="mb-1 font-display text-lg">{zh ? "策略來源" : "Where the mix comes from"}</h2>
+        <p className="mb-3 text-sm text-muted">
+          {zh
+            ? "此並非積金局或受託人的官方部署，亦非預測必賺。配置是一條公開規則：按你填寫的目標，結合積金局長線數字，再用最新指數避免追趕過熱。"
+            : "This is not an MPFA or trustee allocation, and not a profit forecast. The mix is a published rule: your goal, MPFA long-horizon figures, then live indices to avoid chasing heat."}
+        </p>
+        <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
+            <li>{zh ? "你：目標、轉換視野（未來持有多久）、現時計劃可選範圍。" : "You: goal, switch window, and the scheme menu you can actually use."}</li>
+          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現——用以判斷基金是否偏貴、風險是否合適、同類之中是否落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
+          <li>{zh ? "Yahoo 指數（開啟頁面時更新）：利率起始孳息、距離 52 週高位、過熱——用作調整比重，不會把過去半年視為未來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
+        </ol>
+      </div>
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="font-display text-lg">{zh ? "窗口：已發生／展望" : "Window: lookback / outlook"}</h2>
+              <Badge tone="primary">{zh ? regime.outlookLabelZh : horizon}</Badge>
+            </div>
+            <p className="mb-3 text-xs text-muted">
+              {zh
+                ? `Yahoo 指數，開啟本頁時更新${markets.data?.fetchedAt ? `（${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC）` : ""}。左側是該時段已經發生的走勢；右側是同一時段的規則展望（利率、52 週位置、過熱），不是預測必升。`
+                : `Yahoo indices as of page load. Left = what already happened in the window; right = a rule-based tilt, not a forecast.`}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg bg-white/80 p-3">
+                <p className="mb-1 text-xs font-medium tracking-wide text-subtle uppercase">
+                  {zh ? `已發生 · ${regime.lookbackLabelZh}` : "Lookback"}
+                </p>
+                <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
+                  {(zh ? regime.lookbackZh : regime.lookbackEn).map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-lg bg-white p-3 shadow-[var(--shadow-border)]">
+                <p className="mb-1 text-xs font-medium tracking-wide text-primary uppercase">
+                  {zh ? `展望 · ${regime.outlookLabelZh}` : "Outlook"}
+                </p>
+                <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
+                  {(zh ? regime.outlookZh : regime.outlookEn).slice(0, 4).map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+            </div>
+          </details>
 
           <Card>
             <h2 className="mb-3 font-display text-lg">{zh ? "同目標其他高分基金" : "Other high-scoring funds"}</h2>
