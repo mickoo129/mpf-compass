@@ -8,7 +8,7 @@
 
 1. 用呢個 GitHub repo 喺 [Netlify](https://app.netlify.com) 開新 site（Import from Git）。
 2. Build command：`npm run build`；Publish directory：`dist`（`netlify.toml` 已寫低）。
-3. Node 22。唔使額外 API key。
+3. Node 22。唔使額外 API key，亦冇資料庫或登入。
 
 唔好只 Drop 靜態檔：即時指數（Yahoo）要 Functions。
 
@@ -38,3 +38,12 @@ npm run refresh:mpfa
 ```
 
 分類（地區、DIS）沿用現有基金編號，唔靠模糊配對。新基金先至用類型名稱入組。
+
+## 開發
+
+```bash
+npm run dev        # http://localhost:8080
+npm test           # 計算邏輯單元測試
+npm run typecheck
+npm run lint
+```

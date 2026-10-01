@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { RangeCard } from "@/components/funds/range-card";
+import { Term } from "@/components/ui/term";
 import { FeeAmount } from "@/components/funds/fee-card";
 import { mixFer } from "@/lib/mpf/fees";
 import { estimateSince, levelsFrom } from "@/lib/mpf/review";
@@ -26,12 +27,13 @@ import { fundById } from "@/lib/mpf/catalog";
 import type { SavedMix } from "@/lib/mpf/types";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
-import { projectPortfolio } from "@/lib/mpf/forecast";
+import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 type RecommendSearch = { scheme?: string; r?: string };
@@ -43,6 +45,21 @@ export const Route = createFileRoute("/recommend")({
       scheme: typeof raw.scheme === "string" && raw.scheme ? raw.scheme : undefined,
       r: typeof raw.r === "string" && raw.r ? raw.r : undefined,
     }),
+  head: ({ match }) => {
+    const { r } = match.search as RecommendSearch;
+    const saved = decodeMix(r);
+    return {
+      meta: seo(
+        saved
+          ? {
+              title: `強積金參考配置（${saved.at.slice(0, 10)}）`,
+              description: `${saved.holdings.map((h) => `${Math.round(h.weight * 100)}% ${h.nameZh}`).join("、")}。打開可睇至今大約升跌。研究用途，並非投資建議。`,
+              path: "/recommend",
+            }
+          : { title: "智選參考配置", description: "按年齡同風險取向，喺你嘅計劃入面篩選 2–5 隻基金，計埋收費同至退休滾存。研究用途，並非投資建議。", path: "/recommend" },
+      ),
+    };
+  },
   component: RecommendPage,
 });
 
@@ -80,11 +97,7 @@ function RecommendPage() {
   const usingExample = profile.balance === 0 && profile.monthly === 0;
   const projBalance = usingExample ? EXAMPLE_BALANCE : profile.balance;
   const projMonthly = usingExample ? EXAMPLE_MONTHLY : profile.monthly;
-  const path = useMemo(
-    () => projectPortfolio(alloc, years, projBalance, projMonthly),
-    [alloc, years, projBalance, projMonthly],
-  );
-  const end = path.at(-1);
+
   const assumed = useMemo(
     () =>
       alloc.map((a) => ({
@@ -95,6 +108,14 @@ function RecommendPage() {
     [alloc],
   );
   const assumedTotal = assumed.reduce((s, x) => s + x.a.weight * x.r, 0);
+  const mixRisk = alloc.reduce((s, a) => s + a.weight * (a.fund.riskClass ?? 4), 0) || 4;
+  const rates = scenarioRates(assumedTotal || 4, mixRisk);
+  const path = useMemo(
+    () => projectScenarios(projBalance, projMonthly, years, rates),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [projBalance, projMonthly, years, rates.low, rates.mid, rates.high],
+  );
+  const end = path.at(-1);
   const mixSize = profile.mixSize ?? "auto";
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
@@ -236,7 +257,7 @@ function RecommendPage() {
               </Field>
             </div>
             <div className="mt-4">
-              <Label>{zh ? "帳戶類型" : "Account"}</Label>
+              <Label><Term k="account">{zh ? "帳戶類型" : "Account"}</Term></Label>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Choice
                   active={profile.account === "contribution"}
@@ -404,7 +425,7 @@ function RecommendPage() {
           <Card>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-              <h2 className="font-display text-xl">{zh ? "建議配置" : "Suggested mix"}</h2>
+              <h2 className="font-display text-xl">{zh ? "參考配置" : "Reference mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
                   ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : `全港比較後最佳計劃：${alloc[0]?.fund.schemeZh ?? "—"}`} · ${mixSize === "auto" ? "自動" : "指定"} ${alloc.length} 檔 · 剩餘 ${years} 年`
@@ -447,7 +468,7 @@ function RecommendPage() {
               </div>
             ) : null}
             {profile.account === "contribution" && !profile.schemeEn ? (
-              <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，才可在可轉換範圍內推介。" : "Pick your scheme to constrain the opportunity set."}</p>
+              <p className="text-sm text-warn">{zh ? "請先選擇現時計劃，先可以喺可轉換範圍內篩選。" : "Pick your scheme to constrain the opportunity set."}</p>
             ) : null}
             <div className="space-y-3">
               {alloc.map((a) => (
@@ -498,10 +519,10 @@ function RecommendPage() {
 
           {showCompare && comparison.status !== "none" ? (
             <Card className={comparison.status === "adjust" ? "bg-tint-sand" : "bg-tint-mint"}>
-              <h2 className="mb-1 font-display text-lg">{zh ? "對照上次建議" : "Versus last mix"}</h2>
+              <h2 className="mb-1 font-display text-lg">{zh ? "同上次比較" : "Versus last mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
-                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "可繼續持有" : "建議調整"}`
+                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "排序冇變" : "排序有變"}`
                   : `Saved ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status}`}
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted">
@@ -511,7 +532,7 @@ function RecommendPage() {
               </ul>
               <p className="mt-2 text-xs text-subtle">
                 {zh
-                  ? "上面嘅升跌只係估算，唔應該單憑升跌決定轉倉。值得調整嘅訊號係展望轉弱，或者同類出現明顯更高分、更低收費嘅選擇。"
+                  ? "上面嘅升跌只係估算，唔應該單憑升跌決定轉換。排序有變通常係因為展望轉弱，或者同類出現更高分、更低收費嘅選擇。"
                   : "No daily NAVs, so there is no +X% / −X% switch trigger. Alerts are a weaker outlook or a clearly better-scoring, cheaper peer."}
               </p>
             </Card>
@@ -523,7 +544,7 @@ function RecommendPage() {
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
             <p className="mt-2 text-xs text-subtle">
               {zh
-                ? "撳「記住今次建議」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
+                ? "撳「記住今次配置」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
                 : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}
             </p>
             <Button
@@ -533,7 +554,7 @@ function RecommendPage() {
               disabled={!alloc.length}
               onClick={() => saveMix(buildSaved())}
             >
-              {zh ? "記住今次建議" : "Save this mix"}
+              {zh ? "記住今次配置" : "Save this mix"}
             </Button>
             {lastMix ? (
               <p className="mt-2 text-xs text-subtle">
@@ -555,7 +576,7 @@ function RecommendPage() {
             ) : null}
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? `假設你長期持有今次這幾隻直至退休（${years} 年），按規則假設年化回報加每月供款滾存，只係一條參考線，唔係預測。中途嘅上落可以睇上面「可能升跌範圍」。`
+                ? `假設長期持有呢個配置直至退休（${years} 年），連每月供款一齊滾存。三條線係三個平均年回報假設，唔係預測；中途上落可以睇上面「可能升跌範圍」。`
                 : `Years to retirement (${years}). Compounds a rule-based return plus contributions — a reference line, not a forecast. See the range card above for the ups and downs along the way.`}
             </p>
             <div className="h-52">
@@ -575,22 +596,24 @@ function RecommendPage() {
                     tickFormatter={(v: number) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v === 0 ? "0" : `${Math.round(v / 1000)}k`)}
                   />
                   <RTooltip
-                    formatter={(v: number) => [fmtHkd(v), zh ? "估計結餘" : "Est. balance"]}
+                    formatter={(v: number, name: string) => [fmtHkd(v), name]}
                     labelFormatter={(y: number) => (zh ? `${profile.age + y} 歲` : `Age ${profile.age + y}`)}
                     contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
                   />
-                  <Area type="monotone" dataKey="base" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.12} />
+                  <Area type="monotone" dataKey="high" name={zh ? "樂觀" : "Hopeful"} stroke="var(--color-up)" fill="none" strokeDasharray="4 3" />
+                  <Area type="monotone" dataKey="mid" name={zh ? "中間" : "Middle"} stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.1} strokeWidth={2} />
+                  <Area type="monotone" dataKey="low" name={zh ? "保守" : "Cautious"} stroke="var(--color-warn)" fill="none" strokeDasharray="4 3" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             {assumed.length ? (
               <details className="mt-3 rounded-md bg-tint-sky px-3 py-2 text-xs text-muted">
                 <summary className="cursor-pointer text-fg">
-                  {zh ? `假設年化回報約 ${assumedTotal.toFixed(1)}%，點樣計？` : `Assumed ${assumedTotal.toFixed(1)}% a year — how?`}
+                  {zh ? `「中間」${assumedTotal.toFixed(1)}% 點樣計？` : `How is the middle ${assumedTotal.toFixed(1)}% worked out?`}
                 </summary>
                 <p className="mt-2">
                   {zh
-                    ? "每隻基金：55% 用該類資產嘅長期規劃假設，45% 用該基金積金局五年年化回報（上限 12%、下限 -2%，避免短期好景誇大），再扣開支比率高過 0.8% 嘅部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
+                    ? "每隻基金：55% 用該類資產嘅長期規劃假設，45% 用該基金積金局五年年化回報（最多比類別假設高 2%、低 4%；未夠五年嘅基金就全用類別假設），再扣開支比率高過 0.8% 嘅部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
                     : "Per fund: 55% long-run planning assumption for its asset class, 45% its MPFA 5-year return (capped 12%, floored −2%), less a fee drag for FER above 0.8%. Then weighted by the mix."}
                 </p>
                 <table className="mt-2 w-full text-left">
@@ -617,21 +640,36 @@ function RecommendPage() {
                 </table>
                 <p className="mt-2">
                   {zh
-                    ? "類別長期假設係本工具嘅規劃數字（例如美股 7.4%、核心累積 6.0%、環球債券 3.3%），唔係積金局數字，亦唔係保證。實際回報可以高好多或者低好多。"
+                    ? `類別長期假設係本工具嘅規劃數字（例如美股 6.5%、核心累積 5.0%、環球債券 3.0%），刻意定得比近十年強積金中位數低大約 1%，唔係積金局數字，亦唔係保證。「保守」同「樂觀」再按配置風險上下調 ${(rates.mid - rates.low).toFixed(1)}%。`
                     : "Class assumptions are this tool's planning figures, not MPFA numbers and not guarantees."}
                 </p>
               </details>
             ) : null}
             {end ? (
-              <p className="mt-3 text-sm">
-                {zh ? `${profile.retireAge} 歲退休時約 ` : `At ${profile.retireAge}, about `}
-                <span className="font-mono text-base tabular-nums">{fmtHkd(end.base)}</span>
-                <span className="ml-1 text-xs text-subtle">
+              <div className="mt-3">
+                <p className="mb-2 text-sm">{zh ? `${profile.retireAge} 歲退休時大約：` : `At ${profile.retireAge}, roughly:`}</p>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {(
+                    [
+                      ["low", zh ? "保守" : "Cautious", "text-warn"],
+                      ["mid", zh ? "中間" : "Middle", "text-primary"],
+                      ["high", zh ? "樂觀" : "Hopeful", "text-up"],
+                    ] as const
+                  ).map(([k, label, cls]) => (
+                    <div key={k} className="rounded-lg bg-tint-sky px-1 py-2">
+                      <p className={cn("text-xs font-medium", cls)}>
+                        {label} {rates[k].toFixed(1)}%
+                      </p>
+                      <p className="font-mono text-sm tabular-nums sm:text-base">{fmtHkd(end[k])}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-subtle">
                   {zh
-                    ? `（當中供款本金約 ${fmtHkd(projBalance + projMonthly * 12 * years)}）`
-                    : ` (of which contributions ≈ ${fmtHkd(projBalance + projMonthly * 12 * years)})`}
-                </span>
-              </p>
+                    ? `當中供款本金約 ${fmtHkd(projBalance + projMonthly * 12 * years)}。平均年回報每差 1%，${years} 年後結果可以差好遠，所以唔好只睇中間嗰個數。`
+                    : `Contributions ≈ ${fmtHkd(projBalance + projMonthly * 12 * years)}. A 1-point difference in average return compounds a lot over ${years} years.`}
+                </p>
+              </div>
             ) : null}
           </Card>
 
@@ -707,7 +745,7 @@ function RecommendPage() {
                           {zh ? s.fund.schemeZh : s.fund.schemeEn}
                           {s.reasons[0] ? (
                             <Badge className="ml-1.5 align-middle" tone="neutral">
-                              {s.reasons[0]}
+                              {zh ? s.reasons[0] : (REASON_EN[s.reasons[0]] ?? s.reasons[0])}
                             </Badge>
                           ) : null}
                         </span>

@@ -114,11 +114,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <p className="w-full text-xs leading-relaxed text-canvas-muted">
             {t(locale, copy.disclaimer).replaceAll("{asOf}", catalogMeta.asOf)}
           </p>
-          <p className="mt-2 font-mono text-xs text-canvas-muted">
-            MPFA {catalogMeta.asOf} · {catalogMeta.fundCount} funds · {catalogMeta.schemeCount} schemes
+          <p className="mt-2 text-xs text-canvas-muted">
+            {locale === "zh"
+              ? `基金數據截至 ${catalogMeta.asOf}（積金局每月更新）· ${catalogMeta.fundCount} 隻基金 · ${catalogMeta.schemeCount} 個計劃`
+              : `MPFA data as of ${catalogMeta.asOf} (monthly) · ${catalogMeta.fundCount} funds · ${catalogMeta.schemeCount} schemes`}
           </p>
+          <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <Link to="/glossary" className="text-canvas-muted underline-offset-2 hover:text-white hover:underline">
+              {locale === "zh" ? "強積金詞彙" : "Glossary"}
+            </Link>
+            <a href="https://mfp.mpfa.org.hk/" target="_blank" rel="noreferrer" className="text-canvas-muted underline-offset-2 hover:text-white hover:underline">
+              {locale === "zh" ? "積金局基金平台" : "MPFA Fund Platform"}
+            </a>
+          </nav>
           <p className="mt-4 text-center text-xs text-canvas-muted">
-            © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). 版權所有。
+            © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). {locale === "zh" ? "版權所有。" : "All rights reserved."}
           </p>
         </div>
       </footer>
@@ -149,12 +159,19 @@ export function PageTitle({
   );
 }
 
+/** Month-end after the current snapshot, e.g. 2026-08-31 → "9 月底". */
+function nextSnapshotLabel(asOf: string, zh: boolean): string {
+  const d = new Date(`${asOf}T00:00:00Z`);
+  const next = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 2, 0));
+  return zh ? `${next.getUTCMonth() + 1} 月底` : next.toISOString().slice(0, 10);
+}
+
 export function AsOfLine({ zh }: { zh: boolean }) {
   return (
     <p className="mb-5 w-full text-xs leading-relaxed text-canvas-muted">
       {zh
-        ? `基金回報、收費、風險：積金局 ${catalogMeta.asOf}。指數：Yahoo Finance，開啟頁面時更新。兩者日期並不相同。`
-        : `Fund returns, fees and risk: MPFA ${catalogMeta.asOf}. Indices: Yahoo Finance, refresh on load. These dates are not the same.`}
+        ? `基金數據截至 ${catalogMeta.asOf}（積金局每月公布一次，截至${nextSnapshotLabel(catalogMeta.asOf, true)}嘅數字一出，網站會自動更新）。市場指數即時更新。`
+        : `Fund data as of ${catalogMeta.asOf} (MPFA publishes monthly; the site updates automatically when the ${nextSnapshotLabel(catalogMeta.asOf, false)} figures appear). Market indices are live.`}
     </p>
   );
 }

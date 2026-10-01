@@ -2,32 +2,34 @@ import type { Allocation, Fund, GoalId, MixSize, Profile, ReviewCadence, RiskApp
 import { allFunds, fundRegion, median } from "./catalog";
 import { HORIZON_COPY, horizonWeights, type Regime } from "./regime";
 
+// Long-run planning assumptions (% a year, before fees), set about 1 point below
+// recent 10-year MPF medians so projections lean cautious.
 const SLEEVE_PRIOR: Record<string, number> = {
-  us: 7.4,
-  global: 7.0,
-  japan: 6.2,
-  asia: 6.8,
-  korea: 5.2,
-  hk: 6.0,
-  china: 6.4,
-  "greater-china": 6.4,
-  "hk-china": 6.2,
-  europe: 6.4,
-  healthcare: 7.0,
-  esg: 6.6,
-  em: 6.5,
-  "dis-caf": 6.0,
-  "dis-a65": 3.6,
-  "mixed-aggressive": 6.8,
-  "mixed-growth": 6.1,
-  "mixed-balanced": 5.1,
-  "mixed-conservative": 3.7,
-  "mixed-target": 5.4,
-  "mixed-global": 5.6,
-  "bond-global": 3.3,
-  "bond-asia": 3.4,
-  "bond-cn": 3.2,
-  "bond-hk": 3.0,
+  us: 6.5,
+  global: 6.0,
+  japan: 5.5,
+  asia: 5.8,
+  korea: 4.5,
+  hk: 5.0,
+  china: 5.4,
+  "greater-china": 5.4,
+  "hk-china": 5.2,
+  europe: 5.4,
+  healthcare: 6.0,
+  esg: 5.6,
+  em: 5.5,
+  "dis-caf": 5.0,
+  "dis-a65": 3.0,
+  "mixed-aggressive": 5.8,
+  "mixed-growth": 5.2,
+  "mixed-balanced": 4.4,
+  "mixed-conservative": 3.2,
+  "mixed-target": 4.6,
+  "mixed-global": 4.8,
+  "bond-global": 3.0,
+  "bond-asia": 3.1,
+  "bond-cn": 2.9,
+  "bond-hk": 2.7,
   conservative: 2.8,
   money: 2.6,
   guaranteed: 1.4,
@@ -40,8 +42,12 @@ export function sleevePrior(fund: Fund): number {
 
 export function expectedReturn(fund: Fund, regime?: Regime | null, horizon?: Profile["switchHorizon"]): number {
   const prior = SLEEVE_PRIOR[fund.sleeve] ?? 5.5;
-  const hist = fund.ret5y ?? fund.ret1y ?? prior;
-  const cappedHist = Math.max(-2, Math.min(12, hist));
+  // Only a 5-year record (or 10-year) counts; a lone 1-year figure is too noisy and
+  // let young funds with one hot year inflate the projection.
+  const hist = fund.ret5y ?? fund.ret10y ?? prior;
+  // Keep the fund's own record within ±2–4 points of its asset class so one strong
+  // (or weak) five years cannot dominate a 30-year projection.
+  const cappedHist = Math.max(prior - 4, Math.min(prior + 2, hist));
   const blended = 0.55 * prior + 0.45 * cappedHist;
   const ferDrag = fund.fer ?? 1.3;
   const extraFee = Math.max(0, ferDrag - 0.8) * 0.25;
@@ -140,6 +146,8 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     const size = aum >= 2000 ? 1 : aum >= 400 ? 0.75 : aum >= 80 ? 0.5 : 0.25;
     const tracker = fund.isTracker && profile.goal === "lowfee" ? 0.12 : fund.isTracker ? 0.04 : 0;
     const guarPenalty = fund.category === "guaranteed" && profile.goal !== "preserve" ? -0.16 : 0;
+    // Funds under five years old have no comparable track record yet.
+    const youngPenalty = fund.ret5y == null && !fund.isDis ? -0.06 : 0;
     const fit = regime?.sleeveFit[fund.sleeve] ?? 0.5;
     const regimeFit = clamp01(0.35 * sb + 0.65 * fit);
 
@@ -150,7 +158,8 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
       w.skill * skill +
       w.size * size +
       tracker +
-      guarPenalty;
+      guarPenalty +
+      youngPenalty;
 
     if (profile.goal === "dis" && (fund.isCaf || fund.isA65)) {
       const years = profile.retireAge - profile.age;
@@ -162,9 +171,10 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (fund.isDis) reasons.push("預設投資策略");
     if (horizon === "1y" && skill > 0.65) reasons.push("五年同類領先");
     if (regime && fit >= 0.62) reasons.push("展望偏有利");
-    if (regime && fit <= 0.32) reasons.push("展望偏弱，不宜追入");
-    if (fund.sleeve === "korea") reasons.push("一年升幅較大，短線不宜作為核心");
+    if (regime && fit <= 0.32) reasons.push("展望偏弱");
+    if (fund.sleeve === "korea") reasons.push("一年升幅較大");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
+    if (fund.ret5y == null) reasons.push("成立未夠五年");
 
     return { fund, score, reasons, expectedReturn: expectedReturn(fund, regime, horizon) };
   });
@@ -196,7 +206,7 @@ export function resolvedReview(profile: Profile): {
     month: {
       labelZh: "一個月後",
       labelEn: "In 1 month",
-      zh: "請於一個月後返回本頁，對照今次建議。積金局數字按月公布，一個月內單位價未必已更新。",
+      zh: "一個月後可以返嚟對照今次參考配置。積金局數字按月公布，一個月內未必已更新。",
       en: "Come back in a month to compare with this mix. Official NAVs are monthly.",
     },
     quarter: {
@@ -481,9 +491,9 @@ export function compareSavedMix(
 
   for (const a of next) {
     const row = ranked.find((s) => s.fund.id === a.fund.id);
-    if (row?.reasons.includes("展望偏弱，不宜追入")) {
-      alertsZh.push(`${a.fund.nameZh}：展望偏弱，不宜加碼。`);
-      alertsEn.push(`${a.fund.nameEn}: outlook is weak; do not add.`);
+    if (row?.reasons.includes("展望偏弱")) {
+      alertsZh.push(`${a.fund.nameZh}：展望偏弱。`);
+      alertsEn.push(`${a.fund.nameEn}: outlook is weak.`);
     }
   }
 
@@ -493,7 +503,7 @@ export function compareSavedMix(
     const addNames = added.map((a) => a.fund.nameZh).join("、");
     alertsZh.push(
       added.length
-        ? `今次評分／展望已變，建議調整配置${addNames ? `（新入：${addNames}）` : ""}。`
+        ? `今次評分／展望同上次唔同${addNames ? `，新入選：${addNames}` : ""}。`
         : "今次評分／展望已變，部分先前持倉不再列入。",
     );
     alertsEn.push("Scores or outlook changed; the mix was adjusted.");
@@ -502,12 +512,12 @@ export function compareSavedMix(
   if (same && !alertsZh.length) {
     return {
       status: "keep",
-      alertsZh: ["與上次相同。展望與評分未出現明顯更佳替代，可繼續持有。"],
+      alertsZh: ["同上次一樣。評分同展望未見明顯更高分嘅同類選擇。"],
       alertsEn: ["Same mix. No stronger replacement — hold."],
     };
   }
   if (same) return { status: "keep", alertsZh, alertsEn };
-  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序已變，請對照新的建議配置。"], alertsEn };
+  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序同上次唔同，可以對照下面嘅參考配置。"], alertsEn };
 }
 
 
@@ -546,9 +556,22 @@ export function suitabilityChecks(profile: Profile): Suitability[] {
   if (profile.switchHorizon === "1m" || profile.switchHorizon === "3m") {
     out.push({
       level: "note",
-      zh: "強積金轉換基金通常需時數個工作日，期間資金唔喺市場入面，短線轉換未必追到升幅。短期回顧可以，但唔建議每次都轉。",
+      zh: "強積金轉換基金通常需時數個工作日，期間資金唔喺市場入面，短線轉換未必追到升幅。短期回顧冇問題，但頻密轉換未必有利。",
       en: "An MPF switch usually takes several working days out of the market, so short-term switching often misses the move.",
     });
   }
   return out;
 }
+
+/** English labels for the short reason badges. */
+export const REASON_EN: Record<string, string> = {
+  低收費: "Low fee",
+  指數追蹤: "Index",
+  預設投資策略: "DIS",
+  五年同類領先: "5Y peer leader",
+  展望偏有利: "Outlook favourable",
+  展望偏弱: "Outlook weak",
+  一年升幅較大: "Big 1-year run",
+  保證成本高: "Costly guarantee",
+  成立未夠五年: "Under 5 years old",
+};

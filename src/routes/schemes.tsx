@@ -1,13 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
-import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, median, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtAum, fmtNum } from "@/lib/mpf/format";
 import { calendar3yAnn } from "@/lib/mpf/returns";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 
-export const Route = createFileRoute("/schemes")({ component: SchemesPage });
+export const Route = createFileRoute("/schemes")({
+  head: () => ({
+    meta: seo({ title: "24 個強積金計劃", description: "全港註冊強積金計劃嘅回報、平均收費同基金數目。", path: "/schemes" }),
+  }),
+  component: SchemesPage,
+});
 
 function SchemesPage() {
   const locale = useAppStore((s) => s.locale);
@@ -38,7 +43,7 @@ function SchemesPage() {
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "按計劃可查看其成分基金（與基金庫相同篩選）。若要只在該計劃內推介配置，再用「智選」。"
+            ? "按計劃可查看其成分基金（與基金庫相同篩選）。想只喺該計劃內篩選參考配置，可以用「智選」。"
             : "Tap a scheme to see its constituent funds in the library. Use Recommend to score only within that scheme."
         }
       />
@@ -74,7 +79,7 @@ function SchemesPage() {
                     {s.tracker ? (zh ? ` · ${s.tracker} 隻指數基金` : ` · ${s.tracker} idx`) : ""}
                   </p>
                 </td>
-                <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{fmtAum(s.aum)}</td>
+                <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{fmtAum(s.aum, zh)}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.count}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.ferAvg.toFixed(2)}%</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.minFer.toFixed(2)}%</td>
@@ -97,36 +102,30 @@ function SchemesPage() {
           </tbody>
         </table>
       </div>
-      <div className="space-y-2 md:hidden">
+      <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:hidden">
         {schemes.map((s) => (
-          <Card key={s.en} className="p-0">
-            <Link to="/funds" search={{ scheme: s.en }} className="block p-4">
-              <p className="font-medium">{zh ? s.zh : s.en}</p>
-              <p className="text-xs text-subtle">{zh ? s.providerZh : s.providerEn}</p>
-              <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
-                <span>1{zh ? "年" : "Y"} <ReturnCell value={s.ret1y} /></span>
-                <span>3{zh ? "年" : "Y"} <ReturnCell value={s.ret3y} /></span>
-                <span>5{zh ? "年" : "Y"} <ReturnCell value={s.ret5y} /></span>
-                <span>10{zh ? "年" : "Y"} <ReturnCell value={s.ret10y} /></span>
-              </div>
-              <p className="mt-2 font-mono text-xs text-subtle">
-                {fmtAum(s.aum)} · {zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}% · {s.count} {zh ? "隻" : "funds"}
-              </p>
-              <p className="mt-2 text-xs text-primary">{zh ? "查看成分基金 →" : "View funds →"}</p>
+          <li key={s.en} className="flex items-center gap-3 px-3 py-2.5">
+            <Link to="/funds" search={{ scheme: s.en }} className="min-w-0 flex-1 active:opacity-70">
+              <span className="block text-sm leading-snug font-medium">{zh ? s.zh : s.en}</span>
+              <span className="block text-xs text-subtle">
+                {s.count} {zh ? "隻基金" : "funds"} · {zh ? "平均開支" : "avg FER"} {s.ferAvg.toFixed(2)}% · {fmtAum(s.aum, zh)}
+              </span>
             </Link>
-            <div className="border-t border-border px-4 py-2">
-              <Link
-                to="/recommend"
-                search={{ scheme: s.en }}
-                className="text-xs text-muted"
-                onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
-              >
-                {zh ? "用此計劃做智選" : "Recommend in this scheme"}
-              </Link>
-            </div>
-          </Card>
+            <span className="shrink-0 text-right font-mono text-sm">
+              <ReturnCell value={s.ret5y} />
+              <span className="block text-xs text-subtle">{zh ? "5年中位" : "5Y med."}</span>
+            </span>
+            <Link
+              to="/recommend"
+              search={{ scheme: s.en }}
+              onClick={() => setProfile({ account: "contribution", schemeEn: s.en })}
+              className="shrink-0 rounded-md px-2 py-1.5 text-xs text-primary ring-1 ring-border"
+            >
+              {zh ? "智選" : "Mix"}
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
       <p className="mt-4 text-xs text-canvas-muted">
         {zh
           ? `制度合計約 ${fmtAum(schemes.reduce((a, s) => a + s.aum, 0))}（成分基金淨值，${fmtNum(schemes.reduce((a, s) => a + s.count, 0), 0)} 個基金單位）。`

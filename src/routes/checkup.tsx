@@ -6,10 +6,12 @@ import { BalanceInput } from "@/components/funds/fee-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Term } from "@/components/ui/term";
 import { allFunds, fundById, SLEEVE_LABEL, uniqueSchemes } from "@/lib/mpf/catalog";
 import { regionLabel, runCheckup, type Light } from "@/lib/mpf/checkup";
 import { fmtPctPlain } from "@/lib/mpf/format";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 type CheckupSearch = { s?: string; h?: string };
@@ -20,6 +22,23 @@ export const Route = createFileRoute("/checkup")({
     s: typeof raw.s === "string" && raw.s ? raw.s : undefined,
     h: typeof raw.h === "string" && raw.h ? raw.h : undefined,
   }),
+  head: ({ match }) => {
+    const { s, h } = match.search as CheckupSearch;
+    const rows = parseHoldings(h);
+    const funds = rows.map((r) => fundById(r.id)).filter((f): f is NonNullable<typeof f> => f != null);
+    const scheme = funds[0]?.schemeZh ?? uniqueSchemes().find((x) => x.en === s)?.zh;
+    return {
+      meta: seo(
+        funds.length
+          ? {
+              title: `強積金健康檢查：${funds.length} 隻基金`,
+              description: `${scheme ?? ""}：${rows.map((r) => `${r.pct}% ${fundById(r.id)?.nameZh}`).join("、")}。睇收費、風險、分散程度同表現。`,
+              path: "/checkup",
+            }
+          : { title: "我嘅強積金健康檢查", description: "揀返你嘅計劃同基金，檢查收費、風險同年齡、分散程度同表現。唔會上傳你嘅資料。", path: "/checkup" },
+      ),
+    };
+  },
   component: CheckupPage,
 });
 
@@ -297,8 +316,8 @@ function CheckupPage() {
                   </Button>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <Stat label={zh ? "平均開支比率" : "Avg FER"} value={result.fer != null ? `${result.fer.toFixed(2)}%` : "—"} />
-                  <Stat label={zh ? "平均風險級別" : "Avg risk"} value={result.riskClass != null ? result.riskClass.toFixed(1) : "—"} />
+                  <Stat label={<Term k="fer">{zh ? "平均開支比率" : "Avg FER"}</Term>} value={result.fer != null ? `${result.fer.toFixed(2)}%` : "—"} />
+                  <Stat label={<Term k="risk">{zh ? "平均風險級別" : "Avg risk"}</Term>} value={result.riskClass != null ? result.riskClass.toFixed(1) : "—"} />
                   <Stat label={zh ? "股票比重（估計）" : "Equity (est.)"} value={`${Math.round(result.equityShare * 100)}%`} />
                 </div>
                 <div className="mt-3">
@@ -358,7 +377,7 @@ function CheckupPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: React.ReactNode; value: string }) {
   return (
     <div className="rounded-lg bg-tint-sky px-2 py-2">
       <p className="text-xs text-muted">{label}</p>

@@ -84,7 +84,7 @@ export function ReturnHeatmap({ zh }: { zh: boolean }) {
           <h2 className="font-display text-xl">{zh ? "同期比較：邊類好、邊類差" : "Same period: who led, who lagged"}</h2>
           <p className="mt-1 text-xs text-muted">
             {zh
-              ? `每格係該類基金喺該年嘅中位回報。綠色較好、紅色較差。冇一類年年領先。近1年截至 ${catalogMeta.asOf}。`
+              ? `每格係該類基金喺該年嘅中位數回報（排中間嗰隻）。綠色較好、紅色較差。冇一類年年領先。近1年截至 ${catalogMeta.asOf}。`
               : `Each cell is the median return of that group in that year. Green led, red lagged. No group leads every year. 1Y to ${catalogMeta.asOf}.`}
           </p>
         </div>

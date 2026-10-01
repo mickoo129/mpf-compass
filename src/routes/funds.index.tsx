@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { FeeAmount } from "@/components/funds/fee-card";
+import { Term } from "@/components/ui/term";
 import {
   allFunds,
   CATEGORY_LABEL,
@@ -28,6 +29,7 @@ import { annReturn, calendar3yAnn } from "@/lib/mpf/returns";
 import { indexFund, scoreQuery } from "@/lib/mpf/search";
 import type { Fund, FundCategory } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 type SortKey = "ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince" | "y2025" | "fer" | "aumM" | "riskClass";
@@ -41,6 +43,8 @@ type FundsSearch = {
 };
 
 const PAGE = 40;
+const PERIOD_SHORT_ZH: Partial<Record<SortKey, string>> = { ret1y: "1年", ret3yCal: "3年", ret5y: "5年", ret10y: "10年", retSince: "成立", y2025: "2025" };
+const PERIOD_SHORT_EN: Partial<Record<SortKey, string>> = { ret1y: "1Y", ret3yCal: "3Y", ret5y: "5Y", ret10y: "10Y", retSince: "Since", y2025: "2025" };
 const SEARCH_INDEX = new Map(allFunds.map((f) => [f.id, indexFund(f, [SLEEVE_LABEL[f.sleeve]?.zh ?? "", SLEEVE_LABEL[f.sleeve]?.en ?? ""])]));
 
 export const Route = createFileRoute("/funds/")({
@@ -59,6 +63,16 @@ export const Route = createFileRoute("/funds/")({
         ? raw.category
         : undefined,
   }),
+  head: ({ match }) => {
+    const q = (match.search as FundsSearch).q;
+    return {
+      meta: seo(
+        q
+          ? { title: `搜尋「${q}」`, description: `喺全港強積金成分基金入面搵「${q}」，比較回報、收費同風險。`, path: `/funds?q=${encodeURIComponent(q)}` }
+          : { title: "全港成分基金", description: "按類別、地區、主題、計劃篩選全港強積金成分基金，比較回報、收費（港幣計）同風險。", path: "/funds" },
+      ),
+    };
+  },
   component: FundsPage,
 });
 
@@ -71,6 +85,7 @@ function FundsPage() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const [q, setQ] = useState(search.q ?? "");
   const [limit, setLimit] = useState(PAGE);
+  const [showFilters, setShowFilters] = useState(false);
   // While searching, best name matches come first until the member picks a column to sort by.
   const [byRelevance, setByRelevance] = useState(true);
   useEffect(() => {
@@ -82,7 +97,7 @@ function FundsPage() {
   const [provider, setProvider] = useState(search.provider ?? "all");
   const [scheme, setScheme] = useState(search.scheme ?? "all");
   const [sleeve, setSleeve] = useState(search.sleeve ?? "all");
-  const [sort, setSort] = useState<SortKey>("ret1y");
+  const [sort, setSort] = useState<SortKey>("ret5y");
   const [dir, setDir] = useState<"desc" | "asc">("desc");
 
   // Keep ?q= in the address bar so a search can be bookmarked or sent to a client.
@@ -264,6 +279,37 @@ function FundsPage() {
             </button>
           ) : null}
         </div>
+        <div className="flex gap-2 sm:hidden">
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className="h-11 flex-1 rounded-md bg-card px-3 text-left text-sm text-fg shadow-[var(--shadow-border)]"
+            aria-expanded={showFilters}
+          >
+            {zh ? "篩選" : "Filters"}
+            {filtersActive ? <span className="ml-1 text-primary">{zh ? "（已設定）" : "(on)"}</span> : null}
+            <span className="float-right text-subtle">{showFilters ? "▲" : "▼"}</span>
+          </button>
+          <select
+            value={`${sort}:${dir}`}
+            onChange={(e) => {
+              const [k, d] = e.target.value.split(":") as [SortKey, "asc" | "desc"];
+              setByRelevance(false);
+              setSort(k);
+              setDir(d);
+            }}
+            className="h-11 w-36 shrink-0 rounded-md bg-card px-2 text-sm text-fg shadow-[var(--shadow-border)]"
+            aria-label={zh ? "排序" : "Sort"}
+          >
+            <option value="ret1y:desc">{zh ? "1年回報 高→低" : "1Y high→low"}</option>
+            <option value="ret5y:desc">{zh ? "5年回報 高→低" : "5Y high→low"}</option>
+            <option value="ret10y:desc">{zh ? "10年回報 高→低" : "10Y high→low"}</option>
+            <option value="fer:asc">{zh ? "收費 低→高" : "Fee low→high"}</option>
+            <option value="riskClass:asc">{zh ? "風險 低→高" : "Risk low→high"}</option>
+            <option value="aumM:desc">{zh ? "規模 大→細" : "Size large→small"}</option>
+          </select>
+        </div>
+        <div className={cn("contents", !showFilters && "max-sm:hidden")}>
         <select
           value={cat}
           onChange={(e) => setCat(e.target.value as FundCategory | "all")}
@@ -342,6 +388,7 @@ function FundsPage() {
             ))}
           </select>
         )}
+        </div>
       </div>
 
       <p className="mb-3 text-xs text-canvas-muted">
@@ -354,10 +401,10 @@ function FundsPage() {
             <tr className="text-muted">
               <th className="px-3 py-3 text-left font-medium">{zh ? "基金" : "Fund"}</th>
               <th className="px-3 py-3 text-left font-medium">{zh ? "類別" : "Type"}</th>
-              <th className="px-3 py-3">{header("riskClass", zh ? "風險" : "Risk")}</th>
-              <th className="px-3 py-3">{header("fer", zh ? "開支比率" : "FER")}</th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("riskClass", zh ? "風險" : "Risk")}<Term k="risk">{""}</Term></span></th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("fer", zh ? "開支比率" : "FER")}<Term k="fer">{""}</Term></span></th>
               <th className="px-3 py-3">{header("ret1y", zh ? "1年" : "1Y")}</th>
-              <th className="px-3 py-3">{header("ret3yCal", zh ? "3年" : "3Y")}</th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("ret3yCal", zh ? "3年" : "3Y")}<Term k="est3y">{""}</Term></span></th>
               <th className="px-3 py-3">{header("ret5y", zh ? "5年" : "5Y")}</th>
               <th className="px-3 py-3">{header("ret10y", zh ? "10年" : "10Y")}</th>
               <th className="px-3 py-3">{header("retSince", zh ? "成立" : "Since")}</th>
@@ -374,34 +421,26 @@ function FundsPage() {
         </table>
       </div>
 
-      <div className="space-y-2 md:hidden">
+      <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:hidden">
         {rows.slice(0, limit).map((f) => (
-          <Link
-            key={f.id}
-            to="/funds/$id"
-            params={{ id: f.id }}
-            className="block rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)]"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate font-medium">{zh ? f.nameZh : f.nameEn}</p>
-                <p className="truncate text-xs text-subtle">
-                  {zh ? f.providerZh : f.providerEn} · {zh ? f.schemeZh : f.schemeEn}
-                </p>
-              </div>
-              <ReturnCell value={f.ret1y} />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-3 font-mono text-xs text-muted">
-              <span>
-                {zh ? "開支比率" : "FER"} {fmtPctPlain(f.fer)} ≈ <FeeAmount fer={f.fer} zh={zh} />
+          <li key={f.id}>
+            <Link to="/funds/$id" params={{ id: f.id }} className="flex items-center gap-3 px-3 py-2.5 active:bg-tint-sky">
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm leading-snug font-medium">{zh ? f.nameZh : f.nameEn}</span>
+                <span className="block truncate text-xs text-subtle">
+                  {zh ? f.schemeZh : f.schemeEn} · {zh ? "風險" : "Risk"} {f.riskClass ?? "—"} · {fmtPctPlain(f.fer)}
+                </span>
               </span>
-              <span>{zh ? "5年" : "5Y"} {fmtPctPlain(f.ret5y)}</span>
-              <span>{zh ? "成立" : "Incep."} {fmtPctPlain(f.retSince)}</span>
-              <span>{zh ? "風險" : "R"} {f.riskClass ?? "—"}</span>
-            </div>
-          </Link>
+              <span className="shrink-0 text-right font-mono text-sm">
+                <ReturnCell value={sortValue(f, sort === "fer" || sort === "riskClass" || sort === "aumM" ? "ret1y" : sort)} />
+                <span className="block text-xs text-subtle">
+                  {sort === "fer" || sort === "riskClass" || sort === "aumM" ? (zh ? "1年" : "1Y") : zh ? PERIOD_SHORT_ZH[sort] : PERIOD_SHORT_EN[sort]}
+                </span>
+              </span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
       {rows.length === 0 ? (
         <div className="py-10 text-center text-sm text-canvas-muted">
           <p>
@@ -489,7 +528,7 @@ function FundRow({
       <td className="px-3 py-2.5 text-right">
         <ReturnCell value={fund.y2025} />
       </td>
-      <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-muted">{fmtAum(fund.aumM)}</td>
+      <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-muted">{fmtAum(fund.aumM, zh)}</td>
       <td className="px-3 py-2.5 text-right">
         <Button variant={compared ? "default" : "outline"} size="sm" onClick={onToggle}>
           {compared ? (zh ? "已選" : "Added") : zh ? "比較" : "Add"}

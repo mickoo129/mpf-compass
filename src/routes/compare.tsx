@@ -13,8 +13,14 @@ import { calendar3yAnn, MPFA_PERIOD_NOTE } from "@/lib/mpf/returns";
 import type { Fund } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { seo } from "@/lib/seo";
 
-export const Route = createFileRoute("/compare")({ component: ComparePage });
+export const Route = createFileRoute("/compare")({
+  head: () => ({
+    meta: seo({ title: "比較強積金基金", description: "供應商、基金回報同收費排行，最多四隻基金並排比較，收費以港幣計。", path: "/compare" }),
+  }),
+  component: ComparePage,
+});
 
 type RankKey = "ret1y" | "ret3yCal" | "ret5y" | "ret10y";
 type ProvKey = "count" | "aum" | "fer" | "ret1y" | "ret3y" | "ret5y" | "ret10y";
@@ -149,7 +155,7 @@ function ComparePage() {
                     {zh ? p.zh : p.en}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{p.count}</td>
-                  <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{fmtAum(p.aum)}</td>
+                  <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{fmtAum(p.aum, zh)}</td>
                   <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{fmtPctPlain(p.fer)}</td>
                   <td className="px-3 py-2 text-right">
                     <ReturnCell value={p.ret1y} />

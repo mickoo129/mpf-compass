@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckupRouteImport } from './routes/checkup'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as FundsRouteImport } from './routes/funds'
+import { Route as GlossaryRouteImport } from './routes/glossary'
 import { Route as RecommendRouteImport } from './routes/recommend'
 import { Route as SchemesRouteImport } from './routes/schemes'
 import { Route as FundsIndexRouteImport } from './routes/funds.index'
@@ -36,6 +37,11 @@ const CompareRoute = CompareRouteImport.update({
 const FundsRoute = FundsRouteImport.update({
   id: '/funds',
   path: '/funds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlossaryRoute = GlossaryRouteImport.update({
+  id: '/glossary',
+  path: '/glossary',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecommendRoute = RecommendRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/checkup': typeof CheckupRoute
   '/compare': typeof CompareRoute
   '/funds': typeof FundsRouteWithChildren
+  '/glossary': typeof GlossaryRoute
   '/recommend': typeof RecommendRoute
   '/schemes': typeof SchemesRoute
   '/funds/$id': typeof FundsIdRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkup': typeof CheckupRoute
   '/compare': typeof CompareRoute
+  '/glossary': typeof GlossaryRoute
   '/recommend': typeof RecommendRoute
   '/schemes': typeof SchemesRoute
   '/funds/$id': typeof FundsIdRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/checkup': typeof CheckupRoute
   '/compare': typeof CompareRoute
   '/funds': typeof FundsRouteWithChildren
+  '/glossary': typeof GlossaryRoute
   '/recommend': typeof RecommendRoute
   '/schemes': typeof SchemesRoute
   '/funds/$id': typeof FundsIdRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/checkup'
     | '/compare'
     | '/funds'
+    | '/glossary'
     | '/recommend'
     | '/schemes'
     | '/funds/$id'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/checkup'
     | '/compare'
+    | '/glossary'
     | '/recommend'
     | '/schemes'
     | '/funds/$id'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/checkup'
     | '/compare'
     | '/funds'
+    | '/glossary'
     | '/recommend'
     | '/schemes'
     | '/funds/$id'
@@ -126,6 +138,7 @@ export interface RootRouteChildren {
   CheckupRoute: typeof CheckupRoute
   CompareRoute: typeof CompareRoute
   FundsRoute: typeof FundsRouteWithChildren
+  GlossaryRoute: typeof GlossaryRoute
   RecommendRoute: typeof RecommendRoute
   SchemesRoute: typeof SchemesRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       path: '/funds'
       fullPath: '/funds'
       preLoaderRoute: typeof FundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glossary': {
+      id: '/glossary'
+      path: '/glossary'
+      fullPath: '/glossary'
+      preLoaderRoute: typeof GlossaryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recommend': {
@@ -208,6 +228,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckupRoute: CheckupRoute,
   CompareRoute: CompareRoute,
   FundsRoute: FundsRouteWithChildren,
+  GlossaryRoute: GlossaryRoute,
   RecommendRoute: RecommendRoute,
   SchemesRoute: SchemesRoute,
 }

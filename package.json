@@ -6,31 +6,19 @@
   "engines": {
     "node": ">=22"
   },
-  "overrides": {
-    "nf3": "0.3.17"
-  },
   "scripts": {
-    "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
-    "build": "node scripts/with-app-env.mjs vite build && npm run db:migrate",
-    "build:netlify": "NITRO_PRESET=netlify node scripts/with-app-env.mjs vite build",
-    "db:migrate": "node scripts/migrate.mjs",
-    "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
-    "preview": "node scripts/with-app-env.mjs vite preview",
-    "preview:restart": "node scripts/preview.mjs restart",
-    "preview:stop": "node scripts/preview.mjs stop",
+    "dev": "vite dev --host 0.0.0.0 --port 8080",
+    "build": "vite build",
+    "build:netlify": "NITRO_PRESET=netlify vite build",
+    "preview": "vite preview",
     "refresh:mpfa": "node scripts/refresh-mpfa.mjs",
-    "check:auth": "node scripts/check-auth-invariant.mjs",
-    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/mpf/ranges.test.ts src/lib/mpf/search.test.ts src/lib/mpf/fees.test.ts src/lib/mpf/review.test.ts src/lib/app-data/app-data.test.ts src/lib/app-data/readiness-schedule.test.ts src/lib/auth/gate-identity.test.ts src/lib/auth/sign-in-gate.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/mpf/*.test.ts",
+    "typecheck": "tsc --noEmit -p .",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.4",
     "@hookform/resolvers": "^5.7.0",
-    "better-auth": "~1.6.30",
-    "jose": "6.2.9",
-    "kysely": "^0.28.5",
-    "pg": "^8.16.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -80,7 +68,6 @@
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/node": "^22.16.5",
-    "@types/pg": "^8.11.10",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
@@ -92,10 +79,12 @@
     "globals": "^15.15.0",
     "lightningcss": "^1.28.0",
     "nitro": "3.0.260610-beta",
-    "playwright": "^1.62.0",
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.2.0"
+  },
+  "overrides": {
+    "nf3": "0.3.17"
   }
 }

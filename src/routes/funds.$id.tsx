@@ -10,12 +10,33 @@ import { TAG_ZH, allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "
 import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
+import { Term } from "@/components/ui/term";
+import { describeFund } from "@/lib/mpf/describe";
+import { seo } from "@/lib/seo";
 import { FeeAmount, FeeCard } from "@/components/funds/fee-card";
 import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 
-export const Route = createFileRoute("/funds/$id")({ component: FundDetail });
+export const Route = createFileRoute("/funds/$id")({
+  head: ({ params }) => {
+    const f = fundById(params.id);
+    if (!f) return { meta: seo({ title: "找不到基金", description: "請返回基金庫再搜尋。" }) };
+    const bits = [
+      f.ret5y != null ? `5年年化 ${f.ret5y > 0 ? "+" : ""}${f.ret5y.toFixed(1)}%` : null,
+      f.fer != null ? `開支比率 ${f.fer.toFixed(2)}%` : null,
+      f.riskClass != null ? `風險 ${f.riskClass}` : null,
+    ].filter(Boolean);
+    return {
+      meta: seo({
+        title: `${f.nameZh}（${f.schemeZh}）`,
+        description: `${bits.join(" · ")}。${describeFund(f, true)}`,
+        path: `/funds/${f.id}`,
+      }),
+    };
+  },
+  component: FundDetail,
+});
 
 function FundDetail() {
   const { id } = Route.useParams();
@@ -100,9 +121,10 @@ function FundDetail() {
           <p className="mt-1 text-sm text-canvas-muted">
             {zh ? fund.nameEn : fund.nameZh} · {zh ? fund.providerZh : fund.providerEn}
           </p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">{describeFund(fund, zh)}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
-            {fund.tags.filter((t) => t !== "DIS").map((t) => (
+            {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || !/\p{Script=Han}/u.test(t))).map((t) => (
               <Badge key={t}>{zh ? (TAG_ZH[t] ?? t) : t}</Badge>
             ))}
             {fund.isDis ? <Badge tone="primary">{zh ? "預設投資策略" : "DIS"}</Badge> : null}
@@ -114,11 +136,11 @@ function FundDetail() {
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Metric label={zh ? "1年年化" : "1Y p.a."} value={<ReturnCell value={fund.ret1y} className="text-xl" />} />
+        <Metric label={<Term k="annualised">{zh ? "1年年化" : "1Y p.a."}</Term>} value={<ReturnCell value={fund.ret1y} className="text-xl" />} />
         <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-xl" />} />
         <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-xl" />} />
         <Metric
-          label={zh ? "開支比率" : "FER"}
+          label={<Term k="fer" />}
           value={
             <span className="font-mono text-xl tabular-nums">
               {fmtPctPlain(fund.fer)}
@@ -146,7 +168,7 @@ function FundDetail() {
             </thead>
             <tbody>
               <tr className="border-b border-border/70">
-                <td className="py-2 pr-2 text-xs text-muted">{zh ? "年化" : "Ann."}</td>
+                <td className="py-2 pr-2 text-xs text-muted"><Term k="annualised">{zh ? "年化" : "Ann."}</Term></td>
                 {periods.map(([p]) => (
                   <td key={p} className="px-1 py-2 text-right">
                     <ReturnCell value={annReturn(fund, p)} />
@@ -154,7 +176,7 @@ function FundDetail() {
                 ))}
               </tr>
               <tr className="border-b border-border/70">
-                <td className="py-2 pr-2 text-xs text-muted">{zh ? "累積" : "Cum."}</td>
+                <td className="py-2 pr-2 text-xs text-muted"><Term k="cumulative">{zh ? "累積" : "Cum."}</Term></td>
                 {periods.map(([p]) => (
                   <td key={p} className="px-1 py-2 text-right">
                     <ReturnCell value={cumReturn(fund, p)} />
@@ -190,8 +212,8 @@ function FundDetail() {
           <dl className="space-y-2 text-sm">
             <Row k={zh ? "計劃" : "Scheme"} v={zh ? fund.schemeZh : fund.schemeEn} />
             <Row k={zh ? "受託人" : "Trustee"} v={zh ? fund.trusteeZh : fund.trusteeEn} />
-            <Row k={zh ? "風險級別" : "Risk class"} v={fund.riskClass != null ? String(fund.riskClass) : "—"} />
-            <Row k={zh ? "基金規模" : "Fund size"} v={fmtAum(fund.aumM)} />
+            <Row k={<Term k="risk" />} v={fund.riskClass != null ? String(fund.riskClass) : "—"} />
+            <Row k={<Term k="aum" />} v={fmtAum(fund.aumM, zh)} />
             <Row k={zh ? "成立" : "Launch"} v={fund.launch ?? "—"} />
             <Row k={zh ? "10年年化" : "10Y p.a."} v={fmtPct(fund.ret10y)} />
             <Row k={zh ? "成立至今" : "Since launch"} v={fmtPct(fund.retSince)} />
@@ -261,7 +283,7 @@ function FundDetail() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: React.ReactNode }) {
+function Metric({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
   return (
     <Card className="p-3">
       <p className="text-xs text-subtle">{label}</p>
@@ -270,7 +292,7 @@ function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function Row({ k, v }: { k: string; v: string }) {
+function Row({ k, v }: { k: React.ReactNode; v: string }) {
   return (
     <div className="flex justify-between gap-3 border-b border-border/60 py-1.5 last:border-0">
       <dt className="text-muted">{k}</dt>
