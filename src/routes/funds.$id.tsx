@@ -230,12 +230,14 @@ function FundDetail() {
                 <Link
                   to="/funds/$id"
                   params={{ id: p.id }}
-                  className={`flex items-baseline justify-between gap-3 rounded-md px-1 ${p.id === fund.id ? "bg-tint-sky" : ""}`}
+                  className={`flex items-start justify-between gap-3 rounded-md px-1 ${p.id === fund.id ? "bg-tint-sky" : ""}`}
                 >
-                  <span className="min-w-0 truncate">
-                    <span className="mr-2 font-mono text-subtle">{i + 1}</span>
-                    {zh ? p.nameZh : p.nameEn}
-                    <span className="ml-1.5 text-xs text-subtle">{zh ? p.schemeZh : p.schemeEn}</span>
+                  <span className="flex min-w-0 gap-2">
+                    <span className="font-mono text-subtle">{i + 1}</span>
+                    <span className="min-w-0">
+                      <span className="block">{zh ? p.nameZh : p.nameEn}</span>
+                      <span className="block text-xs text-subtle">{zh ? p.schemeZh : p.schemeEn}</span>
+                    </span>
                   </span>
                   <ReturnCell value={annReturn(p, peerPeriod)} />
                 </Link>

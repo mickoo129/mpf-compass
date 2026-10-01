@@ -140,11 +140,13 @@ function Home() {
           <ol className="space-y-2">
             {lowFee.map((f, i) => (
               <li key={f.id}>
-                <Link to="/funds/$id" params={{ id: f.id }} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="min-w-0 truncate">
-                    <span className="mr-2 font-mono text-subtle">{i + 1}</span>
-                    {zh ? f.nameZh : f.nameEn}
-                    <span className="ml-1.5 text-xs text-subtle">{zh ? f.schemeZh : f.schemeEn}</span>
+                <Link to="/funds/$id" params={{ id: f.id }} className="flex items-start justify-between gap-3 text-sm">
+                  <span className="flex min-w-0 gap-2">
+                    <span className="font-mono text-subtle">{i + 1}</span>
+                    <span className="min-w-0">
+                      <span className="block">{zh ? f.nameZh : f.nameEn}</span>
+                      <span className="block text-xs text-subtle">{zh ? f.schemeZh : f.schemeEn}</span>
+                    </span>
                   </span>
                   <span className="font-mono tabular-nums text-primary">{f.fer?.toFixed(2)}%</span>
                 </Link>
