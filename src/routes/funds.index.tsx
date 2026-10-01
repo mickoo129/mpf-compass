@@ -29,6 +29,7 @@ import { annReturn, calendar3yAnn } from "@/lib/mpf/returns";
 import { indexFund, scoreQuery } from "@/lib/mpf/search";
 import type { Fund, FundCategory } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 type SortKey = "ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince" | "y2025" | "fer" | "aumM" | "riskClass";
@@ -60,6 +61,16 @@ export const Route = createFileRoute("/funds/")({
         ? raw.category
         : undefined,
   }),
+  head: ({ match }) => {
+    const q = (match.search as FundsSearch).q;
+    return {
+      meta: seo(
+        q
+          ? { title: `搜尋「${q}」`, description: `喺全港強積金成分基金入面搵「${q}」，比較回報、收費同風險。`, path: `/funds?q=${encodeURIComponent(q)}` }
+          : { title: "全港成分基金", description: "按類別、地區、主題、計劃篩選全港強積金成分基金，比較回報、收費（港幣計）同風險。", path: "/funds" },
+      ),
+    };
+  },
   component: FundsPage,
 });
 

@@ -6,8 +6,14 @@ import { allFunds, median, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtAum, fmtNum } from "@/lib/mpf/format";
 import { calendar3yAnn } from "@/lib/mpf/returns";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 
-export const Route = createFileRoute("/schemes")({ component: SchemesPage });
+export const Route = createFileRoute("/schemes")({
+  head: () => ({
+    meta: seo({ title: "24 個強積金計劃", description: "全港註冊強積金計劃嘅回報、平均收費同基金數目。", path: "/schemes" }),
+  }),
+  component: SchemesPage,
+});
 
 function SchemesPage() {
   const locale = useAppStore((s) => s.locale);

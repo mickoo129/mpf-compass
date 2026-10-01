@@ -3,13 +3,15 @@ import { PageTitle } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { GLOSSARY, type TermKey } from "@/lib/glossary";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/glossary")({
   head: () => ({
-    meta: [
-      { title: "強積金詞彙 · 積金羅盤" },
-      { name: "description", content: "開支比率、風險級別、預設投資策略、年化同累積回報等強積金用語，用白話解釋。" },
-    ],
+    meta: seo({
+      title: "強積金詞彙",
+      description: "開支比率、風險級別、預設投資策略、年化同累積回報等強積金用語，用白話解釋。",
+      path: "/glossary",
+    }),
   }),
   component: GlossaryPage,
 });

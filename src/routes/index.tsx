@@ -27,8 +27,17 @@ import { MPFA_PERIOD_NOTE, PERIOD_LABEL, type MedianPeriod } from "@/lib/mpf/ret
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { seo } from "@/lib/seo";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: seo({
+      title: "積金羅盤",
+      description: "你嘅強積金，一眼睇清：全港成分基金比較、同期表現、收費以港幣計、健康檢查同參考配置。數據來自積金局。",
+    }),
+  }),
+  component: Home,
+});
 
 function Home() {
   const locale = useAppStore((s) => s.locale);

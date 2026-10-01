@@ -33,6 +33,7 @@ import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OP
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
+import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 type RecommendSearch = { scheme?: string; r?: string };
@@ -44,6 +45,21 @@ export const Route = createFileRoute("/recommend")({
       scheme: typeof raw.scheme === "string" && raw.scheme ? raw.scheme : undefined,
       r: typeof raw.r === "string" && raw.r ? raw.r : undefined,
     }),
+  head: ({ match }) => {
+    const { r } = match.search as RecommendSearch;
+    const saved = decodeMix(r);
+    return {
+      meta: seo(
+        saved
+          ? {
+              title: `強積金參考配置（${saved.at.slice(0, 10)}）`,
+              description: `${saved.holdings.map((h) => `${Math.round(h.weight * 100)}% ${h.nameZh}`).join("、")}。打開可睇至今大約升跌。研究用途，並非投資建議。`,
+              path: "/recommend",
+            }
+          : { title: "智選參考配置", description: "按年齡同風險取向，喺你嘅計劃入面篩選 2–5 隻基金，計埋收費同至退休滾存。研究用途，並非投資建議。", path: "/recommend" },
+      ),
+    };
+  },
   component: RecommendPage,
 });
 

@@ -12,12 +12,31 @@ import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
 import { Term } from "@/components/ui/term";
 import { describeFund } from "@/lib/mpf/describe";
+import { seo } from "@/lib/seo";
 import { FeeAmount, FeeCard } from "@/components/funds/fee-card";
 import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 
-export const Route = createFileRoute("/funds/$id")({ component: FundDetail });
+export const Route = createFileRoute("/funds/$id")({
+  head: ({ params }) => {
+    const f = fundById(params.id);
+    if (!f) return { meta: seo({ title: "找不到基金", description: "請返回基金庫再搜尋。" }) };
+    const bits = [
+      f.ret5y != null ? `5年年化 ${f.ret5y > 0 ? "+" : ""}${f.ret5y.toFixed(1)}%` : null,
+      f.fer != null ? `開支比率 ${f.fer.toFixed(2)}%` : null,
+      f.riskClass != null ? `風險 ${f.riskClass}` : null,
+    ].filter(Boolean);
+    return {
+      meta: seo({
+        title: `${f.nameZh}（${f.schemeZh}）`,
+        description: `${bits.join(" · ")}。${describeFund(f, true)}`,
+        path: `/funds/${f.id}`,
+      }),
+    };
+  },
+  component: FundDetail,
+});
 
 function FundDetail() {
   const { id } = Route.useParams();
