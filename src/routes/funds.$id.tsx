@@ -124,7 +124,7 @@ function FundDetail() {
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">{describeFund(fund, zh)}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
-            {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || /^[\x00-\x7f]+$/.test(t))).map((t) => (
+            {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || !/\p{Script=Han}/u.test(t))).map((t) => (
               <Badge key={t}>{zh ? (TAG_ZH[t] ?? t) : t}</Badge>
             ))}
             {fund.isDis ? <Badge tone="primary">{zh ? "預設投資策略" : "DIS"}</Badge> : null}
