@@ -17,8 +17,9 @@ export function fmtNum(n: number | null | undefined, digits = 2): string {
   });
 }
 
-export function fmtAum(m: number | null | undefined): string {
+export function fmtAum(m: number | null | undefined, zh = true): string {
   if (m == null || Number.isNaN(m)) return "—";
+  if (!zh) return fmtAumEn(m);
   // Input is HK$ millions. Hong Kong readers count in 萬 / 億 / 萬億, not 百萬 / 十億.
   if (m >= 1_000_000) return `${(m / 1_000_000).toFixed(2)} 萬億`;
   if (m >= 100) return `${fmtNum(m / 100, m >= 10_000 ? 0 : 1)} 億`;
@@ -27,7 +28,7 @@ export function fmtAum(m: number | null | undefined): string {
 
 export function fmtAumEn(m: number | null | undefined): string {
   if (m == null || Number.isNaN(m)) return "—";
-  if (m >= 1000) return `HK$${ (m / 1000).toFixed(1)}bn`;
+  if (m >= 1000) return `HK$${(m / 1000).toLocaleString("en-HK", { maximumFractionDigits: 1 })}bn`;
   return `HK$${fmtNum(m, 0)}m`;
 }
 

@@ -29,7 +29,7 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -745,7 +745,7 @@ function RecommendPage() {
                           {zh ? s.fund.schemeZh : s.fund.schemeEn}
                           {s.reasons[0] ? (
                             <Badge className="ml-1.5 align-middle" tone="neutral">
-                              {s.reasons[0]}
+                              {zh ? s.reasons[0] : (REASON_EN[s.reasons[0]] ?? s.reasons[0])}
                             </Badge>
                           ) : null}
                         </span>

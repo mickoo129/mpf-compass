@@ -155,7 +155,7 @@ function ComparePage() {
                     {zh ? p.zh : p.en}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{p.count}</td>
-                  <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{fmtAum(p.aum)}</td>
+                  <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{fmtAum(p.aum, zh)}</td>
                   <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{fmtPctPlain(p.fer)}</td>
                   <td className="px-3 py-2 text-right">
                     <ReturnCell value={p.ret1y} />

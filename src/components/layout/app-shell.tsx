@@ -128,7 +128,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </a>
           </nav>
           <p className="mt-4 text-center text-xs text-canvas-muted">
-            © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). 版權所有。
+            © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). {locale === "zh" ? "版權所有。" : "All rights reserved."}
           </p>
         </div>
       </footer>

@@ -165,7 +165,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (horizon === "1y" && skill > 0.65) reasons.push("五年同類領先");
     if (regime && fit >= 0.62) reasons.push("展望偏有利");
     if (regime && fit <= 0.32) reasons.push("展望偏弱");
-    if (fund.sleeve === "korea") reasons.push("一年升幅較大，短線不宜作為核心");
+    if (fund.sleeve === "korea") reasons.push("一年升幅較大");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
 
     return { fund, score, reasons, expectedReturn: expectedReturn(fund, regime, horizon) };
@@ -554,3 +554,15 @@ export function suitabilityChecks(profile: Profile): Suitability[] {
   }
   return out;
 }
+
+/** English labels for the short reason badges. */
+export const REASON_EN: Record<string, string> = {
+  低收費: "Low fee",
+  指數追蹤: "Index",
+  預設投資策略: "DIS",
+  五年同類領先: "5Y peer leader",
+  展望偏有利: "Outlook favourable",
+  展望偏弱: "Outlook weak",
+  一年升幅較大: "Big 1-year run",
+  保證成本高: "Costly guarantee",
+};

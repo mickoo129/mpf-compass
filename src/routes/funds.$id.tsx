@@ -124,7 +124,7 @@ function FundDetail() {
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">{describeFund(fund, zh)}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
-            {fund.tags.filter((t) => t !== "DIS").map((t) => (
+            {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || /^[\x00-\x7f]+$/.test(t))).map((t) => (
               <Badge key={t}>{zh ? (TAG_ZH[t] ?? t) : t}</Badge>
             ))}
             {fund.isDis ? <Badge tone="primary">{zh ? "預設投資策略" : "DIS"}</Badge> : null}
@@ -213,7 +213,7 @@ function FundDetail() {
             <Row k={zh ? "計劃" : "Scheme"} v={zh ? fund.schemeZh : fund.schemeEn} />
             <Row k={zh ? "受託人" : "Trustee"} v={zh ? fund.trusteeZh : fund.trusteeEn} />
             <Row k={<Term k="risk" />} v={fund.riskClass != null ? String(fund.riskClass) : "—"} />
-            <Row k={<Term k="aum" />} v={fmtAum(fund.aumM)} />
+            <Row k={<Term k="aum" />} v={fmtAum(fund.aumM, zh)} />
             <Row k={zh ? "成立" : "Launch"} v={fund.launch ?? "—"} />
             <Row k={zh ? "10年年化" : "10Y p.a."} v={fmtPct(fund.ret10y)} />
             <Row k={zh ? "成立至今" : "Since launch"} v={fmtPct(fund.retSince)} />

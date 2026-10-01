@@ -118,8 +118,8 @@ function Home() {
         </div>
         <p className="mt-3 text-xs text-canvas-muted">
           {zh
-            ? `資產合共 ${fmtAum(totalAum)} · 基金回報、收費來自積金局 · 指數來自 Yahoo Finance`
-            : `Total assets ${fmtAum(totalAum)} · MPFA fund data · Yahoo Finance indices`}
+            ? `資產合共 ${fmtAum(totalAum, zh)} · 基金回報、收費來自積金局 · 指數來自 Yahoo Finance`
+            : `Total assets ${fmtAum(totalAum, zh)} · MPFA fund data · Yahoo Finance indices`}
         </p>
       </section>
 

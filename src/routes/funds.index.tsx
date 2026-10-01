@@ -528,7 +528,7 @@ function FundRow({
       <td className="px-3 py-2.5 text-right">
         <ReturnCell value={fund.y2025} />
       </td>
-      <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-muted">{fmtAum(fund.aumM)}</td>
+      <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-muted">{fmtAum(fund.aumM, zh)}</td>
       <td className="px-3 py-2.5 text-right">
         <Button variant={compared ? "default" : "outline"} size="sm" onClick={onToggle}>
           {compared ? (zh ? "已選" : "Added") : zh ? "比較" : "Add"}

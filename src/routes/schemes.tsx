@@ -79,7 +79,7 @@ function SchemesPage() {
                     {s.tracker ? (zh ? ` · ${s.tracker} 隻指數基金` : ` · ${s.tracker} idx`) : ""}
                   </p>
                 </td>
-                <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{fmtAum(s.aum)}</td>
+                <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{fmtAum(s.aum, zh)}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.count}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.ferAvg.toFixed(2)}%</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.minFer.toFixed(2)}%</td>
@@ -108,7 +108,7 @@ function SchemesPage() {
             <Link to="/funds" search={{ scheme: s.en }} className="min-w-0 flex-1 active:opacity-70">
               <span className="block text-sm leading-snug font-medium">{zh ? s.zh : s.en}</span>
               <span className="block text-xs text-subtle">
-                {s.count} {zh ? "隻基金" : "funds"} · {zh ? "平均開支" : "avg FER"} {s.ferAvg.toFixed(2)}% · {fmtAum(s.aum)}
+                {s.count} {zh ? "隻基金" : "funds"} · {zh ? "平均開支" : "avg FER"} {s.ferAvg.toFixed(2)}% · {fmtAum(s.aum, zh)}
               </span>
             </Link>
             <span className="shrink-0 text-right font-mono text-sm">
