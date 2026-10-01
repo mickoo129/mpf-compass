@@ -81,7 +81,7 @@ function FundDetail() {
       </p>
       <label className="mb-1 block text-[11px] text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
       <select
-        className="mb-4 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
         value={fund.id}
         onChange={(e) => {
           if (e.target.value && e.target.value !== fund.id) void navigate({ to: "/funds/$id", params: { id: e.target.value } });
@@ -172,7 +172,7 @@ function FundDetail() {
         ) : null}
       </Card>
 
-      <div className="mb-8 grid gap-4 lg:grid-cols-5">
+      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
         <RangeCard className="lg:col-span-3" items={[{ fund, weight: 1 }]} zh={zh} initialMonths={12} />
         <Card className="lg:col-span-2">
           <h2 className="mb-3 font-display text-lg">{zh ? "檔案" : "Profile"}</h2>
@@ -191,7 +191,7 @@ function FundDetail() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 font-display text-lg">{zh ? "日曆年回報" : "Calendar years"}</h2>
           <div className="grid grid-cols-5 gap-2">
