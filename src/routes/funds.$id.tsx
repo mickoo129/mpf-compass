@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
+import { TAG_ZH, allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
@@ -80,7 +80,7 @@ function FundDetail() {
           {zh ? fund.schemeZh : fund.schemeEn}
         </Link>
       </p>
-      <label className="mb-1 block text-[11px] text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
+      <label className="mb-1 block text-xs text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
       <select
         className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
         value={fund.id}
@@ -102,10 +102,10 @@ function FundDetail() {
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
-            {fund.tags.map((t) => (
-              <Badge key={t}>{t}</Badge>
+            {fund.tags.filter((t) => t !== "DIS").map((t) => (
+              <Badge key={t}>{zh ? (TAG_ZH[t] ?? t) : t}</Badge>
             ))}
-            {fund.isDis ? <Badge tone="primary">DIS</Badge> : null}
+            {fund.isDis ? <Badge tone="primary">{zh ? "預設投資策略" : "DIS"}</Badge> : null}
           </div>
         </div>
         <Button variant={compared ? "default" : "outline"} onClick={() => toggle(fund.id)}>
@@ -130,7 +130,7 @@ function FundDetail() {
 
       <Card className="mb-8">
         <h2 className="mb-1 font-display text-lg">{zh ? "回報時段" : "Return periods"}</h2>
-        <p className="mb-3 text-[11px] text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
+        <p className="mb-3 text-xs text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -139,7 +139,7 @@ function FundDetail() {
                 {periods.map(([p]) => (
                   <th key={p} className="px-1 py-2 text-right font-medium whitespace-nowrap">
                     {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                    {p === "ret3yCal" ? <span className="block text-[10px] font-normal text-subtle">{zh ? "推算" : "est."}</span> : null}
+                    {p === "ret3yCal" ? <span className="block text-xs font-normal text-subtle">{zh ? "推算" : "est."}</span> : null}
                   </th>
                 ))}
               </tr>
@@ -173,7 +173,7 @@ function FundDetail() {
           </table>
         </div>
         {today != null ? (
-          <p className="mt-3 text-[11px] text-subtle">
+          <p className="mt-3 text-xs text-subtle">
             {zh
               ? `參考：基準指數今日 ${fmtPct(quote?.changePct)} × 貝塔 ${fund.beta} ≈ ${fmtPct(today)}（非官方 NAV）。`
               : `Ref: benchmark today ${fmtPct(quote?.changePct)} × beta ${fund.beta} ≈ ${fmtPct(today)} (not an official NAV).`}
@@ -208,7 +208,7 @@ function FundDetail() {
           <div className="grid grid-cols-5 gap-2">
             {calendar.map(([y, v]) => (
               <div key={y} className="rounded-lg bg-white px-1 py-2 text-center ring-1 ring-border">
-                <p className="font-mono text-[11px] text-subtle">{y}</p>
+                <p className="font-mono text-xs text-subtle">{y}</p>
                 <ReturnCell value={v} className="mt-1 block text-sm" />
               </div>
             ))}
@@ -230,7 +230,7 @@ function FundDetail() {
               ))}
             </div>
           </div>
-          <p className="mb-2 text-[11px] text-subtle">
+          <p className="mb-2 text-xs text-subtle">
             {zh
               ? `按${PERIOD_LABEL[peerPeriod].zh}年化取頭五名。換年期會換一批基金。`
               : `Top five by ${PERIOD_LABEL[peerPeriod].en}. Changing the period changes the names.`}
@@ -264,7 +264,7 @@ function FundDetail() {
 function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <Card className="p-3">
-      <p className="text-[11px] text-subtle">{label}</p>
+      <p className="text-xs text-subtle">{label}</p>
       <div className="mt-1">{value}</div>
     </Card>
   );

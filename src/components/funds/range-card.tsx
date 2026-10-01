@@ -106,7 +106,7 @@ export function RangeCard({
         <RangeBody s={summary} zh={zh} label={zh ? label.zh : label.en} amount={amount} />
       )}
 
-      <p className="mt-3 text-[11px] leading-relaxed text-subtle">
+      <p className="mt-3 text-xs leading-relaxed text-subtle">
         {zh
           ? "估算方法：冇基金每日單位價，所以用每隻基金最接近嘅市場指數（混合及債券基金再加債券指數），按其股票比重調整並扣除開支比率。指數價格唔包股息，所以數字會略為偏低。過往走勢不代表將來，亦唔係基金實際回報。"
           : "Method: no fund unit prices, so each fund is proxied by its closest index (plus a bond index for mixed/bond funds), scaled by equity weight, minus FER. Index prices exclude dividends, so figures lean low. Past ranges do not predict the future."}
@@ -136,7 +136,7 @@ function RangeBody({ s, zh, label, amount }: { s: RangeSummary; zh: boolean; lab
         <div className="absolute top-1/2 h-7 w-0.5 -translate-y-1/2 bg-ink" style={{ left: x(s.p50) }} />
         <div className="absolute top-0 h-full w-px bg-fg/60" style={{ left: x(0) }} />
       </div>
-      <div className="mt-1 flex justify-between font-mono text-[11px] text-subtle">
+      <div className="mt-1 flex justify-between font-mono text-xs text-subtle">
         <span className="text-down">{fmtPct(s.min, 1)}</span>
         <span>0%</span>
         <span className="text-up">{fmtPct(s.max, 1)}</span>

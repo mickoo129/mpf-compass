@@ -4,16 +4,19 @@
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+  /* 12px reads poorly for many members; the smallest text on the site is 13px. */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
   --font-mono: "SF Mono", ui-monospace, "IBM Plex Mono", Menlo, Consolas, monospace;
 
   --color-bg: #0b2a4a;
   --color-bg-warm: #143a61;
   --color-fg: #1a3148;
   --color-canvas: #eef4fa;
-  --color-canvas-muted: #b7c9dc;
+  --color-canvas-muted: #c9d8e7;
   --color-card: #ffffff;
-  --color-muted: #5b7086;
-  --color-subtle: #7e93a8;
+  --color-muted: #475b70;
+  --color-subtle: #55697e;
   --color-border: #d0dbe6;
   --color-primary: #1a7a96;
   --color-primary-fg: #ffffff;

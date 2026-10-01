@@ -120,7 +120,7 @@ function ComparePage() {
         <div className="flex items-end justify-between gap-3 border-b border-border bg-tint-sky px-4 py-3 sm:px-5">
           <div>
             <h2 className="font-display text-lg">{zh ? "供應商表現（中位）" : "Providers (median)"}</h2>
-            <p className="text-[11px] text-subtle">
+            <p className="text-xs text-subtle">
               {zh
                 ? `按基金數、資產、開支比率、1／3／5／10 年排序。現為${provDir === "desc" ? "由高至低" : "由低至高"}。中位數受旗下主題基金影響。`
                 : `Click funds, AUM, FER, 1Y/3Y/5Y/10Y. Now ${provDir === "desc" ? "high to low" : "low to high"}. A median is not every fund.`}
@@ -145,7 +145,7 @@ function ComparePage() {
               {providersSorted.map((p, i) => (
                 <tr key={p.code} className="border-b border-border/70 last:border-0">
                   <td className="px-4 py-2">
-                    <span className="mr-2 font-mono text-[11px] text-subtle">{i + 1}</span>
+                    <span className="mr-2 font-mono text-xs text-subtle">{i + 1}</span>
                     {zh ? p.zh : p.en}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{p.count}</td>
@@ -174,7 +174,7 @@ function ComparePage() {
         <div className="flex items-end justify-between gap-3 border-b border-border bg-tint-mint px-4 py-3 sm:px-5">
           <div>
             <h2 className="font-display text-lg">{zh ? "成分基金回報" : "Fund returns"}</h2>
-            <p className="text-[11px] text-subtle">
+            <p className="text-xs text-subtle">
               {zh
                 ? `按 1／3／5／10 年排序。現為${dir === "desc" ? "由高至低" : "由低至高"}顯示前 15 隻。三年為推算。`
                 : `Click 1Y/3Y/5Y/10Y. Showing top 15 ${dir === "desc" ? "highest" : "lowest"}. 3Y is derived.`}
@@ -199,11 +199,11 @@ function ComparePage() {
                 return (
                   <tr key={f.id} className="border-b border-border/70 last:border-0">
                     <td className="px-4 py-2">
-                      <span className="mr-2 font-mono text-[11px] text-subtle">{i + 1}</span>
+                      <span className="mr-2 font-mono text-xs text-subtle">{i + 1}</span>
                       <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
                         {zh ? f.nameZh : f.nameEn}
                       </Link>
-                      <p className="pl-6 text-[11px] text-subtle">{zh ? f.providerZh : f.providerEn}</p>
+                      <p className="pl-6 text-xs text-subtle">{zh ? f.providerZh : f.providerEn}</p>
                     </td>
                     <td className="px-3 py-2 text-right">
                       <ReturnCell value={f.ret1y} />
@@ -222,7 +222,7 @@ function ComparePage() {
                         type="button"
                         onClick={() => toggle(f.id)}
                         className={cn(
-                          "rounded-md px-2 py-1 text-[11px]",
+                          "rounded-md px-2 py-1 text-xs",
                           pinned ? "bg-primary text-primary-fg" : "bg-white text-muted ring-1 ring-border",
                         )}
                       >
@@ -260,7 +260,7 @@ function ComparePage() {
       ) : (
         <CustomCompare funds={funds} zh={zh} toggle={toggle} />
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-canvas-muted">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
+      <p className="mt-3 text-xs leading-relaxed text-canvas-muted">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
     </div>
   );
 }
@@ -335,8 +335,8 @@ function CustomCompare({
                   <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
                     {zh ? f.nameZh : f.nameEn}
                   </Link>
-                  <p className="text-[11px] text-subtle">{zh ? f.schemeZh : f.schemeEn}</p>
-                  <button type="button" className="text-[11px] text-subtle" onClick={() => toggle(f.id)}>
+                  <p className="text-xs text-subtle">{zh ? f.schemeZh : f.schemeEn}</p>
+                  <button type="button" className="text-xs text-subtle" onClick={() => toggle(f.id)}>
                     {zh ? "移出" : "Remove"}
                   </button>
                 </td>

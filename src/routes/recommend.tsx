@@ -187,7 +187,7 @@ function RecommendPage() {
         <div className="min-w-0 space-y-5 lg:col-span-5">
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
-            <p className="mb-4 text-[11px] text-subtle">
+            <p className="mb-4 text-xs text-subtle">
               {zh
                 ? "每次開啟都由 35 歲、65 歲退休、結餘 0、每月供款 0 開始，不會記住上一個人的數字。"
                 : "Each visit starts at age 35, retirement 65, zero balance and zero monthly contribution. Nothing here is saved for the next person."}
@@ -249,7 +249,7 @@ function RecommendPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-[11px] text-subtle">
+                <p className="mt-1 text-xs text-subtle">
                   {zh ? "供款帳戶通常只能在僱主計劃內轉換。未選計劃則不會給出配置。" : "Contribution accounts switch inside the employer scheme."}
                 </p>
               </div>
@@ -268,7 +268,7 @@ function RecommendPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-[11px] text-subtle">
+                <p className="mt-1 text-xs text-subtle">
                   {zh ? "個人帳戶可轉出。若實際只得一間公司（例如宏利），請在此鎖定該計劃。" : "Personal accounts can transfer. Lock a scheme if you only hold one trustee."}
                 </p>
               </div>
@@ -298,7 +298,7 @@ function RecommendPage() {
             <SuitabilityList items={checks} zh={zh} />
             <div className="mt-4">
               <Label>{zh ? "今次轉換視野" : "Switch window"}</Label>
-              <p className="mt-1 text-[11px] text-subtle">
+              <p className="mt-1 text-xs text-subtle">
                 {zh
                   ? "已發生／展望會跟你揀的時段。揀三個月就睇近三個月同未來三個月。"
                   : "Lookback and outlook follow this window."}
@@ -318,7 +318,7 @@ function RecommendPage() {
                   </button>
                 ))}
               </div>
-              <p className="mt-1 text-[11px] text-subtle">{zh ? HORIZON_COPY[horizon].blurbZh : HORIZON_COPY[horizon].en}</p>
+              <p className="mt-1 text-xs text-subtle">{zh ? HORIZON_COPY[horizon].blurbZh : HORIZON_COPY[horizon].en}</p>
             </div>
             <div className="mt-4">
               <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
@@ -329,7 +329,7 @@ function RecommendPage() {
               <>
             <div className="mt-4">
               <Label>{zh ? "配置基金數目" : "How many funds"}</Label>
-              <p className="mt-1 text-[11px] text-subtle">
+              <p className="mt-1 text-xs text-subtle">
                 {zh
                   ? mixSize === "auto"
                     ? `按目標及剩餘年期，自動採用 ${mixN} 檔。亦可自行更改。`
@@ -356,7 +356,7 @@ function RecommendPage() {
             </div>
             <div className="mt-4">
               <Label>{zh ? "檢討節奏" : "Review cadence"}</Label>
-              <p className="mt-1 text-[11px] text-subtle">
+              <p className="mt-1 text-xs text-subtle">
                 {zh
                   ? "強積金不必每月轉換。積金局數字按月公布，頻繁轉換容易追趕落後表現。"
                   : "MPF is not a monthly trade. Official NAVs are monthly; frequent switches chase noise."}
@@ -395,7 +395,7 @@ function RecommendPage() {
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg bg-white/80 p-3">
-                <p className="mb-1 text-[11px] font-medium tracking-wide text-subtle uppercase">
+                <p className="mb-1 text-xs font-medium tracking-wide text-subtle uppercase">
                   {zh ? `已發生 · ${regime.lookbackLabelZh}` : "Lookback"}
                 </p>
                 <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
@@ -405,7 +405,7 @@ function RecommendPage() {
                 </ul>
               </div>
               <div className="rounded-lg bg-white p-3 shadow-[var(--shadow-border)]">
-                <p className="mb-1 text-[11px] font-medium tracking-wide text-primary uppercase">
+                <p className="mb-1 text-xs font-medium tracking-wide text-primary uppercase">
                   {zh ? `展望 · ${regime.outlookLabelZh}` : "Outlook"}
                 </p>
                 <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
@@ -425,7 +425,7 @@ function RecommendPage() {
                   ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : `全港比較後最佳計劃：${alloc[0]?.fund.schemeZh ?? "—"}`} · ${mixSize === "auto" ? "自動" : "指定"} ${alloc.length} 檔 · 剩餘 ${years} 年`
                   : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : `best scheme across HK: ${alloc[0]?.fund.schemeEn ?? "—"}`} · ${alloc.length} funds · ${years}y`}
               </p>
-              <p className="mt-1 text-[11px] leading-relaxed text-subtle">
+              <p className="mt-1 text-xs leading-relaxed text-subtle">
                 {zh
                   ? `檔數按目標與距離退休自動決定（穩健、年期較長通常 3 檔）。排序用收費、風險、五年同類，再加「${HORIZON_COPY[horizon].zh}」展望（利率、過熱、滯後），不是隨便派保守或進取基金，亦不是保證該段增值。`
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
@@ -477,7 +477,7 @@ function RecommendPage() {
                       <p className="truncate font-medium">{zh ? a.fund.nameZh : a.fund.nameEn}</p>
                       <p className="text-xs text-subtle">
                         {zh ? a.fund.schemeZh : a.fund.schemeEn} · {zh ? "開支" : "FER"} {fmtPctPlain(a.fund.fer)} ·{" "}
-                        {zh ? "風險" : "R"}
+                        {zh ? "風險 " : "R"}
                         {a.fund.riskClass ?? "—"}
                       </p>
                     </div>
@@ -486,10 +486,10 @@ function RecommendPage() {
                   <p className="mt-1 text-xs text-muted">{zh ? a.reasonZh : a.reasonEn}</p>
                   <div className="mt-2 flex gap-3 text-xs">
                     <span>
-                      1Y <ReturnCell value={a.fund.ret1y} />
+                      {zh ? "1年" : "1Y"} <ReturnCell value={a.fund.ret1y} />
                     </span>
                     <span>
-                      5Y <ReturnCell value={a.fund.ret5y} />
+                      {zh ? "5年" : "5Y"} <ReturnCell value={a.fund.ret5y} />
                     </span>
                   </div>
                 </Link>
@@ -520,7 +520,7 @@ function RecommendPage() {
                   <li key={n}>{n}</li>
                 ))}
               </ul>
-              <p className="mt-2 text-[11px] text-subtle">
+              <p className="mt-2 text-xs text-subtle">
                 {zh
                   ? "沒有每日單位價，不能用「升幾多／跌幾多」作為轉倉警號。警號是展望變弱，或同類出現明顯更高分、更低收費的替代。"
                   : "No daily NAVs, so there is no +X% / −X% switch trigger. Alerts are a weaker outlook or a clearly better-scoring, cheaper peer."}
@@ -532,7 +532,7 @@ function RecommendPage() {
             <h2 className="mb-1 font-display text-lg">{zh ? "幾時再回來對照" : "When to come back"}</h2>
             <p className="font-display text-xl">{zh ? review.labelZh : review.labelEn}</p>
             <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
-            <p className="mt-2 text-[11px] text-subtle">
+            <p className="mt-2 text-xs text-subtle">
               {zh
                 ? "轉換視野同再看一次係同一件事：揀一個月，就一個月後返嚟對照今次建議。不是保證該段一定升。回來時系統用展望同評分決定維持定調整，不是用你帳戶的升跌幅（我們沒有單位價）。"
                 : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}

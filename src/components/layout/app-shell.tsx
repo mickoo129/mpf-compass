@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Compass className="size-4" strokeWidth={1.75} />
             </span>
             <span className="truncate text-base leading-none font-semibold tracking-tight sm:text-lg">{copy.app.zh}</span>
-            <span className="hidden text-[11px] tracking-[0.14em] text-canvas-muted lg:inline">MPF COMPASS</span>
+            <span className="hidden text-xs tracking-[0.14em] text-canvas-muted lg:inline">MPF COMPASS</span>
           </Link>
           <div className="hidden md:block">{links(true)}</div>
           <div className="flex items-center gap-1">
@@ -113,10 +113,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <p className="w-full text-xs leading-relaxed text-canvas-muted">
             {t(locale, copy.disclaimer).replaceAll("{asOf}", catalogMeta.asOf)}
           </p>
-          <p className="mt-2 font-mono text-[11px] text-canvas-muted">
+          <p className="mt-2 font-mono text-xs text-canvas-muted">
             MPFA {catalogMeta.asOf} · {catalogMeta.fundCount} funds · {catalogMeta.schemeCount} schemes
           </p>
-          <p className="mt-4 text-center text-[11px] text-canvas-muted">
+          <p className="mt-4 text-center text-xs text-canvas-muted">
             © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). 版權所有。
           </p>
         </div>
@@ -137,7 +137,7 @@ export function PageTitle({
   return (
     <div className="mb-6 w-full min-w-0 animate-fade-up">
       {kicker ? (
-        <p className="mb-2 font-mono text-[11px] tracking-[0.18em] text-accent uppercase">{kicker}</p>
+        <p className="mb-2 font-mono text-xs tracking-[0.18em] text-accent uppercase">{kicker}</p>
       ) : null}
       <h1 className="relative w-full pl-3.5 text-xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
         <span className="absolute top-1 bottom-1 left-0 w-[3px] rounded-full bg-accent" />
@@ -150,7 +150,7 @@ export function PageTitle({
 
 export function AsOfLine({ zh }: { zh: boolean }) {
   return (
-    <p className="mb-5 w-full text-[11px] leading-relaxed text-canvas-muted">
+    <p className="mb-5 w-full text-xs leading-relaxed text-canvas-muted">
       {zh
         ? `基金回報、收費、風險：積金局 ${catalogMeta.asOf}。指數：Yahoo Finance，開啟頁面時更新。兩者日期並不相同。`
         : `Fund returns, fees and risk: MPFA ${catalogMeta.asOf}. Indices: Yahoo Finance, refresh on load. These dates are not the same.`}
