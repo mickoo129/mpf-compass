@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CheckupRouteImport } from './routes/checkup'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as FundsRouteImport } from './routes/funds'
 import { Route as RecommendRouteImport } from './routes/recommend'
@@ -20,6 +21,11 @@ import { Route as FundsIdRouteImport } from './routes/funds.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckupRoute = CheckupRouteImport.update({
+  id: '/checkup',
+  path: '/checkup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -55,6 +61,7 @@ const FundsIdRoute = FundsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/checkup': typeof CheckupRoute
   '/compare': typeof CompareRoute
   '/funds': typeof FundsRouteWithChildren
   '/recommend': typeof RecommendRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checkup': typeof CheckupRoute
   '/compare': typeof CompareRoute
   '/recommend': typeof RecommendRoute
   '/schemes': typeof SchemesRoute
@@ -73,6 +81,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/checkup': typeof CheckupRoute
   '/compare': typeof CompareRoute
   '/funds': typeof FundsRouteWithChildren
   '/recommend': typeof RecommendRoute
@@ -84,6 +93,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/checkup'
     | '/compare'
     | '/funds'
     | '/recommend'
@@ -91,10 +101,18 @@ export interface FileRouteTypes {
     | '/funds/$id'
     | '/funds/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/compare' | '/recommend' | '/schemes' | '/funds/$id' | '/funds'
+  to:
+    | '/'
+    | '/checkup'
+    | '/compare'
+    | '/recommend'
+    | '/schemes'
+    | '/funds/$id'
+    | '/funds'
   id:
     | '__root__'
     | '/'
+    | '/checkup'
     | '/compare'
     | '/funds'
     | '/recommend'
@@ -105,6 +123,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CheckupRoute: typeof CheckupRoute
   CompareRoute: typeof CompareRoute
   FundsRoute: typeof FundsRouteWithChildren
   RecommendRoute: typeof RecommendRoute
@@ -118,6 +137,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkup': {
+      id: '/checkup'
+      path: '/checkup'
+      fullPath: '/checkup'
+      preLoaderRoute: typeof CheckupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -179,6 +205,7 @@ const FundsRouteWithChildren = FundsRoute._addFileChildren(FundsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CheckupRoute: CheckupRoute,
   CompareRoute: CompareRoute,
   FundsRoute: FundsRouteWithChildren,
   RecommendRoute: RecommendRoute,

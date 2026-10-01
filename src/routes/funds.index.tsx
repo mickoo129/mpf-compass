@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReturnCell } from "@/components/funds/return-cell";
+import { FeeAmount } from "@/components/funds/fee-card";
 import {
   allFunds,
   CATEGORY_LABEL,
@@ -39,7 +40,7 @@ type FundsSearch = {
   category?: FundCategory;
 };
 
-const PAGE = 100;
+const PAGE = 40;
 const SEARCH_INDEX = new Map(allFunds.map((f) => [f.id, indexFund(f, [SLEEVE_LABEL[f.sleeve]?.zh ?? "", SLEEVE_LABEL[f.sleeve]?.en ?? ""])]));
 
 export const Route = createFileRoute("/funds/")({
@@ -390,11 +391,13 @@ function FundsPage() {
               </div>
               <ReturnCell value={f.ret1y} />
             </div>
-            <div className="mt-2 flex flex-wrap gap-3 font-mono text-[11px] text-muted">
-              <span>{zh ? "開支" : "FER"} {fmtPctPlain(f.fer)}</span>
-              <span>5Y {fmtPctPlain(f.ret5y)}</span>
+            <div className="mt-2 flex flex-wrap gap-3 font-mono text-xs text-muted">
+              <span>
+                {zh ? "開支比率" : "FER"} {fmtPctPlain(f.fer)} ≈ <FeeAmount fer={f.fer} zh={zh} />
+              </span>
+              <span>{zh ? "5年" : "5Y"} {fmtPctPlain(f.ret5y)}</span>
               <span>{zh ? "成立" : "Incep."} {fmtPctPlain(f.retSince)}</span>
-              <span>R{f.riskClass ?? "—"}</span>
+              <span>{zh ? "風險" : "R"} {f.riskClass ?? "—"}</span>
             </div>
           </Link>
         ))}
@@ -424,7 +427,7 @@ function FundsPage() {
           </Button>
         </div>
       ) : null}
-      <p className="mt-3 text-[11px] text-canvas-muted">
+      <p className="mt-3 text-xs text-canvas-muted">
         {zh
           ? `回報為積金局年化數字（截至 ${catalogMeta.asOf}）。「3年」由 2023–2025 曆年複利推算，並非官方滾動三年。平台沒有 1個月／3個月／半年／YTD。`
           : `Returns are MPFA annualized figures as of ${catalogMeta.asOf}. “3Y” is compounded from calendar 2023–2025, not an official trailing 3Y. No 1M/3M/6M/YTD on the platform.`}
@@ -461,10 +464,13 @@ function FundRow({
       </td>
       <td className="px-3 py-2.5 text-xs text-muted">
         {SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}
-        {fund.isTracker ? <Badge className="ml-1">Index</Badge> : null}
+        {fund.isTracker ? <Badge className="ml-1">{zh ? "指數" : "Index"}</Badge> : null}
       </td>
       <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fund.riskClass ?? "—"}</td>
-      <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fund.fer?.toFixed(2) ?? "—"}</td>
+      <td className="px-3 py-2.5 text-right font-mono tabular-nums">
+        {fund.fer != null ? `${fund.fer.toFixed(2)}%` : "—"}
+        <FeeAmount fer={fund.fer} zh={zh} className="block text-xs text-muted" />
+      </td>
       <td className="px-3 py-2.5 text-right">
         <ReturnCell value={fund.ret1y} />
       </td>

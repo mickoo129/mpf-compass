@@ -71,7 +71,7 @@ function SchemesPage() {
                   <p className="text-xs text-subtle">
                     {zh ? s.providerZh : s.providerEn}
                     {s.hasDis ? " · DIS" : ""}
-                    {s.tracker ? ` · ${s.tracker} idx` : ""}
+                    {s.tracker ? (zh ? ` · ${s.tracker} 隻指數基金` : ` · ${s.tracker} idx`) : ""}
                   </p>
                 </td>
                 <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{fmtAum(s.aum)}</td>
@@ -109,7 +109,7 @@ function SchemesPage() {
                 <span>5{zh ? "年" : "Y"} <ReturnCell value={s.ret5y} /></span>
                 <span>10{zh ? "年" : "Y"} <ReturnCell value={s.ret10y} /></span>
               </div>
-              <p className="mt-2 font-mono text-[11px] text-subtle">
+              <p className="mt-2 font-mono text-xs text-subtle">
                 {fmtAum(s.aum)} · {zh ? "開支" : "FER"} {s.ferAvg.toFixed(2)}% · {s.count} {zh ? "隻" : "funds"}
               </p>
               <p className="mt-2 text-xs text-primary">{zh ? "查看成分基金 →" : "View funds →"}</p>

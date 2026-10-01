@@ -373,3 +373,11 @@ export function peerRankBy(fund: Fund, get: (f: Fund) => number | null): { rank:
   const rank = sorted.findIndex((f) => f.id === fund.id) + 1;
   return { rank, total: sorted.length };
 }
+
+/** Chinese labels for the short tags stored in the catalog (DIS, CAF, A65, ESG). */
+export const TAG_ZH: Record<string, string> = {
+  DIS: "預設投資",
+  CAF: "核心累積",
+  A65: "65歲後",
+  ESG: "綠色／ESG",
+};

@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, fundById, providerStats } from "@/lib/mpf/catalog";
-import { fmtAum, fmtPctPlain } from "@/lib/mpf/format";
+import { fmtAum, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
+import { BalanceInput, FeeAmount } from "@/components/funds/fee-card";
+import { FEE_GAP_GROSS, FEE_UNIT, feeGap } from "@/lib/mpf/fees";
 import { calendar3yAnn, MPFA_PERIOD_NOTE } from "@/lib/mpf/returns";
 import type { Fund } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
@@ -118,7 +120,7 @@ function ComparePage() {
         <div className="flex items-end justify-between gap-3 border-b border-border bg-tint-sky px-4 py-3 sm:px-5">
           <div>
             <h2 className="font-display text-lg">{zh ? "供應商表現（中位）" : "Providers (median)"}</h2>
-            <p className="text-[11px] text-subtle">
+            <p className="text-xs text-subtle">
               {zh
                 ? `按基金數、資產、開支比率、1／3／5／10 年排序。現為${provDir === "desc" ? "由高至低" : "由低至高"}。中位數受旗下主題基金影響。`
                 : `Click funds, AUM, FER, 1Y/3Y/5Y/10Y. Now ${provDir === "desc" ? "high to low" : "low to high"}. A median is not every fund.`}
@@ -143,7 +145,7 @@ function ComparePage() {
               {providersSorted.map((p, i) => (
                 <tr key={p.code} className="border-b border-border/70 last:border-0">
                   <td className="px-4 py-2">
-                    <span className="mr-2 font-mono text-[11px] text-subtle">{i + 1}</span>
+                    <span className="mr-2 font-mono text-xs text-subtle">{i + 1}</span>
                     {zh ? p.zh : p.en}
                   </td>
                   <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">{p.count}</td>
@@ -172,7 +174,7 @@ function ComparePage() {
         <div className="flex items-end justify-between gap-3 border-b border-border bg-tint-mint px-4 py-3 sm:px-5">
           <div>
             <h2 className="font-display text-lg">{zh ? "成分基金回報" : "Fund returns"}</h2>
-            <p className="text-[11px] text-subtle">
+            <p className="text-xs text-subtle">
               {zh
                 ? `按 1／3／5／10 年排序。現為${dir === "desc" ? "由高至低" : "由低至高"}顯示前 15 隻。三年為推算。`
                 : `Click 1Y/3Y/5Y/10Y. Showing top 15 ${dir === "desc" ? "highest" : "lowest"}. 3Y is derived.`}
@@ -197,11 +199,11 @@ function ComparePage() {
                 return (
                   <tr key={f.id} className="border-b border-border/70 last:border-0">
                     <td className="px-4 py-2">
-                      <span className="mr-2 font-mono text-[11px] text-subtle">{i + 1}</span>
+                      <span className="mr-2 font-mono text-xs text-subtle">{i + 1}</span>
                       <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
                         {zh ? f.nameZh : f.nameEn}
                       </Link>
-                      <p className="pl-6 text-[11px] text-subtle">{zh ? f.providerZh : f.providerEn}</p>
+                      <p className="pl-6 text-xs text-subtle">{zh ? f.providerZh : f.providerEn}</p>
                     </td>
                     <td className="px-3 py-2 text-right">
                       <ReturnCell value={f.ret1y} />
@@ -220,7 +222,7 @@ function ComparePage() {
                         type="button"
                         onClick={() => toggle(f.id)}
                         className={cn(
-                          "rounded-md px-2 py-1 text-[11px]",
+                          "rounded-md px-2 py-1 text-xs",
                           pinned ? "bg-primary text-primary-fg" : "bg-white text-muted ring-1 ring-border",
                         )}
                       >
@@ -258,7 +260,7 @@ function ComparePage() {
       ) : (
         <CustomCompare funds={funds} zh={zh} toggle={toggle} />
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-canvas-muted">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
+      <p className="mt-3 text-xs leading-relaxed text-canvas-muted">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
     </div>
   );
 }
@@ -297,6 +299,7 @@ function CustomCompare({
           </ResponsiveContainer>
         </div>
       </Card>
+      <FeeCompare funds={funds} zh={zh} />
       <div className="overflow-x-auto rounded-xl bg-card text-fg ring-1 ring-white/15 shadow-[var(--shadow-border)]">
         <table className="w-full min-w-[880px] text-sm">
           <thead>
@@ -320,7 +323,8 @@ function CustomCompare({
                   {label}
                 </th>
               ))}
-              <th className="px-2 py-2 text-right font-medium">{zh ? "開支" : "FER"}</th>
+              <th className="px-2 py-2 text-right font-medium">{zh ? "開支比率" : "FER"}</th>
+              <th className="px-2 py-2 text-right font-medium whitespace-nowrap">{zh ? "每年收費" : "Fee / yr"}</th>
               <th className="px-2 py-2 text-right font-medium">{zh ? "風險" : "Risk"}</th>
             </tr>
           </thead>
@@ -331,8 +335,8 @@ function CustomCompare({
                   <Link to="/funds/$id" params={{ id: f.id }} className="font-medium hover:underline">
                     {zh ? f.nameZh : f.nameEn}
                   </Link>
-                  <p className="text-[11px] text-subtle">{zh ? f.schemeZh : f.schemeEn}</p>
-                  <button type="button" className="text-[11px] text-subtle" onClick={() => toggle(f.id)}>
+                  <p className="text-xs text-subtle">{zh ? f.schemeZh : f.schemeEn}</p>
+                  <button type="button" className="text-xs text-subtle" onClick={() => toggle(f.id)}>
                     {zh ? "移出" : "Remove"}
                   </button>
                 </td>
@@ -347,6 +351,9 @@ function CustomCompare({
                 <td className="px-2 py-2 text-right"><ReturnCell value={f.y2022} /></td>
                 <td className="px-2 py-2 text-right"><ReturnCell value={f.y2021} /></td>
                 <td className="px-2 py-2 text-right font-mono text-xs">{fmtPctPlain(f.fer)}</td>
+                <td className="px-2 py-2 text-right font-mono text-xs whitespace-nowrap">
+                  <FeeAmount fer={f.fer} zh={zh} />
+                </td>
                 <td className="px-2 py-2 text-right font-mono text-xs">{f.riskClass ?? "—"}</td>
               </tr>
             ))}
@@ -354,5 +361,53 @@ function CustomCompare({
         </table>
       </div>
     </>
+  );
+}
+
+/** Side-by-side yearly fee in HK$ and the long-run gap between the dearest and cheapest pick. */
+function FeeCompare({ funds, zh }: { funds: Fund[]; zh: boolean }) {
+  const balance = useAppStore((s) => s.profile.balance);
+  const monthly = useAppStore((s) => s.profile.monthly);
+  const base = balance > 0 ? balance : FEE_UNIT;
+  const priced = funds.filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 0) - (b.fer ?? 0));
+  const low = priced[0];
+  const high = priced.at(-1);
+  const years = 30;
+  const gap = low && high && high.id !== low.id ? feeGap(base, monthly, years, high.fer!, low.fer!) : null;
+  return (
+    <Card className="mb-6">
+      <h2 className="mb-1 font-display text-lg">{zh ? "收費以港幣計" : "Fees in HK$"}</h2>
+      <div className="mb-3 grid grid-cols-2 gap-3 sm:max-w-md">
+        <BalanceInput zh={zh} />
+        <BalanceInput zh={zh} field="monthly" />
+      </div>
+      <ul className="space-y-1.5 text-sm">
+        {priced.map((f) => (
+          <li key={f.id} className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0">
+              {zh ? f.nameZh : f.nameEn}
+              <span className="block text-xs text-subtle">
+                {zh ? f.schemeZh : f.schemeEn} · {fmtPctPlain(f.fer)}
+              </span>
+            </span>
+            <FeeAmount fer={f.fer} zh={zh} className="shrink-0 font-mono" />
+          </li>
+        ))}
+      </ul>
+      {gap != null && low && high ? (
+        <p className="mt-3 rounded-lg bg-tint-mint p-3 text-sm">
+          {zh
+            ? `揀「${low.nameZh}」而唔係「${high.nameZh}」，${years} 年收費差距大約 `
+            : `Choosing ${low.nameEn} over ${high.nameEn} saves about `}
+          <b className="font-mono text-up">{fmtHkd(gap)}</b>
+          {zh ? "。" : ` over ${years} years.`}
+          <span className="mt-1 block text-[12px] text-muted">
+            {zh
+              ? `假設扣費前回報一樣（每年 ${FEE_GAP_GROSS}%）${balance > 0 ? "" : "，以每 $10,000 結餘計"}${monthly > 0 ? `，每月供款 ${fmtHkd(monthly)}` : ""}。收費平唔代表表現一定好。`
+              : `Same ${FEE_GAP_GROSS}% return before fees assumed. Cheaper does not mean better.`}
+          </span>
+        </p>
+      ) : null}
+    </Card>
   );
 }
