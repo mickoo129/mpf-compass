@@ -38,6 +38,9 @@ export const Route = createFileRoute("/recommend")({
   component: RecommendPage,
 });
 
+const EXAMPLE_BALANCE = 200_000;
+const EXAMPLE_MONTHLY = 3_000;
+
 const GOALS: GoalId[] = ["growth", "balanced", "preserve", "lowfee", "dis"];
 
 function RecommendPage() {
@@ -64,9 +67,14 @@ function RecommendPage() {
   const ranked = useMemo(() => scoreFunds(profile, regime), [profile, regime]);
   const alloc = useMemo(() => buildAllocation(profile, ranked), [profile, ranked]);
   const years = Math.max(1, profile.retireAge - profile.age);
+  // With nothing entered the chart would be a flat line at $0, so show a clearly
+  // labelled example (typical HK member) until the person types their own numbers.
+  const usingExample = profile.balance === 0 && profile.monthly === 0;
+  const projBalance = usingExample ? EXAMPLE_BALANCE : profile.balance;
+  const projMonthly = usingExample ? EXAMPLE_MONTHLY : profile.monthly;
   const path = useMemo(
-    () => projectPortfolio(alloc, years, profile.balance, profile.monthly),
-    [alloc, years, profile.balance, profile.monthly],
+    () => projectPortfolio(alloc, years, projBalance, projMonthly),
+    [alloc, years, projBalance, projMonthly],
   );
   const end = path.at(-1);
   const mixSize = profile.mixSize ?? "auto";
@@ -144,8 +152,8 @@ function RecommendPage() {
         </ol>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="space-y-5 lg:col-span-5">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="min-w-0 space-y-5 lg:col-span-5">
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
             <p className="mb-4 text-[11px] text-subtle">
@@ -199,7 +207,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "現時計劃（只在此計劃內揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -218,7 +226,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "只從此計劃揀基金（可選）" : "Limit to one scheme (optional)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -343,7 +351,7 @@ function RecommendPage() {
           </Card>
         </div>
 
-        <div className="space-y-5 lg:col-span-7">
+        <div className="min-w-0 space-y-5 lg:col-span-7">
           <Card className="bg-tint-sky">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="font-display text-lg">{zh ? "窗口：已發生／展望" : "Window: lookback / outlook"}</h2>
@@ -506,6 +514,13 @@ function RecommendPage() {
 
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "至退休的假設滾存" : "Illustrative path to retirement"}</h2>
+            {usingExample ? (
+              <p className="mb-2 rounded-md bg-tint-sand px-3 py-2 text-xs text-fg">
+                {zh
+                  ? `示例：未填資料，暫時以結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(EXAMPLE_MONTHLY)} 計。喺上面「你的情況」填返自己嘅數字就會即時更新。`
+                  : `Example: nothing entered, so this uses a ${fmtHkd(EXAMPLE_BALANCE)} balance and ${fmtHkd(EXAMPLE_MONTHLY)} a month. Enter your own figures above to update.`}
+              </p>
+            ) : null}
             <p className="mb-3 text-xs text-subtle">
               {zh
                 ? `假設你長期持有今次這幾隻直至退休（${years} 年），按規則假設年化回報加每月供款滾存，只係一條參考線，唔係預測。中途嘅上落可以睇上面「可能升跌範圍」。`
@@ -513,16 +528,23 @@ function RecommendPage() {
             </p>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={path}>
+                <AreaChart data={path} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                   <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-subtle)" }} />
+                  <XAxis
+                    dataKey="year"
+                    tick={{ fontSize: 11, fill: "var(--color-subtle)" }}
+                    tickFormatter={(y: number) => String(profile.age + y)}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
+                  />
                   <YAxis
                     width={48}
                     tick={{ fontSize: 11, fill: "var(--color-subtle)" }}
-                    tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
+                    tickFormatter={(v: number) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v === 0 ? "0" : `${Math.round(v / 1000)}k`)}
                   />
                   <RTooltip
-                    formatter={(v: number) => fmtHkd(v)}
+                    formatter={(v: number) => [fmtHkd(v), zh ? "估計結餘" : "Est. balance"]}
+                    labelFormatter={(y: number) => (zh ? `${profile.age + y} 歲` : `Age ${profile.age + y}`)}
                     contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
                   />
                   <Area type="monotone" dataKey="base" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.12} />
@@ -531,11 +553,13 @@ function RecommendPage() {
             </div>
             {end ? (
               <p className="mt-3 text-sm">
-                {zh ? "退休時約 " : "At retirement about "}
-                <span className="font-mono tabular-nums">{fmtHkd(end.base)}</span>
-                {profile.balance === 0 && profile.monthly === 0 ? (
-                  <span className="ml-1 text-xs text-subtle">{zh ? "（請先填上結餘同每月供款）" : "(enter balance and monthly contribution)"}</span>
-                ) : null}
+                {zh ? `${profile.retireAge} 歲退休時約 ` : `At ${profile.retireAge}, about `}
+                <span className="font-mono text-base tabular-nums">{fmtHkd(end.base)}</span>
+                <span className="ml-1 text-xs text-subtle">
+                  {zh
+                    ? `（當中供款本金約 ${fmtHkd(projBalance + projMonthly * 12 * years)}）`
+                    : ` (of which contributions ≈ ${fmtHkd(projBalance + projMonthly * 12 * years)})`}
+                </span>
               </p>
             ) : null}
           </Card>
