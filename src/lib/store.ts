@@ -38,6 +38,8 @@ interface AppState {
   clearCompare: () => void;
   setProfile: (patch: Partial<Profile>) => void;
   saveMix: (mix: SavedMix) => void;
+  /** Start afresh for the next client: age, balance, scheme, compare list and saved mix. */
+  resetSession: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -68,6 +70,7 @@ export const useAppStore = create<AppState>()(
         set({ profile });
       },
       saveMix: (mix) => set({ lastMix: mix }),
+      resetSession: () => set({ profile: defaultProfile, compareIds: [], lastMix: null }),
     }),
     {
       name: "mpf-compass",

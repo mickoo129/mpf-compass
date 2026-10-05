@@ -6,6 +6,7 @@ import { catalogMeta } from "@/lib/mpf/catalog";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { ResetButton } from "@/components/layout/reset-button";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -106,6 +107,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-lg font-semibold">{copy.app.zh}</span>
           </Link>
           {links(false)}
+          <Link
+            to="/glossary"
+            onClick={() => setOpen(false)}
+            className="mt-1 block rounded-md px-2.5 py-2.5 text-sm font-medium text-muted hover:bg-bg-warm hover:text-fg"
+          >
+            {locale === "zh" ? "強積金詞彙" : "Glossary"}
+          </Link>
+          <div className="mt-6 border-t border-border pt-4">
+            <ResetButton className="w-full justify-center" onDone={() => setOpen(false)} />
+            <p className="mt-2 text-xs text-subtle">
+              {locale === "zh" ? "清走年齡、結餘、計劃、持有基金、比較清單同記低嘅配置。" : "Clears age, balance, scheme, holdings, compare list and saved mix."}
+            </p>
+          </div>
         </SheetContent>
       </Sheet>
       <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-5 sm:py-8">{children}</main>
@@ -119,6 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               ? `基金數據截至 ${catalogMeta.asOf}（積金局每月更新）· ${catalogMeta.fundCount} 隻基金 · ${catalogMeta.schemeCount} 個計劃`
               : `MPFA data as of ${catalogMeta.asOf} (monthly) · ${catalogMeta.fundCount} funds · ${catalogMeta.schemeCount} schemes`}
           </p>
+          <ResetButton className="mt-3 bg-white/5 text-canvas-muted ring-white/15 hover:bg-white/10 hover:text-white" />
           <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
             <Link to="/glossary" className="text-canvas-muted underline-offset-2 hover:text-white hover:underline">
               {locale === "zh" ? "強積金詞彙" : "Glossary"}
