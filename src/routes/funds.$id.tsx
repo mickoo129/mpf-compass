@@ -6,15 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { TAG_ZH, allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
+import { TAG_ZH, allFunds, catalogMeta, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
 import { Term } from "@/components/ui/term";
 import { describeFund } from "@/lib/mpf/describe";
 import { seo } from "@/lib/seo";
-import { FeeAmount, FeeCard } from "@/components/funds/fee-card";
-import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
+import { FeeCard } from "@/components/funds/fee-card";
+import { YearVsPeers } from "@/components/charts/year-vs-peers";
+import { annReturn, calendar3yAnn, cumReturn, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 
@@ -72,13 +73,6 @@ function FundDetail() {
     .filter((f) => f.sleeve === fund.sleeve && annReturn(f, peerPeriod) != null)
     .sort((a, b) => (annReturn(b, peerPeriod) ?? 0) - (annReturn(a, peerPeriod) ?? 0))
     .slice(0, 5);
-  const calendar = [
-    ["2025", fund.y2025],
-    ["2024", fund.y2024],
-    ["2023", fund.y2023],
-    ["2022", fund.y2022],
-    ["2021", fund.y2021],
-  ] as const;
   const periods = [
     ["ret1y", rank1],
     ["ret3yCal", rank3],
@@ -93,17 +87,17 @@ function FundDetail() {
   return (
     <div>
       <p className="mb-2 text-xs text-canvas-muted">
-        <Link to="/funds" className="hover:text-white">
+        <Link to="/funds" className="hover:text-primary">
           {zh ? "基金庫" : "Funds"}
         </Link>
         <span className="mx-1">/</span>
-        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-white">
+        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-primary">
           {zh ? fund.schemeZh : fund.schemeEn}
         </Link>
       </p>
       <label className="mb-1 block text-xs text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
       <select
-        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
         value={fund.id}
         onChange={(e) => {
           if (e.target.value && e.target.value !== fund.id) void navigate({ to: "/funds/$id", params: { id: e.target.value } });
@@ -117,11 +111,11 @@ function FundDetail() {
       </select>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{zh ? fund.nameZh : fund.nameEn}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-canvas sm:text-4xl">{zh ? fund.nameZh : fund.nameEn}</h1>
           <p className="mt-1 text-sm text-canvas-muted">
             {zh ? fund.nameEn : fund.nameZh} · {zh ? fund.providerZh : fund.providerEn}
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">{describeFund(fund, zh)}</p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-canvas">{describeFund(fund, zh)}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
             {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || !/\p{Script=Han}/u.test(t))).map((t) => (
@@ -136,32 +130,31 @@ function FundDetail() {
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Metric label={<Term k="annualised">{zh ? "1年年化" : "1Y p.a."}</Term>} value={<ReturnCell value={fund.ret1y} className="text-xl" />} />
-        <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-xl" />} />
-        <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-xl" />} />
+        <Metric label={<Term k="annualised">{zh ? "1年年化" : "1Y p.a."}</Term>} value={<ReturnCell value={fund.ret1y} className="text-2xl font-bold sm:text-3xl" />} />
+        <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-2xl font-bold sm:text-3xl" />} />
+        <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-2xl font-bold sm:text-3xl" />} />
         <Metric
           label={<Term k="fer" />}
           value={
-            <span className="font-mono text-xl tabular-nums">
-              {fmtPctPlain(fund.fer)}
-              <FeeAmount fer={fund.fer} zh={zh} className="block text-xs text-muted" />
-            </span>
+<span className="font-mono text-2xl font-bold sm:text-3xl tabular-nums">{fmtPctPlain(fund.fer)}</span>
           }
         />
       </div>
 
       <Card className="mb-8">
         <h2 className="mb-1 font-display text-lg">{zh ? "回報時段" : "Return periods"}</h2>
-        <p className="mb-3 text-xs text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
+        <p className="mb-2 text-xs text-subtle">
+          {zh ? `積金局數字，截至 ${catalogMeta.asOf}。「3年」係推算，撳「?」睇解釋。` : `MPFA figures as of ${catalogMeta.asOf}. “3Y” is derived; tap ? for details.`}
+        </p>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted">
                 <th className="py-2 pr-2 text-left font-medium" />
                 {periods.map(([p]) => (
-                  <th key={p} className="px-1 py-2 text-right font-medium whitespace-nowrap">
-                    {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                    {p === "ret3yCal" ? <span className="block text-xs font-normal text-subtle">{zh ? "推算" : "est."}</span> : null}
+                  <th key={p} className="py-2 pl-1 text-right font-medium whitespace-nowrap">
+                    {zh ? (p === "retSince" ? "成立" : PERIOD_LABEL[p].zh) : PERIOD_LABEL[p].en}
+                    {p === "ret3yCal" ? <Term k="est3y">{""}</Term> : null}
                   </th>
                 ))}
               </tr>
@@ -170,23 +163,23 @@ function FundDetail() {
               <tr className="border-b border-border/70">
                 <td className="py-2 pr-2 text-xs text-muted"><Term k="annualised">{zh ? "年化" : "Ann."}</Term></td>
                 {periods.map(([p]) => (
-                  <td key={p} className="px-1 py-2 text-right">
-                    <ReturnCell value={annReturn(fund, p)} />
+                  <td key={p} className="py-2 pl-1 text-right">
+                    <ReturnCell value={annReturn(fund, p)} digits={1} />
                   </td>
                 ))}
               </tr>
               <tr className="border-b border-border/70">
                 <td className="py-2 pr-2 text-xs text-muted"><Term k="cumulative">{zh ? "累積" : "Cum."}</Term></td>
                 {periods.map(([p]) => (
-                  <td key={p} className="px-1 py-2 text-right">
-                    <ReturnCell value={cumReturn(fund, p)} />
+                  <td key={p} className="py-2 pl-1 text-right">
+                    <ReturnCell value={cumReturn(fund, p)} digits={0} />
                   </td>
                 ))}
               </tr>
               <tr>
-                <td className="py-2 pr-2 text-xs text-muted">{zh ? "同類" : "Peer"}</td>
+                <td className="py-2 pr-2 text-xs whitespace-nowrap text-muted">{zh ? "同類排名" : "Peer rank"}</td>
                 {periods.map(([p, rank]) => (
-                  <td key={p} className="px-1 py-2 text-right font-mono text-xs text-muted">
+                  <td key={p} className="py-2 pl-1 text-right font-mono text-xs text-muted">
                     {rank ? `${rank.rank}/${rank.total}` : "—"}
                   </td>
                 ))}
@@ -202,6 +195,8 @@ function FundDetail() {
           </p>
         ) : null}
       </Card>
+
+      <YearVsPeers fund={fund} zh={zh} className="mb-8" />
 
       <FeeCard fund={fund} zh={zh} className="mb-8" />
 
@@ -219,23 +214,21 @@ function FundDetail() {
             <Row k={zh ? "成立至今" : "Since launch"} v={fmtPct(fund.retSince)} />
             <Row k={zh ? "管理費" : "Mgmt fee"} v={fmtFee(fund.mgmtFee, zh)} />
             <Row k={zh ? "積金易平台費" : "eMPF fee"} v={fund.empfFee != null ? `${fund.empfFee}%` : "—"} />
-            <Row k={zh ? "同類收費" : "Peer FER"} v={rankF ? `${rankF.rank} / ${rankF.total}` : "—"} />
+            <Row
+              k={zh ? "收費同同類比" : "Fee vs peers"}
+              v={
+                rankF
+                  ? zh
+                    ? `${rankF.total} 隻同類入面第 ${rankF.rank} 平${rankF.rank <= rankF.total / 3 ? "（偏平）" : rankF.rank > (rankF.total * 2) / 3 ? "（偏貴）" : "（中等）"}`
+                    : `${rankF.rank} cheapest of ${rankF.total}`
+                  : "—"
+              }
+            />
           </dl>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <h2 className="mb-3 font-display text-lg">{zh ? "日曆年回報" : "Calendar years"}</h2>
-          <div className="grid grid-cols-5 gap-2">
-            {calendar.map(([y, v]) => (
-              <div key={y} className="rounded-lg bg-white px-1 py-2 text-center ring-1 ring-border">
-                <p className="font-mono text-xs text-subtle">{y}</p>
-                <ReturnCell value={v} className="mt-1 block text-sm" />
-              </div>
-            ))}
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 gap-4">
         <Card>
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-display text-lg">{zh ? "同類領先" : "Sleeve leaders"}</h2>

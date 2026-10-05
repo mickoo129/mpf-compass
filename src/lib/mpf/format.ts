@@ -52,3 +52,14 @@ export function retClass(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n) || n === 0) return "text-muted";
   return n > 0 ? "text-up" : "text-down";
 }
+
+/** Compact HK$ for chart axes: 150 萬 / 1.5M. */
+export function fmtAxisHkd(v: number, zh: boolean): string {
+  if (v === 0) return "0";
+  if (zh) {
+    if (v >= 100_000_000) return `${(v / 100_000_000).toFixed(1)} 億`;
+    if (v >= 10_000) return `${Math.round(v / 10_000)} 萬`;
+    return String(Math.round(v));
+  }
+  return v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : `${Math.round(v / 1000)}k`;
+}

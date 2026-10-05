@@ -55,12 +55,11 @@ function Home() {
 
   return (
     <div>
-      <section className="mb-8 pt-2">
-        <p className="mb-2 text-xs tracking-[0.16em] text-accent">{zh ? "香港強積金 · 積金局數據" : "Hong Kong MPF · MPFA data"}</p>
-        <h1 className="text-2xl leading-snug font-semibold text-white sm:text-4xl">
-          {zh ? "你嘅強積金，一眼睇清。" : "Your MPF, at a glance."}
+      <section className="mb-10 pt-3 sm:pt-8">
+        <h1 className="text-[2.5rem] leading-[1.08] font-bold tracking-tight text-canvas sm:text-6xl lg:text-7xl">
+          {zh ? <>你嘅強積金，<br />一眼睇清。</> : "Your MPF, at a glance."}
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-canvas-muted sm:text-base">
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-canvas-muted sm:text-base">
           {zh
             ? `全港 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個計劃，收費、回報、風險一齊比。數字截至 ${catalogMeta.asOf}。`
             : `${catalogMeta.fundCount} funds across ${catalogMeta.schemeCount} schemes. Figures as of ${catalogMeta.asOf}.`}
@@ -79,14 +78,14 @@ function Home() {
             type="search"
             enterKeyHint="search"
             placeholder={zh ? "例如：宏利北美" : "e.g. Manulife North America"}
-            className="h-14 rounded-xl pr-24 pl-12 text-base"
+            className="h-14 pr-24 pl-12 text-base ring-2 ring-ink"
             aria-label={zh ? "搜尋基金" : "Search funds"}
           />
           <Button type="submit" className="absolute top-1/2 right-2 -translate-y-1/2">
             {zh ? "搜尋" : "Search"}
           </Button>
         </form>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 border-t-2 border-l border-ink border-l-border sm:grid-cols-4">
           <EntryCard
             to="/checkup"
             icon={<HeartPulse className="size-5" />}
@@ -154,13 +153,15 @@ function Home() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs text-muted">{zh ? q.nameZh : q.nameEn}</p>
-                    <p className="font-mono text-lg tabular-nums">{q.price != null ? fmtNum(q.price, q.symbol === "^TNX" ? 3 : 2) : "—"}</p>
+                    <p className="font-mono text-lg tabular-nums">
+                      {q.price != null ? (q.symbol === "^TNX" ? `${q.price.toFixed(2)}%` : fmtNum(q.price, 2)) : "—"}
+                    </p>
                   </div>
                   <Sparkline data={q.spark} />
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs">
                   <span className={cn("font-mono tabular-nums", retClass(q.changePct))}>{fmtPct(q.changePct)}</span>
-                  <span className="text-subtle">YTD {fmtPct(q.ytdPct, 1)}</span>
+                  <span className="text-subtle">{zh ? "年初至今" : "YTD"} {fmtPct(q.ytdPct, 1)}</span>
                 </div>
               </Card>
             ))}
@@ -181,7 +182,7 @@ function Home() {
           </div>
           <p className="mb-3 text-xs text-muted">
             {zh
-              ? "開支比率（FER）為每年經常性收費。同類比較時，較低者長線被費用侵蝕較少。"
+              ? "開支比率係每年從基金扣除嘅總收費。下面金額係每 $1 萬結餘每年收幾多（填咗結餘就用你嘅金額）。"
               : "The fund expense ratio (FER) is the annual ongoing cost. Lower is better among peers."}
           </p>
           <ol className="space-y-2">
@@ -197,7 +198,7 @@ function Home() {
                   </span>
                   <span className="shrink-0 text-right font-mono tabular-nums text-primary">
                     {f.fer?.toFixed(2)}%
-                    <FeeAmount fer={f.fer} zh={zh} className="block text-xs text-muted" />
+                    <FeeAmount fer={f.fer} zh={zh} unit={false} className="block text-xs text-muted" />
                   </span>
                 </Link>
               </li>
@@ -206,8 +207,8 @@ function Home() {
         </Card>
       </div>
 
-      <details className="group mb-10 rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-white">
+      <details className="group mb-10 border-y-2 border-ink py-4">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-canvas">
           <span>
             <span className="font-display text-lg">{zh ? "更多數據分析" : "More analysis"}</span>
             <span className="block text-xs text-canvas-muted">
@@ -300,12 +301,12 @@ function EntryCard({
 }) {
   const inner = (
     <>
-      <span className="mb-2 flex size-9 items-center justify-center rounded-lg bg-white/80 text-primary">{icon}</span>
-      <span className="block font-medium text-fg">{title}</span>
-      <span className="block text-xs text-muted">{sub}</span>
+      <span className="mb-4 block text-ink">{icon}</span>
+      <span className="block text-lg leading-tight font-bold text-fg">{title}</span>
+      <span className="mt-1 block text-xs text-muted">{sub}</span>
     </>
   );
-  const cls = cn("block min-h-[7.5rem] rounded-xl p-3 shadow-[var(--shadow-border)] transition-transform active:scale-[0.98]", tint);
+  const cls = cn("block min-h-[8rem] border-r border-b border-border bg-card p-3 hover:bg-ink/[0.04] sm:p-4", tint && "");
   return to ? (
     <Link to={to} className={cls}>
       {inner}

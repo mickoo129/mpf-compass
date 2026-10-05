@@ -26,10 +26,10 @@ import { estimateSince, levelsFrom } from "@/lib/mpf/review";
 import { fundById } from "@/lib/mpf/catalog";
 import type { SavedMix } from "@/lib/mpf/types";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
-import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
+import { fmtAxisHkd, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, riskBudget, scoreFunds, sleevePrior, suitabilityChecks, targetRisk } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -109,6 +109,7 @@ function RecommendPage() {
   );
   const assumedTotal = assumed.reduce((s, x) => s + x.a.weight * x.r, 0);
   const mixRisk = alloc.reduce((s, a) => s + a.weight * (a.fund.riskClass ?? 4), 0) || 4;
+  const overBudget = alloc.length > 0 && profile.goal !== "dis" && mixRisk > riskBudget(profile) + 1e-6;
   const rates = scenarioRates(assumedTotal || 4, mixRisk);
   const path = useMemo(
     () => projectScenarios(projBalance, projMonthly, years, rates),
@@ -116,6 +117,20 @@ function RecommendPage() {
     [projBalance, projMonthly, years, rates.low, rates.mid, rates.high],
   );
   const end = path.at(-1);
+  // Alternatives the member could actually switch to: same scheme as the mix,
+  // not already in it, and within one risk class of the goal.
+  const others = useMemo(() => {
+    const scheme = alloc[0]?.fund.schemeEn;
+    const target = targetRisk(profile);
+    return ranked
+      .filter(
+        (s) =>
+          s.fund.schemeEn === scheme &&
+          !alloc.some((a) => a.fund.id === s.fund.id) &&
+          Math.abs((s.fund.riskClass ?? 4) - target) <= 1,
+      )
+      .slice(0, 6);
+  }, [ranked, alloc, profile]);
   const mixSize = profile.mixSize ?? "auto";
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
@@ -210,7 +225,7 @@ function RecommendPage() {
         title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
         subtitle={zh ? "結果喺下面，想改條件撳「修改條件」。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0b2a4a]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 bg-ink px-4 py-2 sm:mx-0 sm:px-3">
         <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
             ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}檢討`
@@ -277,7 +292,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "現時計劃（只在此計劃內揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -296,7 +311,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "只從此計劃揀基金（可選）" : "Limit to one scheme (optional)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -459,6 +474,13 @@ function RecommendPage() {
                 )}
               </p>
             ) : null}
+            {overBudget ? (
+              <p className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-xs text-fg" role="alert">
+                {zh
+                  ? `呢個計劃可以揀嘅基金風險級別普遍偏高，配置嘅平均風險（${mixRisk.toFixed(1)}）高過「${GOAL_COPY[profile.goal].zh}」一般嘅水平。可以考慮加大保守基金嘅比例。`
+                  : `This scheme's funds carry high risk classes; the mix averages ${mixRisk.toFixed(1)}, above what this goal usually targets.`}
+              </p>
+            ) : null}
             {warns.length ? (
               <div className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-sm text-fg" role="alert">
                 <p className="mb-1 font-medium text-warn">{zh ? "請留意：目標同年期未必配合" : "Check: goal and horizon may not fit"}</p>
@@ -487,7 +509,7 @@ function RecommendPage() {
                         {a.fund.riskClass ?? "—"}
                       </p>
                     </div>
-                    <span className="font-mono text-lg tabular-nums">{Math.round(a.weight * 100)}%</span>
+                    <span className="font-mono text-3xl leading-none font-bold tabular-nums">{Math.round(a.weight * 100)}%</span>
                   </div>
                   <p className="mt-1 text-xs text-muted">{zh ? a.reasonZh : a.reasonEn}</p>
                   <div className="mt-2 flex gap-3 text-xs">
@@ -539,30 +561,23 @@ function RecommendPage() {
           ) : null}
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "幾時再回來對照" : "When to come back"}</h2>
-            <p className="font-display text-xl">{zh ? review.labelZh : review.labelEn}</p>
-            <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
-            <p className="mt-2 text-xs text-subtle">
-              {zh
-                ? "撳「記住今次配置」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
-                : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}
-            </p>
-            <Button
-              className="mt-3"
-              variant="outline"
-              size="sm"
-              disabled={!alloc.length}
-              onClick={() => saveMix(buildSaved())}
-            >
-              {zh ? "記住今次配置" : "Save this mix"}
-            </Button>
-            {lastMix ? (
-              <p className="mt-2 text-xs text-subtle">
-                {zh
-                  ? `已記低 ${lastMix.at.slice(0, 10)} 嘅配置（只存喺呢部機）。用「分享配置」send 出去嘅連結亦帶住佢，喺其他手機打開都對照到。`
-                  : `Saved ${lastMix.at.slice(0, 10)} on this device. Links from "Share mix" carry it too.`}
-              </p>
-            ) : null}
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="font-display text-lg">{zh ? `${review.labelZh}返嚟對照` : `Compare again: ${review.labelEn}`}</h2>
+                <p className="text-xs text-muted">
+                  {lastMix
+                    ? zh
+                      ? `已記低 ${lastMix.at.slice(0, 10)} 嘅配置，到時會顯示大約升跌幾多。`
+                      : `Saved ${lastMix.at.slice(0, 10)}; the move since then will show here.`
+                    : zh
+                      ? "記低今次配置，到時就見到大約升跌咗幾多（指數估算）。"
+                      : "Save this mix to see roughly how it moved (index estimate)."}
+                </p>
+              </div>
+              <Button className="shrink-0 whitespace-nowrap" variant="outline" size="sm" disabled={!alloc.length} onClick={() => saveMix(buildSaved())}>
+                {lastMix ? (zh ? "重新記低" : "Save again") : zh ? "記低配置" : "Save mix"}
+              </Button>
+            </div>
           </Card>
 
           <Card>
@@ -591,9 +606,9 @@ function RecommendPage() {
                     minTickGap={24}
                   />
                   <YAxis
-                    width={48}
+                    width={56}
                     tick={{ fontSize: 11, fill: "var(--color-subtle)" }}
-                    tickFormatter={(v: number) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v === 0 ? "0" : `${Math.round(v / 1000)}k`)}
+                    tickFormatter={(v: number) => fmtAxisHkd(v, zh)}
                   />
                   <RTooltip
                     formatter={(v: number, name: string) => [fmtHkd(v), name]}
@@ -673,13 +688,13 @@ function RecommendPage() {
             ) : null}
           </Card>
 
-          <details className="group rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)] sm:p-5">
+          <details className="group border border-border border-t-2 border-t-ink bg-card p-4 text-fg sm:p-5">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
               <span>
                 <span className="font-display text-lg">{zh ? "點樣揀出嚟？" : "How was this picked?"}</span>
                 <span className="block text-xs text-muted">{zh ? "評分規則、市況展望（利率、52 週位置、過熱）" : "Scoring rule and market outlook"}</span>
               </span>
-              <span className="text-xs text-primary group-open:hidden">{zh ? "展開" : "Show"}</span>
+              <span className="shrink-0 text-xs whitespace-nowrap text-primary group-open:hidden">{zh ? "展開" : "Show"}</span>
             </summary>
             <div className="mt-4 space-y-5">
       <div>
@@ -732,9 +747,9 @@ function RecommendPage() {
           </details>
 
           <Card>
-            <h2 className="mb-3 font-display text-lg">{zh ? "同目標其他高分基金" : "Other high-scoring funds"}</h2>
+            <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃入面，其他評分較高嘅基金" : "Other well-scored funds in the same scheme"}</h2>
             <ul className="space-y-2 text-sm">
-              {ranked.slice(0, 8).map((s, i) => (
+              {others.map((s, i) => (
                 <li key={s.fund.id}>
                   <Link to="/funds/$id" params={{ id: s.fund.id }} className="flex items-start justify-between gap-3">
                     <span className="flex min-w-0 gap-2">
