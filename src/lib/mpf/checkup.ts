@@ -7,7 +7,7 @@
  * Everything here describes the holdings against public MPFA data; it does not
  * tell the member what to buy.
  */
-import { allFunds, fundRegion, median, type RegionId } from "./catalog";
+import { allFunds, fundBase, fundRegion, median, sameMemberClass, type RegionId } from "./catalog";
 import { cheapestSwitch } from "./fee-peers";
 import { annualFee, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, feeGap } from "./fees";
 import type { Fund } from "./types";
@@ -90,6 +90,7 @@ export function runCheckup(
   const perMonth = example && person.monthly <= 0 ? EXAMPLE_MONTHLY : person.monthly;
   const scheme = holdings[0]?.fund.schemeEn;
   const schemeFunds = allFunds.filter((f) => f.schemeEn === scheme);
+  const heldIds = new Set(holdings.map((h) => h.fund.id));
 
   /* 1. Fees ------------------------------------------------------------ */
   const fer = weighted(holdings, (f) => f.fer);
@@ -123,7 +124,7 @@ export function runCheckup(
         `Weighted FER ${fer.toFixed(2)}%, about HK$${Math.round(annual ?? 0).toLocaleString("en-HK")} a year${unitEn}.` +
         (gap > 0 ? ` Same-type cheaper funds in this scheme would bring it to ${cheapFer!.toFixed(2)}%, about HK$${Math.round(gap).toLocaleString("en-HK")} by ${person.retireAge}.` : " Already the cheapest of each type in this scheme."),
       ideas: swaps
-        .filter(({ alt }) => alt)
+        .filter(({ alt }) => alt && !heldIds.has(alt.id))
         .map(({ h, alt }) => ({
           fund: alt!,
           zh: `同「${h.fund.nameZh}」同類，開支比率 ${alt!.fer?.toFixed(2)}%（而家 ${h.fund.fer?.toFixed(2)}%）`,
@@ -183,7 +184,7 @@ export function runCheckup(
       : `No single market above half: ${regions.map((r) => `${r.region} ${pct(r.share)}`).join(", ")}.`,
     ideas: single
       ? schemeFunds
-          .filter((f) => f.sleeve === "global")
+          .filter((f) => f.sleeve === "global" && !heldIds.has(f.id) && holdings.every((h) => sameMemberClass(h.fund, f)))
           .sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9))
           .slice(0, 2)
           .map((f) => ({ fund: f, zh: `計劃內環球股票基金，開支比率 ${f.fer?.toFixed(2)}%`, en: `Global equity in this scheme, FER ${f.fer?.toFixed(2)}%` }))
@@ -196,7 +197,7 @@ export function runCheckup(
       const peers = allFunds.filter((f) => f.sleeve === h.fund.sleeve && f.ret5y != null);
       const med = median(peers.map((f) => f.ret5y as number));
       const better = schemeFunds
-        .filter((f) => f.sleeve === h.fund.sleeve && f.category === h.fund.category && f.id !== h.fund.id && f.ret5y != null && h.fund.ret5y != null && f.ret5y > h.fund.ret5y + 0.5)
+        .filter((f) => f.sleeve === h.fund.sleeve && f.category === h.fund.category && !heldIds.has(f.id) && sameMemberClass(h.fund, f) && f.ret5y != null && h.fund.ret5y != null && f.ret5y > h.fund.ret5y + 0.5)
         .sort((a, b) => (b.ret5y ?? 0) - (a.ret5y ?? 0))[0];
       return { h, med, better, behind: h.fund.ret5y != null && med != null ? med - h.fund.ret5y : 0 };
     })
@@ -235,6 +236,18 @@ export function runCheckup(
       titleEn: "Cash-like share",
       bodyZh: `${pct(cash)} 放喺保守／貨幣市場／保證基金。距離退休仲有 ${years} 年，呢類基金長期回報大約只係追平通脹，可能錯過增長。`,
       bodyEn: `${pct(cash)} sits in conservative, money-market or guaranteed funds; over ${years} years that may lag inflation.`,
+    });
+  }
+
+  // An idea is never a fund already held, nor another unit class of one.
+  const heldBases = new Set(holdings.map((h) => fundBase(h.fund)));
+  for (const item of items) {
+    if (!item.ideas) continue;
+    const seen = new Set<string>();
+    item.ideas = item.ideas.filter((idea) => {
+      if (heldIds.has(idea.fund.id) || heldBases.has(fundBase(idea.fund)) || seen.has(idea.fund.id)) return false;
+      seen.add(idea.fund.id);
+      return true;
     });
   }
 

@@ -29,7 +29,7 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtAxisHkd, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks, targetRisk } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, riskBudget, scoreFunds, sleevePrior, suitabilityChecks, targetRisk } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -109,6 +109,7 @@ function RecommendPage() {
   );
   const assumedTotal = assumed.reduce((s, x) => s + x.a.weight * x.r, 0);
   const mixRisk = alloc.reduce((s, a) => s + a.weight * (a.fund.riskClass ?? 4), 0) || 4;
+  const overBudget = alloc.length > 0 && profile.goal !== "dis" && mixRisk > riskBudget(profile) + 1e-6;
   const rates = scenarioRates(assumedTotal || 4, mixRisk);
   const path = useMemo(
     () => projectScenarios(projBalance, projMonthly, years, rates),
@@ -471,6 +472,13 @@ function RecommendPage() {
                 {profile.balance > 0 ? null : (
                   <span className="block text-xs text-muted">{zh ? "喺「你的情況」填上結餘，就會用你自己嘅金額計。" : "Enter your balance to see your own amount."}</span>
                 )}
+              </p>
+            ) : null}
+            {overBudget ? (
+              <p className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-xs text-fg" role="alert">
+                {zh
+                  ? `呢個計劃可以揀嘅基金風險級別普遍偏高，配置嘅平均風險（${mixRisk.toFixed(1)}）高過「${GOAL_COPY[profile.goal].zh}」一般嘅水平。可以考慮加大保守基金嘅比例。`
+                  : `This scheme's funds carry high risk classes; the mix averages ${mixRisk.toFixed(1)}, above what this goal usually targets.`}
               </p>
             ) : null}
             {warns.length ? (

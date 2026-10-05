@@ -381,3 +381,34 @@ export const TAG_ZH: Record<string, string> = {
   A65: "65歲後",
   ESG: "綠色／ESG",
 };
+
+/* ---- share classes -------------------------------------------------------
+ * Some schemes sell the same fund in several unit classes (A/B/T, D/I, A/H)
+ * with different fees. Which class a member gets is set by their employer or
+ * account type, not chosen, so another class of the same fund is never an
+ * alternative, and a mix must not combine two different classes.
+ */
+const CLASS_RE = /\s*-\s*(?:Unit\s+)?Class\s*(\w+)\s*$/i;
+
+/** Scheme + fund name without its class suffix. */
+export function fundBase(fund: Fund): string {
+  return `${fund.schemeEn}|${fund.nameEn.replace(CLASS_RE, "")}`;
+}
+
+const BASE_COUNT = new Map<string, number>();
+for (const f of allFunds) BASE_COUNT.set(fundBase(f), (BASE_COUNT.get(fundBase(f)) ?? 0) + 1);
+
+/** Class letter when the fund has sibling classes; null when it is the only class on offer. */
+export function fundClass(fund: Fund): string | null {
+  const m = fund.nameEn.match(CLASS_RE);
+  if (!m || (BASE_COUNT.get(fundBase(fund)) ?? 1) < 2) return null;
+  return m[1]!.toUpperCase();
+}
+
+/** True when a member holding `held` could also hold or switch to `other`. */
+export function sameMemberClass(held: Fund, other: Fund): boolean {
+  if (fundBase(held) === fundBase(other)) return false;
+  const a = fundClass(held);
+  const b = fundClass(other);
+  return a == null || b == null || a === b;
+}

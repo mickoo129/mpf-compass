@@ -1,5 +1,5 @@
 import type { Allocation, Fund, GoalId, MixSize, Profile, ReviewCadence, RiskAppetite, ScoredFund } from "./types";
-import { allFunds, fundRegion, median, REGION_LABEL } from "./catalog";
+import { allFunds, fundRegion, median, REGION_LABEL, sameMemberClass } from "./catalog";
 import { horizonWeights, type Regime } from "./regime";
 
 // Long-run planning assumptions (% a year, before fees), set about 1 point below
@@ -78,6 +78,15 @@ export function targetRisk(profile: Profile): number {
 
 function clamp01(n: number) {
   return Math.max(0, Math.min(1, n));
+}
+
+/**
+ * Highest weighted risk class a mix may carry for this profile. An average of 3
+ * (low volatility) is always acceptable, so very short horizons are not forced
+ * into cash only.
+ */
+export function riskBudget(profile: Profile): number {
+  return Math.max(3, targetRisk(profile) + 0.5);
 }
 
 function riskFit(fund: Fund, target: number): number {
@@ -185,9 +194,10 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
 export function resolvedMixSize(profile: Profile, universeCount: number): number {
   const cap = Math.max(1, Math.min(5, universeCount));
   const chosen = profile.mixSize ?? "auto";
+  // DIS is by definition Core Accumulation and/or Age 65 Plus.
+  if (profile.goal === "dis") return Math.min(chosen === 1 ? 1 : 2, cap);
   if (chosen !== "auto") return Math.min(chosen, cap);
   const years = profile.retireAge - profile.age;
-  if (profile.goal === "dis") return Math.min(2, cap);
   if (profile.goal === "lowfee") return Math.min(2, cap);
   if (profile.goal === "preserve") return Math.min(years < 8 ? 2 : 3, cap);
   if (years < 5) return Math.min(2, cap);
@@ -247,7 +257,7 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
   const years = profile.retireAge - profile.age;
   if (profile.goal === "dis") {
     const caf = top.find((s) => s.fund.isCaf);
-    const a65 = top.find((s) => s.fund.isA65);
+    const a65 = top.find((s) => s.fund.isA65 && (!caf || sameMemberClass(caf.fund, s.fund)));
     const dis: ScoredFund[] = [];
     if (n === 1) {
       const one = years > 10 ? caf ?? a65 : a65 ?? caf;
@@ -257,11 +267,7 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
       if (a65 && a65.fund.id !== caf?.fund.id) dis.push(a65);
     }
     if (dis.length >= n) return dis.slice(0, n);
-    for (const s of top) {
-      if (dis.length >= n) break;
-      if (dis.some((x) => x.fund.id === s.fund.id)) continue;
-      dis.push(s);
-    }
+    // DIS is exactly these two funds; nothing else is added.
     return dis;
   }
 
@@ -290,14 +296,17 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
     const chinaBloc = ["hk", "china", "greater-china"];
     return chinaBloc.includes(region) && chinaBloc.some((r) => usedRegions.has(r));
   };
-  const allowed = (s: ScoredFund) => satelliteAllowed(s.fund, profile);
+  // A member holds one unit class, so every holding must be compatible with the others.
+  const sameClass = (s: ScoredFund) => out.every((o) => sameMemberClass(o.fund, s.fund));
+  const allowed = (s: ScoredFund) => satelliteAllowed(s.fund, profile) && sameClass(s);
 
   if (core) take(core);
+  // Never break the goal's rules just to reach the requested number of funds:
+  // a small scheme may simply offer fewer suitable funds.
   const passes: ((s: ScoredFund) => boolean)[] = [
     (s) => allowed(s) && !usedSleeves.has(s.fund.sleeve) && !sameMarket(s),
     (s) => allowed(s) && !usedSleeves.has(s.fund.sleeve),
     (s) => allowed(s),
-    () => true,
   ];
   for (const ok of passes) {
     for (const s of top) {
@@ -309,20 +318,38 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
 
   // Keep the whole mix inside the goal's risk budget: swap the riskiest satellite
   // for the next allowed, lower-risk candidate until the weighted risk fits.
-  const cap = targetRisk(profile) + 0.5;
-  const w = weightsFor(out.length, Math.max(0, years));
-  const mixRisk = () => out.reduce((sum, s, i) => sum + (w[i] ?? 0) * (s.fund.riskClass ?? 4), 0);
-  for (let guard = 0; guard < 8 && mixRisk() > cap && out.length > 1; guard++) {
+  const cap = riskBudget(profile);
+  const mixRisk = () => {
+    const w = weightsFor(out.length, Math.max(0, years));
+    return out.reduce((sum, s, i) => sum + (w[i] ?? 0) * (s.fund.riskClass ?? 4), 0);
+  };
+  const defensive = (f: Fund) =>
+    f.isA65 || f.isConservative || f.category === "bond" || f.category === "money" || f.sleeve === "mixed-conservative";
+  for (let guard = 0; guard < 12 && mixRisk() > cap + 1e-9 && out.length > 1; guard++) {
     let worst = 1;
     for (let i = 2; i < out.length; i++) {
       if ((out[i]!.fund.riskClass ?? 4) > (out[worst]!.fund.riskClass ?? 4)) worst = i;
     }
     const current = out[worst]!.fund.riskClass ?? 4;
-    const replacement = top.find(
-      (s) => !out.some((o) => o.fund.id === s.fund.id) && allowed(s) && (s.fund.riskClass ?? 4) < current,
-    );
+    const others = out.filter((_, i) => i !== worst);
+    const fits = (s: ScoredFund) =>
+      !out.some((o) => o.fund.id === s.fund.id) &&
+      others.every((o) => sameMemberClass(o.fund, s.fund)) &&
+      (s.fund.riskClass ?? 4) < current;
+    // Prefer a fund that suits the goal; if none is calmer, a defensive fund is
+    // always acceptable as ballast (e.g. a "growth" member two years from retiring).
+    const replacement = top.find((s) => fits(s) && satelliteAllowed(s.fund, profile)) ?? top.find((s) => fits(s) && defensive(s.fund));
     if (!replacement) break;
     out[worst] = replacement;
+  }
+  // Still over (a small scheme with few calm funds): hold fewer funds rather than
+  // keep a satellite that pushes the mix past its budget.
+  while (out.length > 2 && mixRisk() > cap + 1e-9) {
+    let worst = 1;
+    for (let i = 2; i < out.length; i++) {
+      if ((out[i]!.fund.riskClass ?? 4) >= (out[worst]!.fund.riskClass ?? 4)) worst = i;
+    }
+    out.splice(worst, 1);
   }
   return out;
 }
@@ -350,14 +377,19 @@ const CORE_SLEEVES: Record<Exclude<GoalId, "dis">, { long: string[]; short: stri
 function pickCore(top: ScoredFund[], profile: Profile): ScoredFund | undefined {
   if (profile.goal === "dis") return top[0];
   const years = profile.retireAge - profile.age;
-  const sleeves = CORE_SLEEVES[profile.goal][years >= 10 ? "long" : "short"];
+  // Within three years of retiring the main holding is defensive whatever the goal;
+  // the page already warns when the goal and the horizon do not fit.
+  const sleeves = years < 3 ? CORE_SLEEVES.preserve.short : CORE_SLEEVES[profile.goal][years >= 10 ? "long" : "short"];
   const eligible = top.filter((s) => {
     if (!sleeves.includes(s.fund.sleeve)) return false;
     // A low-fee core must actually be cheap: DIS or an index tracker.
-    if (profile.goal === "lowfee") return s.fund.isDis || s.fund.isTracker;
+    if (profile.goal === "lowfee" && years >= 3) return s.fund.isDis || s.fund.isTracker;
     return true;
   });
-  return eligible[0] ?? top.find((s) => satelliteAllowed(s.fund, profile)) ?? top[0];
+  // Prefer a core that already fits the risk budget (matters close to retirement).
+  const cap = riskBudget(profile);
+  const calm = eligible.filter((s) => (s.fund.riskClass ?? 4) <= cap);
+  return calm[0] ?? eligible[0] ?? top.find((s) => satelliteAllowed(s.fund, profile)) ?? top[0];
 }
 
 /** Whether a fund may sit beside the core for this goal. */
