@@ -28,6 +28,8 @@ export interface CheckItem {
   bodyEn: string;
   /** Funds in the same scheme worth a look, with a one-line reason. */
   ideas?: { fund: Fund; zh: string; en: string }[];
+  /** The lagging holdings plus the best 5-year funds of the same type across all schemes, ready for 比較. */
+  compareIds?: string[];
 }
 
 export interface CheckupResult {
@@ -77,6 +79,25 @@ function weighted(h: Holding[], get: (f: Fund) => number | null | undefined): nu
 
 function pct(n: number) {
   return `${Math.round(n * 100)}%`;
+}
+
+/**
+ * Highest 5-year funds of the same type across every scheme: one per scheme and
+ * one unit class per fund, so the comparison shows different choices.
+ */
+export function peerLeaders(fund: Fund, n: number, exclude: Set<string> = new Set()): Fund[] {
+  const out: Fund[] = [];
+  const schemes = new Set<string>();
+  const ranked = allFunds
+    .filter((f) => f.sleeve === fund.sleeve && f.category === fund.category && f.ret5y != null && f.id !== fund.id && !exclude.has(f.id) && fundBase(f) !== fundBase(fund))
+    .sort((a, b) => (b.ret5y ?? 0) - (a.ret5y ?? 0));
+  for (const f of ranked) {
+    if (schemes.has(f.schemeEn)) continue;
+    schemes.add(f.schemeEn);
+    out.push(f);
+    if (out.length >= n) break;
+  }
+  return out;
 }
 
 export function runCheckup(
@@ -202,8 +223,14 @@ export function runCheckup(
       return { h, med, better, behind: h.fund.ret5y != null && med != null ? med - h.fund.ret5y : 0 };
     })
     .filter((x) => x.behind >= 1);
+  const worst = [...laggards].sort((a, b) => b.behind - a.behind).slice(0, 2);
+  const leaderCount = worst.length === 1 ? 2 : 1;
+  const compareIds = worst.length
+    ? [...worst.map((x) => x.h.fund.id), ...worst.flatMap((x) => peerLeaders(x.h.fund, leaderCount, heldIds).map((f) => f.id))]
+    : undefined;
   items.push({
     key: "laggards",
+    compareIds,
     light: laggards.length ? (laggards.some((x) => x.behind >= 2.5) ? "act" : "watch") : "good",
     titleZh: "同類表現",
     titleEn: "Versus similar funds",
