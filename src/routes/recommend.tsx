@@ -29,7 +29,7 @@ import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
-import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks } from "@/lib/mpf/score";
+import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks, targetRisk } from "@/lib/mpf/score";
 import type { GoalId } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -116,6 +116,20 @@ function RecommendPage() {
     [projBalance, projMonthly, years, rates.low, rates.mid, rates.high],
   );
   const end = path.at(-1);
+  // Alternatives the member could actually switch to: same scheme as the mix,
+  // not already in it, and within one risk class of the goal.
+  const others = useMemo(() => {
+    const scheme = alloc[0]?.fund.schemeEn;
+    const target = targetRisk(profile);
+    return ranked
+      .filter(
+        (s) =>
+          s.fund.schemeEn === scheme &&
+          !alloc.some((a) => a.fund.id === s.fund.id) &&
+          Math.abs((s.fund.riskClass ?? 4) - target) <= 1,
+      )
+      .slice(0, 6);
+  }, [ranked, alloc, profile]);
   const mixSize = profile.mixSize ?? "auto";
   const reviewEvery = profile.reviewEvery ?? "auto";
   const mixN = resolvedMixSize(profile, ranked.length);
@@ -732,9 +746,9 @@ function RecommendPage() {
           </details>
 
           <Card>
-            <h2 className="mb-3 font-display text-lg">{zh ? "同目標其他高分基金" : "Other high-scoring funds"}</h2>
+            <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃入面，其他評分較高嘅基金" : "Other well-scored funds in the same scheme"}</h2>
             <ul className="space-y-2 text-sm">
-              {ranked.slice(0, 8).map((s, i) => (
+              {others.map((s, i) => (
                 <li key={s.fund.id}>
                   <Link to="/funds/$id" params={{ id: s.fund.id }} className="flex items-start justify-between gap-3">
                     <span className="flex min-w-0 gap-2">

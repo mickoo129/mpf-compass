@@ -1,6 +1,6 @@
 import type { Allocation, Fund, GoalId, MixSize, Profile, ReviewCadence, RiskAppetite, ScoredFund } from "./types";
-import { allFunds, fundRegion, median } from "./catalog";
-import { HORIZON_COPY, horizonWeights, type Regime } from "./regime";
+import { allFunds, fundRegion, median, REGION_LABEL } from "./catalog";
+import { horizonWeights, type Regime } from "./regime";
 
 // Long-run planning assumptions (% a year, before fees), set about 1 point below
 // recent 10-year MPF medians so projections lean cautious.
@@ -265,30 +265,15 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
     return dis;
   }
 
-  const prefer = (s: ScoredFund) => {
-    if (profile.goal === "preserve") {
-      return (
-        s.fund.isConservative ||
-        s.fund.category === "bond" ||
-        s.fund.isA65 ||
-        s.fund.sleeve === "mixed-conservative" ||
-        s.fund.category === "money"
-      );
-    }
-    if (profile.goal === "lowfee") {
-      return s.fund.isTracker || (s.fund.fer != null && s.fund.fer <= 0.85) || s.fund.isDis;
-    }
-    if (profile.goal === "growth") {
-      return ["equity", "mixed"].includes(s.fund.category);
-    }
-    return true;
-  };
+  // The core holding is chosen by the goal, not by the market view: someone who
+  // picks 穩健 must see a balanced fund as the core, whatever is cheap or lagging
+  // this month. Market outlook only influences the smaller satellite holdings.
+  const core = pickCore(top, profile);
 
   const out: ScoredFund[] = [];
   const usedIds = new Set<string>();
   const usedSleeves = new Set<string>();
   const usedRegions = new Set<string>();
-
   const take = (s: ScoredFund) => {
     out.push(s);
     usedIds.add(s.fund.id);
@@ -305,52 +290,113 @@ function pickHoldings(top: ScoredFund[], n: number, profile: Profile): ScoredFun
     const chinaBloc = ["hk", "china", "greater-china"];
     return chinaBloc.includes(region) && chinaBloc.some((r) => usedRegions.has(r));
   };
+  const allowed = (s: ScoredFund) => satelliteAllowed(s.fund, profile);
 
-  const first = top.find((s) => prefer(s)) ?? top[0];
-  if (first) take(first);
+  if (core) take(core);
+  const passes: ((s: ScoredFund) => boolean)[] = [
+    (s) => allowed(s) && !usedSleeves.has(s.fund.sleeve) && !sameMarket(s),
+    (s) => allowed(s) && !usedSleeves.has(s.fund.sleeve),
+    (s) => allowed(s),
+    () => true,
+  ];
+  for (const ok of passes) {
+    for (const s of top) {
+      if (out.length >= n) break;
+      if (usedIds.has(s.fund.id) || !ok(s)) continue;
+      take(s);
+    }
+  }
 
-  for (const s of top) {
-    if (out.length >= n) break;
-    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve) || sameMarket(s)) continue;
-    if (profile.goal === "preserve" && !prefer(s) && out.length < n - 1) continue;
-    take(s);
-  }
-  for (const s of top) {
-    if (out.length >= n) break;
-    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve) || sameMarket(s)) continue;
-    take(s);
-  }
-  for (const s of top) {
-    if (out.length >= n) break;
-    if (usedIds.has(s.fund.id) || usedSleeves.has(s.fund.sleeve)) continue;
-    take(s);
-  }
-  for (const s of top) {
-    if (out.length >= n) break;
-    if (usedIds.has(s.fund.id)) continue;
-    take(s);
+  // Keep the whole mix inside the goal's risk budget: swap the riskiest satellite
+  // for the next allowed, lower-risk candidate until the weighted risk fits.
+  const cap = targetRisk(profile) + 0.5;
+  const w = weightsFor(out.length, Math.max(0, years));
+  const mixRisk = () => out.reduce((sum, s, i) => sum + (w[i] ?? 0) * (s.fund.riskClass ?? 4), 0);
+  for (let guard = 0; guard < 8 && mixRisk() > cap && out.length > 1; guard++) {
+    let worst = 1;
+    for (let i = 2; i < out.length; i++) {
+      if ((out[i]!.fund.riskClass ?? 4) > (out[worst]!.fund.riskClass ?? 4)) worst = i;
+    }
+    const current = out[worst]!.fund.riskClass ?? 4;
+    const replacement = top.find(
+      (s) => !out.some((o) => o.fund.id === s.fund.id) && allowed(s) && (s.fund.riskClass ?? 4) < current,
+    );
+    if (!replacement) break;
+    out[worst] = replacement;
   }
   return out;
 }
 
-function holdingReason(s: ScoredFund, i: number, n: number, profile: Profile): { zh: string; en: string } {
+const CORE_SLEEVES: Record<Exclude<GoalId, "dis">, { long: string[]; short: string[] }> = {
+  growth: {
+    long: ["global", "mixed-aggressive", "mixed-growth", "dis-caf", "mixed-target"],
+    short: ["mixed-growth", "dis-caf", "mixed-balanced"],
+  },
+  balanced: {
+    long: ["dis-caf", "mixed-balanced", "mixed-growth"],
+    short: ["mixed-balanced", "dis-caf", "mixed-conservative", "dis-a65"],
+  },
+  preserve: {
+    long: ["dis-a65", "mixed-conservative", "bond-global", "bond-hk", "bond-asia"],
+    short: ["conservative", "money", "dis-a65", "bond-hk"],
+  },
+  lowfee: {
+    long: ["dis-caf", "global", "us"],
+    short: ["dis-caf", "dis-a65"],
+  },
+};
+
+/** Best-scoring fund among the asset classes that suit the goal as a main holding. */
+function pickCore(top: ScoredFund[], profile: Profile): ScoredFund | undefined {
+  if (profile.goal === "dis") return top[0];
+  const years = profile.retireAge - profile.age;
+  const sleeves = CORE_SLEEVES[profile.goal][years >= 10 ? "long" : "short"];
+  const eligible = top.filter((s) => {
+    if (!sleeves.includes(s.fund.sleeve)) return false;
+    // A low-fee core must actually be cheap: DIS or an index tracker.
+    if (profile.goal === "lowfee") return s.fund.isDis || s.fund.isTracker;
+    return true;
+  });
+  return eligible[0] ?? top.find((s) => satelliteAllowed(s.fund, profile)) ?? top[0];
+}
+
+/** Whether a fund may sit beside the core for this goal. */
+function satelliteAllowed(fund: Fund, profile: Profile): boolean {
+  const cashLike = fund.category === "money" || fund.category === "guaranteed" || fund.isConservative;
+  switch (profile.goal) {
+    case "preserve":
+      return cashLike || fund.category === "bond" || fund.isA65 || fund.isCaf || fund.sleeve === "mixed-conservative" || fund.sleeve === "mixed-balanced";
+    case "growth":
+      return fund.category === "equity" || fund.category === "mixed";
+    case "lowfee":
+      return fund.isTracker || fund.isDis || (fund.fer != null && fund.fer <= 0.85);
+    case "balanced":
+      return fund.category !== "guaranteed" && fund.sleeve !== "korea";
+    default:
+      return true;
+  }
+}
+
+function holdingReason(s: ScoredFund, i: number, _n: number, profile: Profile): { zh: string; en: string } {
   const f = s.fund;
-  if (f.isCaf) return { zh: "核心累積：約 60/40 股票債券，距離退休較遠時作主體。", en: "Core Accumulation ~60/40 for longer horizons." };
-  if (f.isA65) return { zh: "65歲後基金：降低股票比例，收斂波動。", en: "Age 65 Plus de-risks toward bonds." };
+  const goalZh = GOAL_COPY[profile.goal].zh;
+  const region = fundRegion(f);
   if (i === 0) {
-    const win = HORIZON_COPY[profile.switchHorizon ?? "6m"].zh;
-    return {
-      zh: `核心：按「${win}」展望（利率、52 週位置、過熱），加上收費與風險，而非近半年或一年回報最高的一檔。`,
-      en: "Core: forward outlook for your window (yield, stretch, overheat), plus fees and risk — not the hottest trailing return.",
-    };
+    if (f.isCaf) return { zh: `核心：核心累積基金，約六成環球股票、四成債券，收費有法定上限，配合「${goalZh}」。`, en: "Core: Core Accumulation, about 60/40 global shares and bonds with a fee cap." };
+    if (f.isA65) return { zh: `核心：65歲後基金，約兩成股票、八成債券，波動較細，配合「${goalZh}」。`, en: "Core: Age 65 Plus, about 20/80 shares and bonds." };
+    if (f.category === "mixed") return { zh: `核心：股票同債券混合，一隻基金已經分散多個市場，配合「${goalZh}」。`, en: "Core: a mixed fund already spread across markets." };
+    if (f.category === "equity") return { zh: `核心：${f.isTracker ? "跟蹤指數嘅" : ""}${REGION_LABEL[region].zh}股票基金，配合「${goalZh}」嘅長線增長。`, en: `Core: ${REGION_LABEL[region].en} equity for long-run growth.` };
+    return { zh: `核心：波動較低，配合「${goalZh}」。`, en: "Core: lower volatility to fit the goal." };
   }
+  if (f.isCaf) return { zh: "配搭：核心累積基金，加入環球股票同債券。", en: "Adds global shares and bonds via Core Accumulation." };
+  if (f.isA65) return { zh: "防守：65歲後基金，債券為主，減低整體波動。", en: "Defensive: Age 65 Plus, mostly bonds." };
   if (f.isConservative || f.category === "bond" || f.category === "money") {
-    return { zh: "防守倉：降低回撤，應付臨近提取或市場波動。", en: "Defensive sleeve for drawdowns and nearer withdrawals." };
+    return { zh: "防守：債券／保守基金，減低整體波動。", en: "Defensive: bonds or cash to steady the mix." };
   }
-  if (i === n - 1 && n >= 3) {
-    return { zh: "衛星倉：補足核心未覆蓋的地區或資產類別。", en: "Satellite sleeve for a region or asset class the core omits." };
+  if (f.category === "equity") {
+    return { zh: `分散：加入${REGION_LABEL[region].zh}股票${f.isTracker ? "（指數基金，收費較低）" : ""}。`, en: `Diversifier: adds ${REGION_LABEL[region].en} equity.` };
   }
-  return { zh: "分散倉：與核心不同地區／類別，降低單一市場風險。", en: "Diversifier: different region or asset class than the core." };
+  return { zh: "配搭：另一隻混合資產基金，分散基金經理同比例。", en: "Adds a second mixed fund for manager diversification." };
 }
 
 /**
