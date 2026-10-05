@@ -69,6 +69,7 @@ function CheckupPage() {
   const navigate = useNavigate({ from: "/checkup" });
   const profile = useAppStore((s) => s.profile);
   const setProfile = useAppStore((s) => s.setProfile);
+  const setCompare = useAppStore((s) => s.setCompare);
   const schemes = uniqueSchemes();
 
   const [scheme, setScheme] = useState<string>(search.s ?? "");
@@ -252,6 +253,15 @@ function CheckupPage() {
                 ) : null}
               </div>
             ) : null}
+            {result ? (
+              <Button asChild className="mt-3 w-full lg:hidden">
+                <a href="#result">
+                  {zh
+                    ? `睇檢查結果（${result.items.filter((i) => i.light !== "good").length} 項要留意）`
+                    : `See results (${result.items.filter((i) => i.light !== "good").length} to look at)`}
+                </a>
+              </Button>
+            ) : null}
           </Card>
 
           <Card>
@@ -284,7 +294,7 @@ function CheckupPage() {
           </Card>
         </div>
 
-        <div className="min-w-0 space-y-4 lg:col-span-7">
+        <div id="result" className="min-w-0 scroll-mt-20 space-y-4 lg:col-span-7">
           {!result ? (
             <Card className="border-dashed">
               <h2 className="mb-1 font-display text-lg">{zh ? "檢查結果" : "Results"}</h2>
@@ -364,8 +374,44 @@ function CheckupPage() {
                       </ul>
                     </div>
                   ) : null}
+                  {item.compareIds && item.compareIds.length > 1 ? (
+                    <div className="mt-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={() => {
+                          setCompare(item.compareIds!);
+                          void navigate({ to: "/compare" });
+                        }}
+                      >
+                        {zh ? "同全港同類基金並排比較" : "Compare with similar funds across schemes"}
+                      </Button>
+                      <p className="mt-1 text-xs text-muted">
+                        {zh
+                          ? "會擺你呢隻，同其他計劃入面五年回報最高嘅同類基金。供款帳戶未必轉得去其他計劃。"
+                          : "Your fund next to the highest 5-year funds of the same type in other schemes. A contribution account may not be able to move."}
+                      </p>
+                    </div>
+                  ) : null}
                 </Card>
               ))}
+
+              {scheme ? (
+                <Card>
+                  <h3 className="font-display text-lg">{zh ? "下一步" : "Next"}</h3>
+                  <p className="mt-1 text-sm text-muted">
+                    {zh
+                      ? `睇下喺「${schemes.find((x) => x.en === scheme)?.zh ?? scheme}」入面，按你嘅年齡同目標計出嚟嘅參考配置。`
+                      : "See a reference mix inside this scheme for your age and goal."}
+                  </p>
+                  <Button asChild className="mt-3 w-full sm:w-auto">
+                    <Link to="/recommend" search={{ scheme }}>
+                      {zh ? "用呢個計劃睇參考配置" : "See a reference mix in this scheme"}
+                    </Link>
+                  </Button>
+                </Card>
+              ) : null}
 
               <p className="text-xs leading-relaxed text-canvas-muted">
                 {zh

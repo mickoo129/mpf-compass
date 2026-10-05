@@ -222,19 +222,19 @@ export function resolvedReview(profile: Profile): {
     quarter: {
       labelZh: "三個月後",
       labelEn: "In 3 months",
-      zh: "請於三個月後返回對照。期間不必因短期升跌而轉換。",
+      zh: "三個月後返嚟對照。中間唔使因為短期升跌而轉。",
       en: "Come back in a quarter. Do not switch on short-term noise.",
     },
     half: {
       labelZh: "半年後",
       labelEn: "In 6 months",
-      zh: "請於半年後返回對照。除非轉職、計劃合併或收費大變，否則維持。",
+      zh: "半年後返嚟對照。除非轉工、計劃合併或者收費大變，否則唔使郁。",
       en: "Come back in six months. Hold unless job, scheme or fee changes.",
     },
     year: {
       labelZh: "一年後",
       labelEn: "In 1 year",
-      zh: "請於一年後返回對照。每月轉換容易追趕近期表現。",
+      zh: "一年後返嚟對照。月月轉好易變成高追。",
       en: "Come back in a year. Monthly switching chases noise.",
     },
   } as const;
@@ -498,31 +498,31 @@ export const GOAL_COPY: Record<GoalId, { zh: string; en: string; blurbZh: string
   growth: {
     zh: "進取增長",
     en: "Growth",
-    blurbZh: "距離退休尚遠，追求長期資本增值，可承受較大波動。",
+    blurbZh: "離退休仲有好耐，想長線增長，接受到大上大落。",
     blurbEn: "Long horizon, capital growth, larger swings accepted.",
   },
   balanced: {
     zh: "穩健增值",
     en: "Balanced",
-    blurbZh: "增長與防守並重，接近預設投資策略的風險水平。",
+    blurbZh: "想增長又唔想太大上落，風險同預設投資策略差唔多。",
     blurbEn: "Growth and defence together, near DIS risk.",
   },
   preserve: {
     zh: "保本為先",
     en: "Preserve",
-    blurbZh: "臨近提取或厭惡虧損，優先穩定與流動性。",
+    blurbZh: "就快要攞錢，或者好怕蝕，穩陣行先。",
     blurbEn: "Near withdrawal or loss-averse: stability first.",
   },
   lowfee: {
     zh: "低收費優先",
     en: "Low fee",
-    blurbZh: "收費是你唯一可鎖定的拖累。優先指數基金與 DIS。",
+    blurbZh: "收費係唯一你控制到嘅嘢。優先揀指數基金同預設投資策略基金。",
     blurbEn: "Fees are the drag you can lock. Prefer trackers and DIS.",
   },
   dis: {
     zh: "跟隨預設策略",
     en: "Default (DIS)",
-    blurbZh: "法定收費上限、隨年齡自動降低風險，適合不欲自行挑選基金的人士。",
+    blurbZh: "收費有法定上限，年紀越大自動越保守，啱唔想自己揀基金嘅人。",
     blurbEn: "Fee cap and an age glidepath if you do not want to pick funds.",
   },
 };
@@ -538,15 +538,15 @@ export const REVIEW_OPTS: ReviewCadence[] = ["auto", "month", "quarter", "half",
 
 export const MIX_SIZE_COPY: Record<MixSize, { zh: string; en: string }> = {
   auto: { zh: "自動", en: "Auto" },
-  1: { zh: "1 檔", en: "1 fund" },
-  2: { zh: "2 檔", en: "2 funds" },
-  3: { zh: "3 檔", en: "3 funds" },
-  4: { zh: "4 檔", en: "4 funds" },
-  5: { zh: "5 檔", en: "5 funds" },
+  1: { zh: "1 隻", en: "1 fund" },
+  2: { zh: "2 隻", en: "2 funds" },
+  3: { zh: "3 隻", en: "3 funds" },
+  4: { zh: "4 隻", en: "4 funds" },
+  5: { zh: "5 隻", en: "5 funds" },
 };
 
 export const REVIEW_COPY: Record<ReviewCadence, { zh: string; en: string }> = {
-  auto: { zh: "跟轉換視野", en: "Follow window" },
+  auto: { zh: "跟上面揀嘅時間", en: "Follow window" },
   month: { zh: "一個月", en: "1 month" },
   quarter: { zh: "三個月", en: "3 months" },
   half: { zh: "半年", en: "6 months" },

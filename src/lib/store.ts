@@ -36,6 +36,8 @@ interface AppState {
   setLocale: (locale: Locale) => void;
   toggleCompare: (id: string) => void;
   clearCompare: () => void;
+  /** Replace the compare list in one go (健康檢查 → 比較). */
+  setCompare: (ids: string[]) => void;
   setProfile: (patch: Partial<Profile>) => void;
   saveMix: (mix: SavedMix) => void;
   /** Start afresh for the next client: age, balance, scheme, compare list and saved mix. */
@@ -60,6 +62,7 @@ export const useAppStore = create<AppState>()(
         set({ compareIds: [...cur, id] });
       },
       clearCompare: () => set({ compareIds: [] }),
+      setCompare: (ids) => set({ compareIds: [...new Set(ids)].slice(0, 4) }),
       setProfile: (patch) => {
         const profile = {
           ...get().profile,

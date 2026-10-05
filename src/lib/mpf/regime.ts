@@ -244,9 +244,9 @@ export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "3m", "6m", "1y"];
 
 export const HORIZON_COPY: Record<SwitchHorizon, { zh: string; en: string; blurbZh: string }> = {
   "1m": { zh: "1 個月", en: "1 month", blurbZh: "一個月後可以返嚟對照今次參考配置。唔保證呢一個月會升。" },
-  "3m": { zh: "3 個月", en: "3 months", blurbZh: "三個月後返回對照。動量與回吐並重，避免以一年急升的基金作為核心。" },
-  "6m": { zh: "半年", en: "6 months", blurbZh: "半年後返回對照。以起始孳息、相對滯後與收費為主。" },
-  "1y": { zh: "1 年", en: "1 year", blurbZh: "一年後返回對照。收費、五年質素與孳息為主。" },
+  "3m": { zh: "3 個月", en: "3 months", blurbZh: "三個月後返嚟對照。唔會用啱啱升得好急嘅基金做主力。" },
+  "6m": { zh: "半年", en: "6 months", blurbZh: "半年後返嚟對照。主要睇收費、債券息率同邊類基金落後咗。" },
+  "1y": { zh: "1 年", en: "1 year", blurbZh: "一年後返嚟對照。主要睇收費、五年表現同債券息率。" },
 };
 
 export function horizonWeights(horizon: SwitchHorizon, goal: string): {
