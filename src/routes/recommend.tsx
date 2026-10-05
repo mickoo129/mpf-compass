@@ -26,7 +26,7 @@ import { estimateSince, levelsFrom } from "@/lib/mpf/review";
 import { fundById } from "@/lib/mpf/catalog";
 import type { SavedMix } from "@/lib/mpf/types";
 import { catalogMeta, uniqueSchemes } from "@/lib/mpf/catalog";
-import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
+import { fmtAxisHkd, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
 import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, scoreFunds, sleevePrior, suitabilityChecks, targetRisk } from "@/lib/mpf/score";
@@ -553,30 +553,23 @@ function RecommendPage() {
           ) : null}
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "幾時再回來對照" : "When to come back"}</h2>
-            <p className="font-display text-xl">{zh ? review.labelZh : review.labelEn}</p>
-            <p className="mt-2 text-sm text-muted">{zh ? review.zh : review.en}</p>
-            <p className="mt-2 text-xs text-subtle">
-              {zh
-                ? "撳「記住今次配置」，到時返嚟呢頁就會見到呢段時間大約升跌咗幾多（用指數估算），同埋今次排序有冇變。唔保證該段一定升。"
-                : "The window is the review date. Come back then. Keep vs adjust follows outlook and scores, not your account’s P&L — we have no unit prices."}
-            </p>
-            <Button
-              className="mt-3"
-              variant="outline"
-              size="sm"
-              disabled={!alloc.length}
-              onClick={() => saveMix(buildSaved())}
-            >
-              {zh ? "記住今次配置" : "Save this mix"}
-            </Button>
-            {lastMix ? (
-              <p className="mt-2 text-xs text-subtle">
-                {zh
-                  ? `已記低 ${lastMix.at.slice(0, 10)} 嘅配置（只存喺呢部機）。用「分享配置」send 出去嘅連結亦帶住佢，喺其他手機打開都對照到。`
-                  : `Saved ${lastMix.at.slice(0, 10)} on this device. Links from "Share mix" carry it too.`}
-              </p>
-            ) : null}
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="font-display text-lg">{zh ? `${review.labelZh}返嚟對照` : `Compare again: ${review.labelEn}`}</h2>
+                <p className="text-xs text-muted">
+                  {lastMix
+                    ? zh
+                      ? `已記低 ${lastMix.at.slice(0, 10)} 嘅配置，到時會顯示大約升跌幾多。`
+                      : `Saved ${lastMix.at.slice(0, 10)}; the move since then will show here.`
+                    : zh
+                      ? "記低今次配置，到時就見到大約升跌咗幾多（指數估算）。"
+                      : "Save this mix to see roughly how it moved (index estimate)."}
+                </p>
+              </div>
+              <Button className="shrink-0 whitespace-nowrap" variant="outline" size="sm" disabled={!alloc.length} onClick={() => saveMix(buildSaved())}>
+                {lastMix ? (zh ? "重新記低" : "Save again") : zh ? "記低配置" : "Save mix"}
+              </Button>
+            </div>
           </Card>
 
           <Card>
@@ -605,9 +598,9 @@ function RecommendPage() {
                     minTickGap={24}
                   />
                   <YAxis
-                    width={48}
+                    width={56}
                     tick={{ fontSize: 11, fill: "var(--color-subtle)" }}
-                    tickFormatter={(v: number) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v === 0 ? "0" : `${Math.round(v / 1000)}k`)}
+                    tickFormatter={(v: number) => fmtAxisHkd(v, zh)}
                   />
                   <RTooltip
                     formatter={(v: number, name: string) => [fmtHkd(v), name]}

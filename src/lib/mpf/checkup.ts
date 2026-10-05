@@ -9,7 +9,7 @@
  */
 import { allFunds, fundRegion, median, type RegionId } from "./catalog";
 import { cheapestSwitch } from "./fee-peers";
-import { annualFee, FEE_UNIT, feeGap } from "./fees";
+import { annualFee, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, feeGap } from "./fees";
 import type { Fund } from "./types";
 
 export type Light = "good" | "watch" | "act";
@@ -85,7 +85,9 @@ export function runCheckup(
 ): CheckupResult {
   const items: CheckItem[] = [];
   const years = Math.max(1, person.retireAge - person.age);
-  const base = person.balance > 0 ? person.balance : FEE_UNIT;
+  const example = person.balance <= 0;
+  const base = example ? EXAMPLE_BALANCE : person.balance;
+  const perMonth = example && person.monthly <= 0 ? EXAMPLE_MONTHLY : person.monthly;
   const scheme = holdings[0]?.fund.schemeEn;
   const schemeFunds = allFunds.filter((f) => f.schemeEn === scheme);
 
@@ -99,11 +101,11 @@ export function runCheckup(
   const schemeMedianFer = median(schemeFunds.map((f) => f.fer ?? NaN));
   const annual = fer != null ? annualFee(base, fer) : null;
   if (fer != null) {
-    const gap = cheapFer != null && cheapFer < fer - 0.005 ? feeGap(base, person.monthly, years, fer, cheapFer) : 0;
+    const gap = cheapFer != null && cheapFer < fer - 0.005 ? feeGap(base, perMonth, years, fer, cheapFer) : 0;
     const dearScheme = schemeMedianFer != null && fer > schemeMedianFer + 0.3;
     const light: Light = gap > 0 ? (fer - (cheapFer ?? fer) >= 0.4 ? "act" : "watch") : dearScheme ? "watch" : "good";
-    const unitZh = person.balance > 0 ? "" : "（每 $10,000 結餘計）";
-    const unitEn = person.balance > 0 ? "" : " (per HK$10,000)";
+    const unitZh = example ? `（以結餘 $${EXAMPLE_BALANCE.toLocaleString("en-HK")} 做例子）` : "";
+    const unitEn = example ? ` (example: HK$${EXAMPLE_BALANCE.toLocaleString("en-HK")})` : "";
     items.push({
       key: "fee",
       light,

@@ -154,13 +154,15 @@ function Home() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs text-muted">{zh ? q.nameZh : q.nameEn}</p>
-                    <p className="font-mono text-lg tabular-nums">{q.price != null ? fmtNum(q.price, q.symbol === "^TNX" ? 3 : 2) : "—"}</p>
+                    <p className="font-mono text-lg tabular-nums">
+                      {q.price != null ? (q.symbol === "^TNX" ? `${q.price.toFixed(2)}%` : fmtNum(q.price, 2)) : "—"}
+                    </p>
                   </div>
                   <Sparkline data={q.spark} />
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs">
                   <span className={cn("font-mono tabular-nums", retClass(q.changePct))}>{fmtPct(q.changePct)}</span>
-                  <span className="text-subtle">YTD {fmtPct(q.ytdPct, 1)}</span>
+                  <span className="text-subtle">{zh ? "年初至今" : "YTD"} {fmtPct(q.ytdPct, 1)}</span>
                 </div>
               </Card>
             ))}
@@ -181,7 +183,7 @@ function Home() {
           </div>
           <p className="mb-3 text-xs text-muted">
             {zh
-              ? "開支比率（FER）為每年經常性收費。同類比較時，較低者長線被費用侵蝕較少。"
+              ? "開支比率係每年從基金扣除嘅總收費。下面金額係每 $1 萬結餘每年收幾多（填咗結餘就用你嘅金額）。"
               : "The fund expense ratio (FER) is the annual ongoing cost. Lower is better among peers."}
           </p>
           <ol className="space-y-2">
@@ -197,7 +199,7 @@ function Home() {
                   </span>
                   <span className="shrink-0 text-right font-mono tabular-nums text-primary">
                     {f.fer?.toFixed(2)}%
-                    <FeeAmount fer={f.fer} zh={zh} className="block text-xs text-muted" />
+                    <FeeAmount fer={f.fer} zh={zh} unit={false} className="block text-xs text-muted" />
                   </span>
                 </Link>
               </li>

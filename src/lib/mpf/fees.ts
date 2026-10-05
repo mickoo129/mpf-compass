@@ -11,6 +11,10 @@ import type { Fund } from "./types";
 /** Unit used when the member has not entered a balance. */
 export const FEE_UNIT = 10_000;
 
+/** Illustration used for long-run gaps when the member has not typed a balance. */
+export const EXAMPLE_BALANCE = 200_000;
+export const EXAMPLE_MONTHLY = 3_000;
+
 /** Gross return assumed for the fee-gap projection, before fees (% a year). */
 export const FEE_GAP_GROSS = 5;
 

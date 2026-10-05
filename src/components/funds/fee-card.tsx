@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cheapestAnywhere, cheapestSwitch } from "@/lib/mpf/fee-peers";
-import { annualFee, FEE_GAP_GROSS, FEE_UNIT, feeGap } from "@/lib/mpf/fees";
+import { annualFee, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, FEE_GAP_GROSS, FEE_UNIT, feeGap } from "@/lib/mpf/fees";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import type { Fund } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
@@ -51,7 +51,18 @@ export function BalanceInput({
 }
 
 /** "每年收費 $xxx" for a FER, on the member's balance or per HK$10,000. */
-export function FeeAmount({ fer, zh, className }: { fer: number | null | undefined; zh: boolean; className?: string }) {
+export function FeeAmount({
+  fer,
+  zh,
+  className,
+  unit = true,
+}: {
+  fer: number | null | undefined;
+  zh: boolean;
+  className?: string;
+  /** Show "（每 $1 萬）" when no balance is entered; turn off where the heading already says it. */
+  unit?: boolean;
+}) {
   const balance = useAppStore((s) => s.profile.balance);
   const base = balance > 0 ? balance : FEE_UNIT;
   const fee = annualFee(base, fer);
@@ -59,10 +70,15 @@ export function FeeAmount({ fer, zh, className }: { fer: number | null | undefin
   return (
     <span className={className}>
       {fmtHkd(fee)}
-      <span className="text-subtle">{balance > 0 ? (zh ? "／年" : "/yr") : zh ? "／年（每 $1 萬）" : "/yr per 10k"}</span>
+      <span className="text-subtle">
+        {zh ? "／年" : "/yr"}
+        {balance > 0 || !unit ? "" : zh ? "（每 $1 萬）" : " per 10k"}
+      </span>
     </span>
   );
 }
+
+export { EXAMPLE_BALANCE, EXAMPLE_MONTHLY };
 
 export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; className?: string }) {
   const balance = useAppStore((s) => s.profile.balance);
@@ -70,13 +86,20 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
   const age = useAppStore((s) => s.profile.age);
   const retireAge = useAppStore((s) => s.profile.retireAge);
   const years = Math.max(5, retireAge - age);
-  const base = balance > 0 ? balance : FEE_UNIT;
+  // A per-$10,000 saving looks trivial ("$51 a year"), so with nothing entered
+  // the card illustrates with a typical balance and says so.
+  const example = balance <= 0;
+  const base = example ? EXAMPLE_BALANCE : balance;
+  const perMonth = example && monthly <= 0 ? EXAMPLE_MONTHLY : monthly;
   const fee = annualFee(base, fund.fer);
   const inScheme = cheapestSwitch(fund);
   const anywhere = cheapestAnywhere(fund);
-  const alt = inScheme ?? anywhere;
-  const altFee = alt ? annualFee(base, alt.fer) : null;
-  const gap = alt && fund.fer != null && alt.fer != null ? feeGap(base, monthly, years, fund.fer, alt.fer) : null;
+  const alts = [
+    inScheme ? { fund: inScheme, labelZh: "同一計劃入面，同類收費最低", labelEn: "Cheapest same-type fund in this scheme" } : null,
+    anywhere && anywhere.id !== inScheme?.id && (anywhere.fer ?? 9) < (inScheme?.fer ?? 9)
+      ? { fund: anywhere, labelZh: "其他計劃入面，同類收費最低（只適用於可以轉計劃嘅個人帳戶）", labelEn: "Cheapest same-type fund in another scheme (personal accounts only)" }
+      : null,
+  ].filter((x): x is NonNullable<typeof x> => x != null);
 
   return (
     <Card className={className}>
@@ -90,57 +113,54 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
         <BalanceInput zh={zh} />
         <BalanceInput zh={zh} field="monthly" />
       </div>
+      {example ? (
+        <p className="mt-3 rounded-md bg-tint-sand px-3 py-2 text-xs text-fg">
+          {zh
+            ? `未填結餘，以下用結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(perMonth)} 做例子。填返實際數字就會即時更新。`
+            : `No balance entered; illustrated with ${fmtHkd(EXAMPLE_BALANCE)} and ${fmtHkd(perMonth)} a month.`}
+        </p>
+      ) : null}
       {fee != null ? (
-        <p className="mt-4 text-sm">
-          {balance > 0
-            ? zh
-              ? `以你 ${fmtHkd(balance)} 結餘計，每年收費約 `
-              : `On your ${fmtHkd(balance)}, about `
-            : zh
-              ? "每 $10,000 結餘，每年收費約 "
-              : "Per HK$10,000, about "}
+        <p className="mt-3 text-sm">
+          {zh ? `${fmtHkd(base)} 結餘，每年收費約 ` : `On ${fmtHkd(base)}, about `}
           <b className="font-mono text-lg">{fmtHkd(fee)}</b>
           {zh ? "。" : " a year."}
-          {balance > 0 ? null : (
-            <span className="block text-xs text-subtle">{zh ? "填上你嘅結餘，就會用你自己嘅金額計。" : "Enter your balance to use your own amount."}</span>
-          )}
         </p>
       ) : null}
 
-      {alt && altFee != null && fee != null && gap != null ? (
-        <div className="mt-4 rounded-lg bg-tint-mint p-3 text-sm">
-          <p className="text-xs text-muted">
-            {inScheme
-              ? zh
-                ? "同一計劃入面，同類最低收費"
-                : "Cheapest same-type fund in this scheme"
-              : zh
-                ? "其他計劃入面，同類最低收費（個人帳戶可轉）"
-                : "Cheapest same-type fund in another scheme"}
-          </p>
-          <Link to="/funds/$id" params={{ id: alt.id }} className="font-medium hover:underline">
-            {zh ? alt.nameZh : alt.nameEn}
-          </Link>
-          <span className="ml-1 text-xs text-subtle">{zh ? alt.schemeZh : alt.schemeEn}</span>
-          <p className="mt-1">
-            {zh ? "每年約 " : "About "}
-            <b className="font-mono">{fmtHkd(altFee)}</b>
-            {zh ? "，每年慳 " : " a year, saving "}
-            <b className="font-mono text-up">{fmtHkd(fee - altFee)}</b>
-          </p>
-          <p className="mt-1">
-            {zh ? `${years} 年累積落嚟，收費差距大約 ` : `Over ${years} years the gap is about `}
-            <b className="font-mono text-up">{fmtHkd(gap)}</b>
-          </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-muted">
-            {zh
-              ? `假設兩隻基金扣費前回報一樣（每年 ${FEE_GAP_GROSS}%）${monthly > 0 ? `、每月供款 ${fmtHkd(monthly)}` : ""}，計到 ${retireAge} 歲。實際回報唔同，收費平唔代表表現一定好。`
-              : `Assumes the same ${FEE_GAP_GROSS}% return before fees${monthly > 0 ? ` and ${fmtHkd(monthly)} a month` : ""}, to age ${retireAge}. Cheaper does not mean better performance.`}
-          </p>
-        </div>
+      {fee != null && fund.fer != null && alts.length ? (
+        alts.map(({ fund: alt, labelZh, labelEn }) => {
+          const altFee = annualFee(base, alt.fer) ?? 0;
+          const gap = feeGap(base, perMonth, years, fund.fer!, alt.fer!);
+          return (
+            <div key={alt.id} className="mt-3 rounded-lg bg-tint-mint p-3 text-sm">
+              <p className="text-xs text-muted">{zh ? labelZh : labelEn}</p>
+              <Link to="/funds/$id" params={{ id: alt.id }} className="font-medium hover:underline">
+                {zh ? alt.nameZh : alt.nameEn}
+              </Link>
+              <span className="block text-xs text-subtle">
+                {zh ? alt.schemeZh : alt.schemeEn} · {zh ? "開支比率" : "FER"} {fmtPctPlain(alt.fer)}
+              </span>
+              <p className="mt-1">
+                {zh ? "每年約 " : "About "}
+                <b className="font-mono">{fmtHkd(altFee)}</b>
+                {zh ? "，每年少收 " : " a year, "}
+                <b className="font-mono text-up">{fmtHkd(fee - altFee)}</b>
+                {zh ? "；" : " less; "}
+                {zh ? `到 ${retireAge} 歲累積相差約 ` : `by ${retireAge} the gap is about `}
+                <b className="font-mono text-up">{fmtHkd(gap)}</b>
+              </p>
+            </div>
+          );
+        })
       ) : fund.fer != null ? (
-        <p className="mt-4 rounded-lg bg-tint-mint p-3 text-sm">
-          {zh ? "呢隻已經係同類之中收費最低。" : "Already the cheapest fund of its type."}
+        <p className="mt-3 rounded-lg bg-tint-mint p-3 text-sm">{zh ? "呢隻已經係同類之中收費最低。" : "Already the cheapest fund of its type."}</p>
+      ) : null}
+      {alts.length ? (
+        <p className="mt-2 text-xs leading-relaxed text-muted">
+          {zh
+            ? `累積相差假設兩隻基金扣費前回報一樣（每年 ${FEE_GAP_GROSS}%）。實際回報唔同，收費平唔代表表現一定好。`
+            : `Gap assumes the same ${FEE_GAP_GROSS}% return before fees. Cheaper does not mean better performance.`}
         </p>
       ) : null}
     </Card>

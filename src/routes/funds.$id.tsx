@@ -13,7 +13,8 @@ import { RangeCard } from "@/components/funds/range-card";
 import { Term } from "@/components/ui/term";
 import { describeFund } from "@/lib/mpf/describe";
 import { seo } from "@/lib/seo";
-import { FeeAmount, FeeCard } from "@/components/funds/fee-card";
+import { FeeCard } from "@/components/funds/fee-card";
+import { YearVsPeers } from "@/components/charts/year-vs-peers";
 import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
@@ -72,13 +73,6 @@ function FundDetail() {
     .filter((f) => f.sleeve === fund.sleeve && annReturn(f, peerPeriod) != null)
     .sort((a, b) => (annReturn(b, peerPeriod) ?? 0) - (annReturn(a, peerPeriod) ?? 0))
     .slice(0, 5);
-  const calendar = [
-    ["2025", fund.y2025],
-    ["2024", fund.y2024],
-    ["2023", fund.y2023],
-    ["2022", fund.y2022],
-    ["2021", fund.y2021],
-  ] as const;
   const periods = [
     ["ret1y", rank1],
     ["ret3yCal", rank3],
@@ -142,10 +136,7 @@ function FundDetail() {
         <Metric
           label={<Term k="fer" />}
           value={
-            <span className="font-mono text-xl tabular-nums">
-              {fmtPctPlain(fund.fer)}
-              <FeeAmount fer={fund.fer} zh={zh} className="block text-xs text-muted" />
-            </span>
+<span className="font-mono text-xl tabular-nums">{fmtPctPlain(fund.fer)}</span>
           }
         />
       </div>
@@ -184,7 +175,7 @@ function FundDetail() {
                 ))}
               </tr>
               <tr>
-                <td className="py-2 pr-2 text-xs text-muted">{zh ? "同類" : "Peer"}</td>
+                <td className="py-2 pr-2 text-xs whitespace-nowrap text-muted">{zh ? "同類排名" : "Peer rank"}</td>
                 {periods.map(([p, rank]) => (
                   <td key={p} className="px-1 py-2 text-right font-mono text-xs text-muted">
                     {rank ? `${rank.rank}/${rank.total}` : "—"}
@@ -203,6 +194,8 @@ function FundDetail() {
         ) : null}
       </Card>
 
+      <YearVsPeers fund={fund} zh={zh} className="mb-8" />
+
       <FeeCard fund={fund} zh={zh} className="mb-8" />
 
       <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -219,23 +212,21 @@ function FundDetail() {
             <Row k={zh ? "成立至今" : "Since launch"} v={fmtPct(fund.retSince)} />
             <Row k={zh ? "管理費" : "Mgmt fee"} v={fmtFee(fund.mgmtFee, zh)} />
             <Row k={zh ? "積金易平台費" : "eMPF fee"} v={fund.empfFee != null ? `${fund.empfFee}%` : "—"} />
-            <Row k={zh ? "同類收費" : "Peer FER"} v={rankF ? `${rankF.rank} / ${rankF.total}` : "—"} />
+            <Row
+              k={zh ? "收費同同類比" : "Fee vs peers"}
+              v={
+                rankF
+                  ? zh
+                    ? `${rankF.total} 隻同類入面第 ${rankF.rank} 平${rankF.rank <= rankF.total / 3 ? "（偏平）" : rankF.rank > (rankF.total * 2) / 3 ? "（偏貴）" : "（中等）"}`
+                    : `${rankF.rank} cheapest of ${rankF.total}`
+                  : "—"
+              }
+            />
           </dl>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <h2 className="mb-3 font-display text-lg">{zh ? "日曆年回報" : "Calendar years"}</h2>
-          <div className="grid grid-cols-5 gap-2">
-            {calendar.map(([y, v]) => (
-              <div key={y} className="rounded-lg bg-white px-1 py-2 text-center ring-1 ring-border">
-                <p className="font-mono text-xs text-subtle">{y}</p>
-                <ReturnCell value={v} className="mt-1 block text-sm" />
-              </div>
-            ))}
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 gap-4">
         <Card>
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-display text-lg">{zh ? "同類領先" : "Sleeve leaders"}</h2>

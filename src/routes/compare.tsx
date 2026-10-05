@@ -7,10 +7,10 @@ import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, fundById, providerStats } from "@/lib/mpf/catalog";
 import { fmtAum, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
-import { BalanceInput, FeeAmount } from "@/components/funds/fee-card";
+import { BalanceInput, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, FeeAmount } from "@/components/funds/fee-card";
 import { FundPicker } from "@/components/funds/fund-picker";
 import { Term } from "@/components/ui/term";
-import { FEE_GAP_GROSS, FEE_UNIT, feeGap } from "@/lib/mpf/fees";
+import { FEE_GAP_GROSS, feeGap } from "@/lib/mpf/fees";
 import { calendar3yAnn, MPFA_PERIOD_NOTE } from "@/lib/mpf/returns";
 import type { Fund } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
@@ -435,12 +435,14 @@ function CustomCompare({
 function FeeCompare({ funds, zh }: { funds: Fund[]; zh: boolean }) {
   const balance = useAppStore((s) => s.profile.balance);
   const monthly = useAppStore((s) => s.profile.monthly);
-  const base = balance > 0 ? balance : FEE_UNIT;
+  const example = balance <= 0;
+  const base = example ? EXAMPLE_BALANCE : balance;
+  const perMonth = example && monthly <= 0 ? EXAMPLE_MONTHLY : monthly;
   const priced = funds.filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 0) - (b.fer ?? 0));
   const low = priced[0];
   const high = priced.at(-1);
   const years = 30;
-  const gap = low && high && high.id !== low.id ? feeGap(base, monthly, years, high.fer!, low.fer!) : null;
+  const gap = low && high && high.id !== low.id ? feeGap(base, perMonth, years, high.fer!, low.fer!) : null;
   return (
     <Card className="mb-6">
       <h2 className="mb-1 font-display text-lg">{zh ? "收費以港幣計" : "Fees in HK$"}</h2>
@@ -457,7 +459,10 @@ function FeeCompare({ funds, zh }: { funds: Fund[]; zh: boolean }) {
                 {zh ? f.schemeZh : f.schemeEn} · {fmtPctPlain(f.fer)}
               </span>
             </span>
-            <FeeAmount fer={f.fer} zh={zh} className="shrink-0 font-mono" />
+            <span className="shrink-0 font-mono">
+              {fmtHkd(((f.fer ?? 0) * base) / 100)}
+              <span className="text-subtle">{zh ? "／年" : "/yr"}</span>
+            </span>
           </li>
         ))}
       </ul>
@@ -470,7 +475,7 @@ function FeeCompare({ funds, zh }: { funds: Fund[]; zh: boolean }) {
           {zh ? "。" : ` over ${years} years.`}
           <span className="mt-1 block text-[12px] text-muted">
             {zh
-              ? `假設扣費前回報一樣（每年 ${FEE_GAP_GROSS}%）${balance > 0 ? "" : "，以每 $10,000 結餘計"}${monthly > 0 ? `，每月供款 ${fmtHkd(monthly)}` : ""}。收費平唔代表表現一定好。`
+              ? `假設扣費前回報一樣（每年 ${FEE_GAP_GROSS}%），${example ? "例子：" : ""}結餘 ${fmtHkd(base)}、每月供款 ${fmtHkd(perMonth)}。收費平唔代表表現一定好。`
               : `Same ${FEE_GAP_GROSS}% return before fees assumed. Cheaper does not mean better.`}
           </span>
         </p>

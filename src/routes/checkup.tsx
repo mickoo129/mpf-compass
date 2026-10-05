@@ -279,7 +279,7 @@ function CheckupPage() {
               <BalanceInput zh={zh} field="monthly" />
             </div>
             <p className="mt-2 text-xs text-subtle">
-              {zh ? "填咗結餘，收費會用你自己嘅金額計；唔填就以每 $10,000 計。" : "With a balance, fees use your own amount; otherwise per HK$10,000."}
+              {zh ? "填咗結餘，收費會用實際金額計；唔填就用 $200,000 做例子。" : "With a balance, fees use the real amount; otherwise a HK$200,000 example."}
             </p>
           </Card>
         </div>
