@@ -5,8 +5,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getIndexPaths } from "@/lib/server/markets";
 
 const COLORS: Record<string, string> = {
-  "^HSI": "#c2362b",
-  "^GSPC": "#0b45a6",
+  "^HSI": "#c24b3c",
+  "^GSPC": "#1a7a96",
   "^N225": "#c45c7a",
   "^KS11": "#8a5a44",
   "000300.SS": "#d4a84b",
@@ -66,7 +66,7 @@ export function IndexPathChart({ zh }: { zh: boolean }) {
                   key={s.symbol}
                   type="monotone"
                   dataKey={s.symbol}
-                  stroke={COLORS[s.symbol] ?? "#0b45a6"}
+                  stroke={COLORS[s.symbol] ?? "#1a7a96"}
                   strokeWidth={s.symbol === "^GSPC" || s.symbol === "^HSI" ? 2.2 : 1.6}
                   dot={false}
                   connectNulls
