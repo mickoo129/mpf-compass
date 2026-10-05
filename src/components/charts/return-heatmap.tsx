@@ -37,7 +37,7 @@ type Mode = "value" | "rank";
 /** Diverging tint: red for losses, green for gains, saturating at ±30%. */
 function valueTint(v: number): string {
   const a = Math.min(1, Math.abs(v) / 30) * 0.75 + 0.06;
-  return v >= 0 ? `rgba(14, 122, 75, ${a.toFixed(3)})` : `rgba(194, 54, 43, ${a.toFixed(3)})`;
+  return v >= 0 ? `rgba(31, 138, 92, ${a.toFixed(3)})` : `rgba(194, 75, 60, ${a.toFixed(3)})`;
 }
 
 /** Rank tint: top of the column darkest green, bottom darkest red. */
@@ -46,7 +46,7 @@ function rankTint(rank: number, n: number): string {
   const x = rank / (n - 1); // 0 = best
   const d = Math.abs(x - 0.5) * 2;
   const a = d * 0.7 + 0.05;
-  return x <= 0.5 ? `rgba(14, 122, 75, ${a.toFixed(3)})` : `rgba(194, 54, 43, ${a.toFixed(3)})`;
+  return x <= 0.5 ? `rgba(31, 138, 92, ${a.toFixed(3)})` : `rgba(194, 75, 60, ${a.toFixed(3)})`;
 }
 
 export function ReturnHeatmap({ zh }: { zh: boolean }) {

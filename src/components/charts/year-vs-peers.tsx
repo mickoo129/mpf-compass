@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { allFunds, CAL_YEARS, median, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import type { Fund } from "@/lib/mpf/types";
 
-const FUND_COLOR = "#0b45a6";
+const FUND_COLOR = "#1a7a96";
 const PEER_COLOR = "#b9c6d3";
 
 /**
@@ -62,14 +62,14 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
             <Tooltip
               formatter={(v: number, name: string) => [pct(v), name]}
               contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
-              cursor={{ fill: "rgba(11,69,166,0.06)" }}
+              cursor={{ fill: "rgba(26,122,150,0.06)" }}
             />
-            <Bar dataKey="fund" name={zh ? "呢隻基金" : "This fund"} fill={FUND_COLOR} radius={[0, 0, 0, 0]}>
+            <Bar dataKey="fund" name={zh ? "呢隻基金" : "This fund"} fill={FUND_COLOR} radius={[3, 3, 0, 0]}>
               {data.map((d) => (
                 <Cell key={d.year} fill={FUND_COLOR} />
               ))}
             </Bar>
-            <Bar dataKey="peers" name={zh ? "同類中位數" : "Peer median"} fill={PEER_COLOR} radius={[0, 0, 0, 0]} />
+            <Bar dataKey="peers" name={zh ? "同類中位數" : "Peer median"} fill={PEER_COLOR} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -77,7 +77,7 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
         <table className="w-full text-center text-xs">
           <tbody>
             <tr>
-              <th className="pr-2 text-left whitespace-nowrap font-normal text-muted">{zh ? "基金" : "Fund"}</th>
+              <th className="pr-2 text-left font-normal text-muted">{zh ? "基金" : "Fund"}</th>
               {data.map((d) => (
                 <td key={d.year} className={`px-1 py-0.5 font-mono ${d.fund == null ? "text-subtle" : d.fund >= 0 ? "text-up" : "text-down"}`}>
                   {pct(d.fund)}
@@ -85,7 +85,7 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
               ))}
             </tr>
             <tr>
-              <th className="pr-2 text-left whitespace-nowrap font-normal text-muted">{zh ? "同類" : "Peers"}</th>
+              <th className="pr-2 text-left font-normal text-muted">{zh ? "同類" : "Peers"}</th>
               {data.map((d) => (
                 <td key={d.year} className="px-1 py-0.5 font-mono text-muted">
                   {pct(d.peers)}

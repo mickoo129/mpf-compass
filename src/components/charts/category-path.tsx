@@ -6,16 +6,16 @@ import { ReturnCell } from "@/components/funds/return-cell";
 import { cn } from "@/lib/utils";
 
 const CAT_COLORS: Record<string, string> = {
-  equity: "#0b45a6",
+  equity: "#1a7a96",
   mixed: "#d4a84b",
   bond: "#5b7086",
-  money: "#0e7a4b",
+  money: "#1f8a5c",
   guaranteed: "#7b6bb0",
 };
 
 const SLEEVE_COLORS: Record<string, string> = {
-  us: "#0b45a6",
-  hk: "#c2362b",
+  us: "#1a7a96",
+  hk: "#c24b3c",
   china: "#d4a84b",
   "greater-china": "#b8831f",
   asia: "#2c9a6a",
@@ -142,7 +142,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
                 key={s.id}
                 type="monotone"
                 dataKey={s.id}
-                stroke={colors[s.id] ?? "#0b45a6"}
+                stroke={colors[s.id] ?? "#1a7a96"}
                 strokeWidth={s.id === "equity" || s.id === "us" ? 2.4 : 1.7}
                 dot={{ r: 3 }}
                 connectNulls
