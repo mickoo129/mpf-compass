@@ -225,7 +225,7 @@ function RecommendPage() {
         title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
         subtitle={zh ? "結果喺下面，想改條件撳「修改條件」。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0b2a4a]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 bg-ink px-4 py-2 sm:mx-0 sm:px-3">
         <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
             ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}檢討`
@@ -292,7 +292,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "現時計劃（只在此計劃內揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -311,7 +311,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "只從此計劃揀基金（可選）" : "Limit to one scheme (optional)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -509,7 +509,7 @@ function RecommendPage() {
                         {a.fund.riskClass ?? "—"}
                       </p>
                     </div>
-                    <span className="font-mono text-lg tabular-nums">{Math.round(a.weight * 100)}%</span>
+                    <span className="font-mono text-3xl leading-none font-bold tabular-nums">{Math.round(a.weight * 100)}%</span>
                   </div>
                   <p className="mt-1 text-xs text-muted">{zh ? a.reasonZh : a.reasonEn}</p>
                   <div className="mt-2 flex gap-3 text-xs">
@@ -688,7 +688,7 @@ function RecommendPage() {
             ) : null}
           </Card>
 
-          <details className="group rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)] sm:p-5">
+          <details className="group border border-border border-t-2 border-t-ink bg-card p-4 text-fg sm:p-5">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
               <span>
                 <span className="font-display text-lg">{zh ? "點樣揀出嚟？" : "How was this picked?"}</span>

@@ -2,44 +2,46 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+  /* Swiss: one grotesque for everything. Latin and numerals come from Inter Tight, Chinese falls through to the system face. */
+  --font-sans: "Inter Tight", "Helvetica Neue", Helvetica, Arial, "PingFang HK", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-display: "Inter Tight", "Helvetica Neue", Helvetica, Arial, "PingFang HK", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  /* Figures use the same face with tabular numerals (see .font-mono below), not a monospace. */
+  --font-mono: "Inter Tight", "Helvetica Neue", Helvetica, Arial, "PingFang HK", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
   /* 12px reads poorly for many members; the smallest text on the site is 13px. */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
-  --font-mono: "SF Mono", ui-monospace, "IBM Plex Mono", Menlo, Consolas, monospace;
 
-  --color-bg: #0b2a4a;
-  --color-bg-warm: #143a61;
-  --color-fg: #1a3148;
-  --color-canvas: #eef4fa;
-  --color-canvas-muted: #c9d8e7;
+  /* Ground, paper, ink, one working colour (cobalt). Green and red only ever mean gain and loss. */
+  --color-bg: #f3f4f2;
+  --color-bg-warm: #e7e9e6;
+  --color-fg: #10161d;
+  --color-canvas: #10161d;
+  --color-canvas-muted: #4b5560;
   --color-card: #ffffff;
-  --color-muted: #475b70;
-  --color-subtle: #55697e;
-  --color-border: #d0dbe6;
-  --color-primary: #1a7a96;
+  --color-muted: #4b5560;
+  --color-subtle: #5d6772;
+  --color-border: #d3d7db;
+  --color-primary: #0b45a6;
   --color-primary-fg: #ffffff;
-  --color-ink: #0b2a4a;
-  --color-up: #1f8a5c;
-  --color-down: #c24b3c;
-  --color-warn: #c4922a;
-  --color-ring: #3aa0bf;
+  --color-ink: #10161d;
+  --color-up: #0e7a4b;
+  --color-down: #c2362b;
+  --color-warn: #8f6400;
+  --color-ring: #0b45a6;
   --color-accent: #d4a84b;
-  --color-tint-sky: #e8f3f8;
-  --color-tint-mint: #e8f6ef;
-  --color-tint-sand: #f6f0e2;
-  --color-tint-lilac: #eef0f8;
+  --color-tint-sky: #edf1f8;
+  --color-tint-mint: #ecf4ef;
+  --color-tint-sand: #f6f2e6;
+  --color-tint-lilac: #f0f0f4;
 
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 26px;
+  --radius-xs: 0px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
 
-  --shadow-border:
-    0px 0px 0px 1px rgba(255, 255, 255, 0.08),
-    0px 14px 36px -16px rgba(0, 0, 0, 0.45);
+  --shadow-border: 0 0 0 1px var(--color-border);
 }
 
 @layer base {
@@ -51,10 +53,6 @@
 
   body {
     background-color: var(--color-bg);
-    background-image:
-      radial-gradient(900px 380px at 12% -10%, rgba(58, 160, 191, 0.18), transparent 55%),
-      radial-gradient(700px 320px at 100% 0%, rgba(212, 168, 75, 0.08), transparent 50%);
-    background-attachment: fixed;
     color: var(--color-canvas);
     font-family: var(--font-sans);
   }
@@ -64,7 +62,7 @@
     overflow-wrap: normal;
     word-break: normal;
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.02em;
   }
 
@@ -80,6 +78,16 @@
 
   * {
     border-color: var(--color-border);
+  }
+
+  /* Every figure lines up in its column. */
+  table, .font-mono, .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 
   ::selection {

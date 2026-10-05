@@ -165,7 +165,7 @@ function CheckupPage() {
               {zh ? "唔肯定？可以喺「積金易」App 或者周年權益報表睇到。" : "Not sure? Check the eMPF app or your annual benefit statement."}
             </p>
             <select
-              className="h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+              className="h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
               value={scheme}
               onChange={(e) => pickScheme(e.target.value)}
             >

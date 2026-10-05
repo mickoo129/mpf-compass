@@ -87,17 +87,17 @@ function FundDetail() {
   return (
     <div>
       <p className="mb-2 text-xs text-canvas-muted">
-        <Link to="/funds" className="hover:text-white">
+        <Link to="/funds" className="hover:text-primary">
           {zh ? "基金庫" : "Funds"}
         </Link>
         <span className="mx-1">/</span>
-        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-white">
+        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-primary">
           {zh ? fund.schemeZh : fund.schemeEn}
         </Link>
       </p>
       <label className="mb-1 block text-xs text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
       <select
-        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg ring-1 ring-ink/70 [color-scheme:light]"
         value={fund.id}
         onChange={(e) => {
           if (e.target.value && e.target.value !== fund.id) void navigate({ to: "/funds/$id", params: { id: e.target.value } });
@@ -111,11 +111,11 @@ function FundDetail() {
       </select>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{zh ? fund.nameZh : fund.nameEn}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-canvas sm:text-4xl">{zh ? fund.nameZh : fund.nameEn}</h1>
           <p className="mt-1 text-sm text-canvas-muted">
             {zh ? fund.nameEn : fund.nameZh} · {zh ? fund.providerZh : fund.providerEn}
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">{describeFund(fund, zh)}</p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-canvas">{describeFund(fund, zh)}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
             {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || !/\p{Script=Han}/u.test(t))).map((t) => (
@@ -130,13 +130,13 @@ function FundDetail() {
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Metric label={<Term k="annualised">{zh ? "1年年化" : "1Y p.a."}</Term>} value={<ReturnCell value={fund.ret1y} className="text-xl" />} />
-        <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-xl" />} />
-        <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-xl" />} />
+        <Metric label={<Term k="annualised">{zh ? "1年年化" : "1Y p.a."}</Term>} value={<ReturnCell value={fund.ret1y} className="text-2xl font-bold sm:text-3xl" />} />
+        <Metric label={zh ? "5年年化" : "5Y p.a."} value={<ReturnCell value={fund.ret5y} className="text-2xl font-bold sm:text-3xl" />} />
+        <Metric label={zh ? "10年年化" : "10Y p.a."} value={<ReturnCell value={fund.ret10y} className="text-2xl font-bold sm:text-3xl" />} />
         <Metric
           label={<Term k="fer" />}
           value={
-<span className="font-mono text-xl tabular-nums">{fmtPctPlain(fund.fer)}</span>
+<span className="font-mono text-2xl font-bold sm:text-3xl tabular-nums">{fmtPctPlain(fund.fer)}</span>
           }
         />
       </div>
