@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { BalanceInput } from "@/components/funds/fee-card";
+import { FundPicker } from "@/components/funds/fund-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Term } from "@/components/ui/term";
-import { allFunds, fundById, SLEEVE_LABEL, uniqueSchemes } from "@/lib/mpf/catalog";
+import { fundById, SLEEVE_LABEL, uniqueSchemes } from "@/lib/mpf/catalog";
 import { regionLabel, runCheckup, type Light } from "@/lib/mpf/checkup";
 import { fmtPctPlain } from "@/lib/mpf/format";
 import { useAppStore } from "@/lib/store";
@@ -73,14 +74,9 @@ function CheckupPage() {
   const [scheme, setScheme] = useState<string>(search.s ?? "");
   const [rows, setRows] = useState<Row[]>(() => parseHoldings(search.h));
   const [copied, setCopied] = useState(false);
+  const [touched, setTouched] = useState(() => parseHoldings(search.h).length > 0);
 
-  const schemeFunds = useMemo(
-    () =>
-      allFunds
-        .filter((f) => f.schemeEn === scheme)
-        .sort((a, b) => (zh ? a.nameZh.localeCompare(b.nameZh, "zh-HK") : a.nameEn.localeCompare(b.nameEn))),
-    [scheme, zh],
-  );
+
   const total = rows.reduce((s, r) => s + r.pct, 0);
   const ready = rows.length > 0 && Math.abs(total - 100) <= 1;
 
@@ -108,13 +104,21 @@ function CheckupPage() {
   function pickScheme(next: string) {
     setScheme(next);
     setRows([]);
+    setTouched(false);
     syncUrl(next, []);
     if (next) setProfile({ schemeEn: next, account: "contribution" });
   }
   function addFund(id: string) {
     if (!id || rows.some((r) => r.id === id)) return;
-    const left = Math.max(0, 100 - total);
-    update([...rows, { id, pct: left }]);
+    // Until a percentage is typed by hand, keep the split even so adding three
+    // funds gives a usable 34/33/33 straight away.
+    if (!touched) {
+      const n = rows.length + 1;
+      const each = Math.floor(100 / n);
+      update([...rows, { id, pct: 0 }].map((r, i) => ({ ...r, pct: i === 0 ? 100 - each * (n - 1) : each })));
+      return;
+    }
+    update([...rows, { id, pct: Math.max(0, 100 - total) }]);
   }
   function spreadEvenly() {
     if (!rows.length) return;
@@ -177,7 +181,7 @@ function CheckupPage() {
           <Card className={cn(!scheme && "opacity-60")}>
             <h2 className="mb-1 font-display text-lg">{zh ? "2. 你持有嘅基金同比例" : "2. Your funds and split"}</h2>
             <p className="mb-3 text-xs text-muted">
-              {zh ? "逐隻加入，再填返每隻佔幾多 %。加埋要等於 100%。" : "Add each fund and its share. They must add up to 100%."}
+              {zh ? "逐隻加入，會先平均分配；知道實際比例就改返每隻嘅 %。" : "Add each fund; they are split evenly until you type the real shares."}
             </p>
             {rows.length ? (
               <ul className="mb-3 space-y-2">
@@ -199,6 +203,7 @@ function CheckupPage() {
                           aria-label={zh ? "比例" : "Share"}
                           className="pr-6 text-right font-mono"
                           onChange={(e) => {
+                            setTouched(true);
                             const v = Math.min(100, Number(e.target.value.replace(/[^\d]/g, "")) || 0);
                             update(rows.map((x, j) => (j === i ? { ...x, pct: v } : x)));
                           }}
@@ -218,24 +223,22 @@ function CheckupPage() {
                 })}
               </ul>
             ) : null}
-            <div className="flex items-center gap-2">
-              <Plus className="size-4 shrink-0 text-subtle" />
-              <select
-                className="h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
-                value=""
-                disabled={!scheme}
-                onChange={(e) => addFund(e.target.value)}
-              >
-                <option value="">{zh ? "加入一隻基金…" : "Add a fund…"}</option>
-                {schemeFunds
-                  .filter((f) => !rows.some((r) => r.id === f.id))
-                  .map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {zh ? f.nameZh : f.nameEn}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <FundPicker
+              zh={zh}
+              schemeEn={scheme || undefined}
+              exclude={rows.map((r) => r.id)}
+              disabled={!scheme}
+              onPick={(f) => addFund(f.id)}
+              placeholder={
+                !scheme
+                  ? zh
+                    ? "先揀上面嘅計劃"
+                    : "Pick a scheme first"
+                  : zh
+                    ? "撳呢度揀基金，或者打名搵（例如：北美）"
+                    : "Tap to choose, or type a name"
+              }
+            />
             {rows.length ? (
               <div className="mt-3 flex items-center justify-between gap-2 text-sm">
                 <span className={cn("font-mono", ready ? "text-up" : "text-warn")}>
