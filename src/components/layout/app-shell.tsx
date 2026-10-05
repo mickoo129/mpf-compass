@@ -195,7 +195,10 @@ export function CompareHint() {
   const ids = useAppStore((s) => s.compareIds);
   const locale = useAppStore((s) => s.locale);
   const clear = useAppStore((s) => s.clearCompare);
-  if (!ids.length) return null;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Only a reminder while browsing funds; on other pages it just covers content.
+  const browsing = pathname.startsWith("/funds") || pathname === "/schemes";
+  if (!ids.length || !browsing) return null;
   return (
     <div className="fixed right-4 bottom-4 z-30 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-primary shadow-[var(--shadow-border)]">
       <Link to="/compare" className="text-sm">

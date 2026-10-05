@@ -694,7 +694,7 @@ function RecommendPage() {
                 <span className="font-display text-lg">{zh ? "點樣揀出嚟？" : "How was this picked?"}</span>
                 <span className="block text-xs text-muted">{zh ? "評分規則、市況展望（利率、52 週位置、過熱）" : "Scoring rule and market outlook"}</span>
               </span>
-              <span className="text-xs text-primary group-open:hidden">{zh ? "展開" : "Show"}</span>
+              <span className="shrink-0 text-xs whitespace-nowrap text-primary group-open:hidden">{zh ? "展開" : "Show"}</span>
             </summary>
             <div className="mt-4 space-y-5">
       <div>

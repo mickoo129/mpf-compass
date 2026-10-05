@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { allFunds, fundById, providerStats } from "@/lib/mpf/catalog";
 import { fmtAum, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
-import { BalanceInput, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, FeeAmount } from "@/components/funds/fee-card";
+import { BalanceInput, EXAMPLE_BALANCE, EXAMPLE_MONTHLY } from "@/components/funds/fee-card";
 import { FundPicker } from "@/components/funds/fund-picker";
 import { Term } from "@/components/ui/term";
 import { FEE_GAP_GROSS, feeGap } from "@/lib/mpf/fees";
@@ -168,7 +168,7 @@ function ComparePage() {
             <span className="font-display text-lg">{zh ? "排行榜：供應商同基金回報" : "Leaderboards: providers and funds"}</span>
             <span className="block text-xs text-canvas-muted">{zh ? "想搵靈感揀邊隻嚟比，可以喺呢度撳「比較」加入" : "Browse and pin funds from here"}</span>
           </span>
-          <span className="text-xs text-accent group-open:hidden">{zh ? "展開" : "Show"}</span>
+          <span className="shrink-0 text-xs whitespace-nowrap text-accent group-open:hidden">{zh ? "展開" : "Show"}</span>
         </summary>
         <div className="mt-4">
       {schemeEn ? (
@@ -413,14 +413,6 @@ function CustomCompare({
                 </tr>
               );
             })}
-            <tr>
-              <td className="px-3 py-2 text-xs whitespace-nowrap text-muted">{zh ? "每年收費" : "Fee / yr"}</td>
-              {funds.map((f) => (
-                <td key={f.id} className="px-2 py-2 text-right font-mono text-xs">
-                  <FeeAmount fer={f.fer} zh={zh} />
-                </td>
-              ))}
-            </tr>
           </tbody>
         </table>
       </div>

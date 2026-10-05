@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { TAG_ZH, allFunds, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
+import { TAG_ZH, allFunds, catalogMeta, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
 import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
@@ -15,7 +15,7 @@ import { describeFund } from "@/lib/mpf/describe";
 import { seo } from "@/lib/seo";
 import { FeeCard } from "@/components/funds/fee-card";
 import { YearVsPeers } from "@/components/charts/year-vs-peers";
-import { annReturn, calendar3yAnn, cumReturn, MPFA_PERIOD_NOTE, PERIOD_LABEL } from "@/lib/mpf/returns";
+import { annReturn, calendar3yAnn, cumReturn, PERIOD_LABEL } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 
@@ -143,16 +143,18 @@ function FundDetail() {
 
       <Card className="mb-8">
         <h2 className="mb-1 font-display text-lg">{zh ? "回報時段" : "Return periods"}</h2>
-        <p className="mb-3 text-xs text-subtle">{zh ? MPFA_PERIOD_NOTE.zh : MPFA_PERIOD_NOTE.en}</p>
+        <p className="mb-2 text-xs text-subtle">
+          {zh ? `積金局數字，截至 ${catalogMeta.asOf}。「3年」係推算，撳「?」睇解釋。` : `MPFA figures as of ${catalogMeta.asOf}. “3Y” is derived; tap ? for details.`}
+        </p>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted">
                 <th className="py-2 pr-2 text-left font-medium" />
                 {periods.map(([p]) => (
-                  <th key={p} className="px-1 py-2 text-right font-medium whitespace-nowrap">
-                    {zh ? PERIOD_LABEL[p].zh : PERIOD_LABEL[p].en}
-                    {p === "ret3yCal" ? <span className="block text-xs font-normal text-subtle">{zh ? "推算" : "est."}</span> : null}
+                  <th key={p} className="py-2 pl-1 text-right font-medium whitespace-nowrap">
+                    {zh ? (p === "retSince" ? "成立" : PERIOD_LABEL[p].zh) : PERIOD_LABEL[p].en}
+                    {p === "ret3yCal" ? <Term k="est3y">{""}</Term> : null}
                   </th>
                 ))}
               </tr>
@@ -161,23 +163,23 @@ function FundDetail() {
               <tr className="border-b border-border/70">
                 <td className="py-2 pr-2 text-xs text-muted"><Term k="annualised">{zh ? "年化" : "Ann."}</Term></td>
                 {periods.map(([p]) => (
-                  <td key={p} className="px-1 py-2 text-right">
-                    <ReturnCell value={annReturn(fund, p)} />
+                  <td key={p} className="py-2 pl-1 text-right">
+                    <ReturnCell value={annReturn(fund, p)} digits={1} />
                   </td>
                 ))}
               </tr>
               <tr className="border-b border-border/70">
                 <td className="py-2 pr-2 text-xs text-muted"><Term k="cumulative">{zh ? "累積" : "Cum."}</Term></td>
                 {periods.map(([p]) => (
-                  <td key={p} className="px-1 py-2 text-right">
-                    <ReturnCell value={cumReturn(fund, p)} />
+                  <td key={p} className="py-2 pl-1 text-right">
+                    <ReturnCell value={cumReturn(fund, p)} digits={0} />
                   </td>
                 ))}
               </tr>
               <tr>
                 <td className="py-2 pr-2 text-xs whitespace-nowrap text-muted">{zh ? "同類排名" : "Peer rank"}</td>
                 {periods.map(([p, rank]) => (
-                  <td key={p} className="px-1 py-2 text-right font-mono text-xs text-muted">
+                  <td key={p} className="py-2 pl-1 text-right font-mono text-xs text-muted">
                     {rank ? `${rank.rank}/${rank.total}` : "—"}
                   </td>
                 ))}
