@@ -31,8 +31,8 @@ export const PERIOD_LABEL: Record<AnnPeriod, { zh: string; en: string }> = {
 };
 
 export const MPFA_PERIOD_NOTE = {
-  zh: "積金局基金平台公布年化／累積：1年、5年、10年、成立至今，以及曆年 2021–2025（截至 2026-08-31）。沒有官方 1個月、3個月、半年、年初至今或滾動 3年。「3年」由 2023–2025 曆年複利推算，截至 2025-12-31。",
-  en: "MPFA publishes annualized/cumulative 1Y, 5Y, 10Y, since launch, and calendar 2021–2025 (as of 2026-08-31). No official 1M, 3M, 6M, YTD, or trailing 3Y. “3Y” is compounded from calendar 2023–2025, through 31 Dec 2025.",
+  zh: "積金局基金平台公布年化／累積：1年、5年、10年、成立至今，以及曆年 2021–2025（截至 2026-09-30）。沒有官方 1個月、3個月、半年、年初至今或滾動 3年。「3年」由 2023–2025 曆年複利推算，截至 2026-09-30。",
+  en: "MPFA publishes annualized/cumulative 1Y, 5Y, 10Y, since launch, and calendar 2021–2025 (as of 2026-09-30). No official 1M, 3M, 6M, YTD, or trailing 3Y. “3Y” is compounded from calendar 2023–2025, through 31 Dec 2025.",
 };
 
 export function calendar3yAnn(fund: Fund): number | null {
