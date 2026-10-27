@@ -323,7 +323,7 @@ function CustomCompare({
     { key: zh ? "成立" : "Since", ...Object.fromEntries(funds.map((f) => [f.id, f.retSince ?? 0])) },
   ];
   // Categorical colours kept apart from the green/red used for gains and losses.
-  const colors = ["#1a7a96", "#d4a84b", "#7b6bb5", "#5b7086"];
+  const colors = ["#00A758", "#d4a84b", "#7b6bb5", "#5b7086"];
   type RowDef = { label: React.ReactNode; get: (f: Fund) => number | null; kind: "ret" | "low" | "plain"; fmt?: (v: number) => string };
   const rows: RowDef[] = [
     { label: zh ? "1年" : "1Y", get: (f) => f.ret1y, kind: "ret" },

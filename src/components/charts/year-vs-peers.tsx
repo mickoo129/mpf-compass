@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { allFunds, CAL_YEARS, median, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import type { Fund } from "@/lib/mpf/types";
 
-const FUND_COLOR = "#1a7a96";
+const FUND_COLOR = "#00A758";
 const PEER_COLOR = "#b9c6d3";
 
 /**
