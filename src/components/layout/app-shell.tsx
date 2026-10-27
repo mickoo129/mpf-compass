@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Compass, Menu, X, Search } from "lucide-react";
+import { Compass, Menu, X, Search, Printer } from "lucide-react";
 import { useState } from "react";
 import { copy, t } from "@/lib/i18n";
 import { catalogMeta } from "@/lib/mpf/catalog";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ResetButton } from "@/components/layout/reset-button";
 import { cn } from "@/lib/utils";
+import { MkEcard, MkPrintHead } from "@/components/layout/mk-standard";
 
 const NAV = [
   { to: "/", key: "pulse" as const },
@@ -59,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b2a4a]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0E5E57]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
           <Link to="/" className="flex min-w-0 items-center gap-2 text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
             <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-ink">
@@ -80,6 +81,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Search className="size-5" />
               </Link>
             </Button>
+            <button
+              type="button"
+              className="mk-print-btn"
+              onClick={() => window.print()}
+              aria-label={locale === "zh" ? "列印 / 存 PDF" : "Print / Save PDF"}
+            >
+              <Printer className="size-4" />
+              <span className="hidden sm:inline">{locale === "zh" ? "列印 / 存 PDF" : "Print / PDF"}</span>
+            </button>
             <Button
               variant="ghost"
               size="sm"
@@ -122,7 +132,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </SheetContent>
       </Sheet>
-      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-5 sm:py-8">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-5 sm:py-8">
+        <MkPrintHead />
+        {children}
+      </main>
       <footer className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <p className="w-full text-xs leading-relaxed text-canvas-muted">
@@ -142,7 +155,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {locale === "zh" ? "積金局基金平台" : "MPFA Fund Platform"}
             </a>
           </nav>
-          <p className="mt-4 text-center text-xs text-canvas-muted">
+          <MkEcard zh={locale === "zh"} />
+          <p className="mk-copy text-center !text-canvas-muted">
             © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). {locale === "zh" ? "版權所有。" : "All rights reserved."}
           </p>
         </div>

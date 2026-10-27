@@ -237,7 +237,7 @@ function RecommendPage() {
         title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
         subtitle={zh ? "結果喺下面。想改年齡、目標或者計劃就撳「修改條件」，改完撳「睇結果」返上嚟。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0b2a4a]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0E5E57]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
         <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
             ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}再睇`

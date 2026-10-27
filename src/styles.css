@@ -2,33 +2,34 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "PingFang HK", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+  --font-sans: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-display: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-num: "Barlow", "Noto Sans HK", system-ui, sans-serif;
   /* 12px reads poorly for many members; the smallest text on the site is 13px. */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
   --font-mono: "SF Mono", ui-monospace, "IBM Plex Mono", Menlo, Consolas, monospace;
 
-  --color-bg: #0b2a4a;
-  --color-bg-warm: #143a61;
-  --color-fg: #1a3148;
-  --color-canvas: #eef4fa;
-  --color-canvas-muted: #c9d8e7;
+  --color-bg: #0E5E57;
+  --color-bg-warm: #0A4A44;
+  --color-fg: #1D2B2A;
+  --color-canvas: #EEF6F3;
+  --color-canvas-muted: #C9DDD8;
   --color-card: #ffffff;
-  --color-muted: #475b70;
-  --color-subtle: #55697e;
-  --color-border: #d0dbe6;
-  --color-primary: #1a7a96;
+  --color-muted: #5B6B6A;
+  --color-subtle: #6F7F7D;
+  --color-border: #E3E9E7;
+  --color-primary: #00A758;
   --color-primary-fg: #ffffff;
-  --color-ink: #0b2a4a;
-  --color-up: #1f8a5c;
-  --color-down: #c24b3c;
+  --color-ink: #0E5E57;
+  --color-up: #00753E;
+  --color-down: #C62828;
   --color-warn: #c4922a;
-  --color-ring: #3aa0bf;
-  --color-accent: #d4a84b;
-  --color-tint-sky: #e8f3f8;
-  --color-tint-mint: #e8f6ef;
-  --color-tint-sand: #f6f0e2;
+  --color-ring: #00A758;
+  --color-accent: #7FE0AE;
+  --color-tint-sky: #E7F1EF;
+  --color-tint-mint: #E6F6EE;
+  --color-tint-sand: #FFF5DC;
   --color-tint-lilac: #eef0f8;
 
   --radius-xs: 4px;
@@ -52,8 +53,8 @@
   body {
     background-color: var(--color-bg);
     background-image:
-      radial-gradient(900px 380px at 12% -10%, rgba(58, 160, 191, 0.18), transparent 55%),
-      radial-gradient(700px 320px at 100% 0%, rgba(212, 168, 75, 0.08), transparent 50%);
+      radial-gradient(900px 380px at 12% -10%, rgba(0, 167, 88, 0.22), transparent 55%),
+      radial-gradient(700px 320px at 100% 0%, rgba(127, 224, 174, 0.08), transparent 50%);
     background-attachment: fixed;
     color: var(--color-canvas);
     font-family: var(--font-sans);
@@ -103,3 +104,48 @@
 .animate-fade-up {
   animation: fade-up 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* 白色卡片上嘅綠色文字用深綠，確保對比度 */
+:where(.bg-card, .bg-white) .text-primary { color: #00753E; }
+.tabular-nums { font-family: var(--font-num); }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  :root { --color-bg: #ffffff; --color-canvas: #1D2B2A; --color-canvas-muted: #5B6B6A; }
+  body { background: #fff !important; background-image: none !important; }
+  .text-white { color: #1D2B2A !important; }
+  header, footer nav, footer button, [data-sonner-toaster] { display: none !important; }
+  main { padding-top: 0 !important; }
+}
+/* ===== MKPA 統一標準（由 _standard/mkpa.css 複製，修改請先改呢份再同步到各工具）===== */
+:root{
+  --mk-brand:#00A758; --mk-brand-ink:#00753E; --mk-brand-soft:#E6F6EE; --mk-brand-line:#B4E2C8;
+  --mk-deep:#0E5E57; --mk-ink:#1D2B2A; --mk-muted:#5B6B6A;
+  --mk-bg:#F6F9F8; --mk-surface:#FFFFFF; --mk-line:#E3E9E7;
+  --mk-warn:#8A5B00; --mk-warn-soft:#FFF5DC; --mk-danger:#C62828; --mk-danger-soft:#FDECEC;
+  --mk-sans:"Noto Sans HK","PingFang HK","Microsoft JhengHei",system-ui,sans-serif;
+  --mk-num:"Barlow","Noto Sans HK",system-ui,sans-serif;
+}
+.mk-ecard{display:flex;align-items:center;gap:16px 24px;flex-wrap:wrap;margin:28px 0 0;padding:20px 22px;border-radius:14px;border:1px solid var(--mk-brand-line);background:var(--mk-brand-soft);font-family:var(--mk-sans);color:var(--mk-ink);text-align:left}
+.mk-ecard-txt{flex:1;min-width:200px}
+.mk-ecard-txt b{display:block;font-size:17px;font-weight:700;margin-bottom:2px;color:var(--mk-ink)}
+.mk-ecard-txt span{color:var(--mk-muted);font-size:14.5px;line-height:1.55}
+.mk-ecard-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 22px;border-radius:999px;background:var(--mk-brand);color:#fff!important;font-weight:700;font-size:16px;text-decoration:none!important;white-space:nowrap}
+.mk-ecard-btn:hover{background:var(--mk-brand-ink)}
+.mk-ecard-qr{display:none}
+.mk-copy{margin:14px 0 0;font-size:13px;color:var(--mk-muted);font-family:var(--mk-sans)}
+.mk-print-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--mk-brand);background:var(--mk-surface);color:var(--mk-brand-ink);font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mk-print-btn:hover{background:var(--mk-brand-soft)}
+.mk-print-head{display:none}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mk-no-print,.mk-print-btn,.mk-ecard-btn{display:none!important}
+  .mk-ecard{break-inside:avoid;padding:10px 14px;margin-top:14px}
+  .mk-ecard-qr{display:block}
+  .mk-ecard-qr svg{width:22mm;height:22mm;display:block}
+  .mk-ecard-txt span:after{content:"（掃描右方二維碼）"}
+  .mk-print-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid var(--mk-brand);padding:0 0 5px;margin:0 0 10px;font-family:var(--mk-sans);color:var(--mk-muted);font-size:9pt}
+  .mk-print-head b{color:var(--mk-deep);font-size:11pt}
+}
+/* ===== MKPA 統一標準 完 ===== */
+
