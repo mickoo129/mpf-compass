@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Compass, Menu, X, Search, Printer } from "lucide-react";
+import { Menu, X, Search, Printer } from "lucide-react";
 import { useState } from "react";
 import { copy, t } from "@/lib/i18n";
 import { catalogMeta } from "@/lib/mpf/catalog";
@@ -61,11 +61,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0E5E57]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
+        <div className="mk-wrap flex h-14 items-center justify-between gap-3">
           <Link to="/" className="flex min-w-0 items-center gap-2 text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-ink">
-              <Compass className="size-4" strokeWidth={1.75} />
-            </span>
+            <img className="mk-logo" src="/favicon.svg" alt="" width={32} height={32} />
             <span className="truncate text-base leading-none font-semibold tracking-tight sm:text-lg">{copy.app.zh}</span>
             <span className="hidden text-xs tracking-[0.14em] text-canvas-muted lg:inline">MPF COMPASS</span>
           </Link>
@@ -113,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right">
           <Link to="/" className="mb-6 flex items-center gap-2 pr-8 text-fg" onClick={() => setOpen(false)}>
-            <Compass className="size-5 text-primary" />
+            <img className="mk-logo !size-6" src="/favicon.svg" alt="" width={24} height={24} />
             <span className="text-lg font-semibold">{copy.app.zh}</span>
           </Link>
           {links(false)}
@@ -132,12 +130,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </SheetContent>
       </Sheet>
-      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-5 sm:py-8">
+      <main className="mk-wrap min-w-0 flex-1 py-5 sm:py-8">
         <MkPrintHead />
         {children}
       </main>
       <footer className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="mk-wrap py-6">
           <p className="w-full text-xs leading-relaxed text-canvas-muted">
             {t(locale, copy.disclaimer).replaceAll("{asOf}", catalogMeta.asOf)}
           </p>
