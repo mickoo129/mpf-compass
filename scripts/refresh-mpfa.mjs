@@ -170,15 +170,27 @@ function categoryOf(sleeve, typeEn) {
   return "equity";
 }
 
-async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; MPFCompass/1.0; +https://github.com/mickoo129/mpf-compass)",
-      Accept: "text/html",
-    },
-  });
-  if (!res.ok) throw new Error(`${url} → ${res.status}`);
-  return res.text();
+// The MPFA page is a few MB and the server sometimes drops the connection part
+// way through ("other side closed"), so a page is tried up to four times.
+async function fetchHtml(url, attempts = 4) {
+  for (let i = 1; ; i++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; MPFCompass/1.0; +https://github.com/mickoo129/mpf-compass)",
+          Accept: "text/html",
+        },
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (!res.ok) throw new Error(`${url} → ${res.status}`);
+      return await res.text();
+    } catch (err) {
+      if (i >= attempts) throw err;
+      const wait = 15_000 * i;
+      console.warn(`Fetch attempt ${i} failed (${err.cause?.message ?? err.message}); retrying in ${wait / 1000}s`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
 }
 
 async function main() {
