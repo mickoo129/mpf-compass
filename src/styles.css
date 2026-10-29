@@ -105,6 +105,12 @@
   animation: fade-up 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* 分頁底色：成頁用目前分頁嘅分類淺底（--pc-soft，由 app-shell 設定）；頁頭、頁尾保留深青綠 */
+body { background: #F6F9F8; background-image: none; }
+.mk-page { background: var(--pc-soft, #E6F6EE); transition: background-color .2s; }
+.mk-page > main { --color-canvas: #1D2B2A; --color-canvas-muted: #5B6B6A; color: var(--color-canvas); }
+@media print { .mk-page { background: #fff !important; } }
+
 /* 白色卡片上嘅綠色文字用深綠，確保對比度 */
 :where(.bg-card, .bg-white) .text-primary { color: #00753E; }
 .tabular-nums { font-family: var(--font-num); }

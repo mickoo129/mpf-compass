@@ -162,13 +162,13 @@ function ComparePage() {
 
       {funds.length ? <CustomCompare funds={funds} zh={zh} toggle={toggle} /> : null}
 
-      <details className="group mt-8 mb-2 rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-white">
+      <details className="group mt-8 mb-2 rounded-xl bg-white/70 p-4 ring-1 ring-black/5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-fg">
           <span>
             <span className="font-display text-lg">{zh ? "排行榜：供應商同基金回報" : "Leaderboards: providers and funds"}</span>
             <span className="block text-xs text-canvas-muted">{zh ? "想搵靈感揀邊隻嚟比，可以喺呢度撳「比較」加入" : "Browse and pin funds from here"}</span>
           </span>
-          <span className="shrink-0 text-xs whitespace-nowrap text-accent group-open:hidden">{zh ? "展開" : "Show"}</span>
+          <span className="shrink-0 text-xs whitespace-nowrap text-[var(--pc-ink)] group-open:hidden">{zh ? "展開" : "Show"}</span>
         </summary>
         <div className="mt-4">
       {schemeEn ? (
