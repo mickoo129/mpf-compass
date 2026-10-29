@@ -7,24 +7,24 @@ import { cn } from "@/lib/utils";
 
 // MKPA 分類色盤：基金類別按次序 1–5
 const CAT_COLORS: Record<string, string> = {
-  equity: "#2A78D6",
-  mixed: "#6250D6",
-  bond: "#EB6834",
-  money: "#0E9AA7",
-  guaranteed: "#C2417A",
+  equity: "#1E6FE6",
+  mixed: "#EA6A23",
+  bond: "#9B2FC0",
+  money: "#079BA0",
+  guaranteed: "#D39A12",
 };
 
 // MKPA 分類色盤：地區按次序；大中華用中國嘅深色；環球用中性色（7）。指數圖用返同一套。
 export const SLEEVE_COLORS: Record<string, string> = {
-  us: "#2A78D6",
-  hk: "#6250D6",
-  china: "#EB6834",
-  "greater-china": "#C94714",
-  asia: "#0E9AA7",
-  europe: "#C99A2E",
-  japan: "#C2417A",
+  us: "#1E6FE6",
+  hk: "#EA6A23",
+  china: "#9B2FC0",
+  "greater-china": "#6C2186",
+  asia: "#079BA0",
+  europe: "#DB3A64",
+  japan: "#D39A12",
   korea: "#8A5A44",
-  global: "#5B7086",
+  global: "#6E7378",
 };
 
 function chartRows(series: PathSeries[], mode: "nav" | "ret") {
@@ -144,7 +144,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
                 key={s.id}
                 type="monotone"
                 dataKey={s.id}
-                stroke={colors[s.id] ?? "#5B7086"}
+                stroke={colors[s.id] ?? "#6E7378"}
                 strokeWidth={s.id === "equity" || s.id === "us" ? 2.4 : 1.7}
                 dot={{ r: 3 }}
                 connectNulls
