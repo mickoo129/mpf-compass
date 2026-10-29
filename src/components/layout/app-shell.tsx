@@ -10,13 +10,14 @@ import { ResetButton } from "@/components/layout/reset-button";
 import { cn } from "@/lib/utils";
 import { MkEcard, MkPrintHead } from "@/components/layout/mk-standard";
 
+// 每個分頁一隻 MKPA 分類色（按 1→8 次序；首頁屬總覽，用宏利綠）；選中嗰粒掣用該色做底
 const NAV = [
-  { to: "/", key: "pulse" as const },
-  { to: "/funds", key: "funds" as const },
-  { to: "/schemes", key: "schemes" as const },
-  { to: "/compare", key: "compare" as const },
-  { to: "/checkup", key: "checkup" as const },
-  { to: "/recommend", key: "recommend" as const },
+  { to: "/", key: "pulse" as const, color: "var(--mk-brand-ink)" },
+  { to: "/funds", key: "funds" as const, color: "var(--mk-cat-1)" },
+  { to: "/schemes", key: "schemes" as const, color: "var(--mk-cat-2)" },
+  { to: "/compare", key: "compare" as const, color: "var(--mk-cat-3)" },
+  { to: "/checkup", key: "checkup" as const, color: "var(--mk-cat-4)" },
+  { to: "/recommend", key: "recommend" as const, color: "var(--mk-cat-5-ink)" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const compareIds = useAppStore((s) => s.compareIds);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const pageColor =
+    NAV.find((n) => (n.to === "/" ? pathname === "/" : pathname.startsWith(n.to)))?.color ?? "var(--mk-brand-ink)";
 
   const links = (onNavy: boolean) => (
     <nav className="flex flex-col gap-1 md:flex-row md:items-center md:gap-1">
@@ -35,17 +38,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             key={item.to}
             to={item.to}
             onClick={() => setOpen(false)}
+            style={{ ["--nc" as string]: item.color }}
             className={cn(
-                "rounded-md px-2.5 py-2.5 text-sm font-medium transition-colors md:px-2 md:py-1.5 md:text-xs lg:px-3 lg:text-sm",
+                "inline-flex items-center gap-1.5 rounded-md px-2.5 py-2.5 text-sm font-medium transition-colors md:px-2 md:py-1.5 md:text-xs lg:px-3 lg:text-sm",
               onNavy
                 ? active
-                  ? "bg-white text-fg"
+                  ? "bg-[var(--nc)] font-semibold text-white"
                   : "text-canvas-muted hover:bg-white/10 hover:text-white"
                 : active
-                  ? "bg-primary text-primary-fg"
+                  ? "bg-[var(--nc)] font-semibold text-white"
                   : "text-muted hover:bg-bg-warm hover:text-fg",
             )}
           >
+            <span
+              aria-hidden
+              className={cn("size-2 shrink-0 rounded-full", active ? "bg-white" : "bg-[var(--nc)]", onNavy && !active && "ring-2 ring-white/40")}
+            />
             {t(locale, copy.nav[item.key])}
             {item.to === "/compare" && compareIds.length > 0 ? (
               <span className={cn("ml-1.5 font-mono text-xs", onNavy ? "text-primary" : "text-primary")}>
@@ -109,6 +117,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </div>
+        <div aria-hidden className="h-1 w-full" style={{ background: pageColor }} />
       </header>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right">

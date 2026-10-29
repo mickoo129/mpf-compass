@@ -33,4 +33,5 @@ MKPA 工具之一。呢個 repo 只放呢一個工具，獨立部署去 Netlify�
 - React + Vite + TanStack Start，要 build（`npm run build`），有 SSR functions。改完要跑 `npm run typecheck`、`npm test`、`npm run build` 確認冇壞。
 - 設計標準嘅 React 版本喺 `src/components/layout/mk-standard.tsx`（電子名片、列印頁頭）。
 - 例外：整個網站用深青綠 `#0E5E57` 做頁面底色，白色卡片放上面；列印時自動轉白底。
+- 例外：因為頁面底色係深青綠，分頁（首頁、基金、計劃、比較、檢查、建議）唔轉成頁淺底；改用導覽掣色點、選中掣用該分頁顏色做底，同頁頭下面一條該分頁顏色色帶（`app-shell.tsx` 嘅 `NAV`）。
 - GitHub Actions 星期一至六更新 MPFA 資料（`src/data/funds.json` 等），唔好手動改。
