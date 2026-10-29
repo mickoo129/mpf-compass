@@ -87,11 +87,11 @@ function FundDetail() {
   return (
     <div>
       <p className="mb-2 text-xs text-canvas-muted">
-        <Link to="/funds" className="hover:text-white">
+        <Link to="/funds" className="hover:text-fg">
           {zh ? "基金庫" : "Funds"}
         </Link>
         <span className="mx-1">/</span>
-        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-white">
+        <Link to="/funds" search={{ scheme: fund.schemeEn }} className="hover:text-fg">
           {zh ? fund.schemeZh : fund.schemeEn}
         </Link>
       </p>
@@ -111,11 +111,11 @@ function FundDetail() {
       </select>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{zh ? fund.nameZh : fund.nameEn}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--pc-ink)] sm:text-3xl">{zh ? fund.nameZh : fund.nameEn}</h1>
           <p className="mt-1 text-sm text-canvas-muted">
             {zh ? fund.nameEn : fund.nameZh} · {zh ? fund.providerZh : fund.providerEn}
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90">{describeFund(fund, zh)}</p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-fg/90">{describeFund(fund, zh)}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Badge tone="primary">{SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? fund.sleeve}</Badge>
             {fund.tags.filter((t) => t !== "DIS" && (zh || TAG_ZH[t] != null || !/\p{Script=Han}/u.test(t))).map((t) => (

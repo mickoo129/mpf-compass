@@ -56,8 +56,8 @@ function Home() {
   return (
     <div>
       <section className="mb-8 pt-2">
-        <p className="mb-2 text-xs tracking-[0.16em] text-accent">{zh ? "香港強積金 · 積金局數據" : "Hong Kong MPF · MPFA data"}</p>
-        <h1 className="text-2xl leading-snug font-semibold text-white sm:text-4xl">
+        <p className="mb-2 text-xs tracking-[0.16em] text-[var(--pc-ink)]">{zh ? "香港強積金 · 積金局數據" : "Hong Kong MPF · MPFA data"}</p>
+        <h1 className="text-2xl leading-snug font-semibold text-[var(--pc-ink)] sm:text-4xl">
           {zh ? "你嘅強積金，一眼睇清。" : "Your MPF, at a glance."}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-canvas-muted sm:text-base">
@@ -208,8 +208,8 @@ function Home() {
         </Card>
       </div>
 
-      <details className="group mb-10 rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-white">
+      <details className="group mb-10 rounded-xl bg-white/70 p-4 ring-1 ring-black/5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-fg">
           <span>
             <span className="font-display text-lg">{zh ? "更多數據分析" : "More analysis"}</span>
             <span className="block text-xs text-canvas-muted">

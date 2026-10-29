@@ -162,13 +162,13 @@ function ComparePage() {
 
       {funds.length ? <CustomCompare funds={funds} zh={zh} toggle={toggle} /> : null}
 
-      <details className="group mt-8 mb-2 rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-white">
+      <details className="group mt-8 mb-2 rounded-xl bg-white/70 p-4 ring-1 ring-black/5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-fg">
           <span>
             <span className="font-display text-lg">{zh ? "排行榜：供應商同基金回報" : "Leaderboards: providers and funds"}</span>
             <span className="block text-xs text-canvas-muted">{zh ? "想搵靈感揀邊隻嚟比，可以喺呢度撳「比較」加入" : "Browse and pin funds from here"}</span>
           </span>
-          <span className="shrink-0 text-xs whitespace-nowrap text-accent group-open:hidden">{zh ? "展開" : "Show"}</span>
+          <span className="shrink-0 text-xs whitespace-nowrap text-[var(--pc-ink)] group-open:hidden">{zh ? "展開" : "Show"}</span>
         </summary>
         <div className="mt-4">
       {schemeEn ? (
@@ -323,7 +323,7 @@ function CustomCompare({
     { key: zh ? "成立" : "Since", ...Object.fromEntries(funds.map((f) => [f.id, f.retSince ?? 0])) },
   ];
   // Categorical colours kept apart from the green/red used for gains and losses.
-  const colors = ["#1E6FE6", "#EA6A23", "#9B2FC0", "#079BA0"]; // MKPA 分類色盤 1–4
+  const colors = ["#3072D4", "#D86F35", "#953CB3", "#158E92"]; // MKPA 分類色盤 1–4
   type RowDef = { label: React.ReactNode; get: (f: Fund) => number | null; kind: "ret" | "low" | "plain"; fmt?: (v: number) => string };
   const rows: RowDef[] = [
     { label: zh ? "1年" : "1Y", get: (f) => f.ret1y, kind: "ret" },

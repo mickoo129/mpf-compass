@@ -6,12 +6,12 @@ import { getIndexPaths } from "@/lib/server/markets";
 
 // 同地區圖一樣嘅顏色（MKPA 分類色盤）
 const COLORS: Record<string, string> = {
-  "^HSI": "#EA6A23",
-  "^GSPC": "#1E6FE6",
-  "^N225": "#D39A12",
-  "^KS11": "#8A5A44",
-  "000300.SS": "#9B2FC0",
-  "^STOXX50E": "#DB3A64",
+  "^HSI": "#D86F35",
+  "^GSPC": "#3072D4",
+  "^N225": "#C29323",
+  "^KS11": "#845C4A",
+  "000300.SS": "#953CB3",
+  "^STOXX50E": "#CD486B",
 };
 
 export function IndexPathChart({ zh }: { zh: boolean }) {
@@ -67,7 +67,7 @@ export function IndexPathChart({ zh }: { zh: boolean }) {
                   key={s.symbol}
                   type="monotone"
                   dataKey={s.symbol}
-                  stroke={COLORS[s.symbol] ?? "#6E7378"}
+                  stroke={COLORS[s.symbol] ?? "#6F7377"}
                   strokeWidth={s.symbol === "^GSPC" || s.symbol === "^HSI" ? 2.2 : 1.6}
                   dot={false}
                   connectNulls
