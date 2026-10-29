@@ -12,12 +12,12 @@ import { MkEcard, MkPrintHead } from "@/components/layout/mk-standard";
 
 // 每個分頁一隻 MKPA 分類色（按 1→8 次序；首頁屬總覽，用宏利綠）；選中嗰粒掣用該色做底
 const NAV = [
-  { to: "/", key: "pulse" as const, color: "var(--mk-brand-ink)", soft: "var(--mk-brand-soft)", ink: "var(--mk-brand-ink)" },
+  { to: "/", key: "pulse" as const, color: "var(--mk-brand)", soft: "var(--mk-brand-soft)", ink: "var(--mk-brand-ink)" },
   { to: "/funds", key: "funds" as const, color: "var(--mk-cat-1)", soft: "var(--mk-cat-1-soft)", ink: "var(--mk-cat-1-ink)" },
   { to: "/schemes", key: "schemes" as const, color: "var(--mk-cat-2)", soft: "var(--mk-cat-2-soft)", ink: "var(--mk-cat-2-ink)" },
   { to: "/compare", key: "compare" as const, color: "var(--mk-cat-3)", soft: "var(--mk-cat-3-soft)", ink: "var(--mk-cat-3-ink)" },
   { to: "/checkup", key: "checkup" as const, color: "var(--mk-cat-4)", soft: "var(--mk-cat-4-soft)", ink: "var(--mk-cat-4-ink)" },
-  { to: "/recommend", key: "recommend" as const, color: "var(--mk-cat-5-ink)", soft: "var(--mk-cat-5-soft)", ink: "var(--mk-cat-5-ink)" },
+  { to: "/recommend", key: "recommend" as const, color: "var(--mk-cat-5)", soft: "var(--mk-cat-5-soft)", ink: "var(--mk-cat-5-ink)" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -40,15 +40,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             key={item.to}
             to={item.to}
             onClick={() => setOpen(false)}
-            style={{ ["--nc" as string]: item.color }}
+            style={{ ["--nc" as string]: item.color, ["--ni" as string]: item.ink } as React.CSSProperties}
             className={cn(
                 "inline-flex items-center gap-1.5 rounded-md px-2.5 py-2.5 text-sm font-medium transition-colors md:px-2 md:py-1.5 md:text-xs lg:px-3 lg:text-sm",
               onNavy
                 ? active
-                  ? "bg-[var(--nc)] font-semibold text-white"
+                  ? "bg-[var(--ni)] font-semibold text-white"
                   : "text-canvas-muted hover:bg-white/10 hover:text-white"
                 : active
-                  ? "bg-[var(--nc)] font-semibold text-white"
+                  ? "bg-[var(--ni)] font-semibold text-white"
                   : "text-muted hover:bg-bg-warm hover:text-fg",
             )}
           >

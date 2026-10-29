@@ -323,7 +323,7 @@ function CustomCompare({
     { key: zh ? "成立" : "Since", ...Object.fromEntries(funds.map((f) => [f.id, f.retSince ?? 0])) },
   ];
   // Categorical colours kept apart from the green/red used for gains and losses.
-  const colors = ["#1E6FE6", "#EA6A23", "#9B2FC0", "#079BA0"]; // MKPA 分類色盤 1–4
+  const colors = ["#3072D4", "#D86F35", "#953CB3", "#158E92"]; // MKPA 分類色盤 1–4
   type RowDef = { label: React.ReactNode; get: (f: Fund) => number | null; kind: "ret" | "low" | "plain"; fmt?: (v: number) => string };
   const rows: RowDef[] = [
     { label: zh ? "1年" : "1Y", get: (f) => f.ret1y, kind: "ret" },
