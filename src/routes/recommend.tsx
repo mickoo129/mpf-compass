@@ -472,7 +472,7 @@ function RecommendPage() {
                 disabled={!alloc.length}
                 title={zh ? "分享或複製呢個配置，可以直接貼落 WhatsApp" : "Share or copy this mix"}
               >
-                {copied ? (zh ? "已複製" : "Copied") : zh ? "分享配置" : "Share mix"}
+                {copied ? (zh ? "已複製" : "Copied") : zh ? "分享呢個方案" : "Share mix"}
               </Button>
             </div>
             {alloc.length ? (
