@@ -92,28 +92,28 @@ function Home() {
             icon={<HeartPulse className="size-5" />}
             title={zh ? "健康檢查" : "Checkup"}
             sub={zh ? "我而家揀嗰幾隻得唔得？" : "Are my funds OK?"}
-            tint="bg-tint-mint"
+            tint="bg-[var(--mk-cat-1-soft)]"
           />
           <EntryCard
             to="/recommend"
             icon={<Sparkles className="size-5" />}
             title={zh ? "智選配置" : "Goal-based mix"}
             sub={zh ? "按年齡同風險取向計好晒" : "By age and risk appetite"}
-            tint="bg-tint-sky"
+            tint="bg-[var(--mk-cat-2-soft)]"
           />
           <EntryCard
             to="/compare"
             icon={<Scale className="size-5" />}
             title={zh ? "比較基金" : "Compare funds"}
             sub={zh ? "最多四隻並排睇" : "Up to four side by side"}
-            tint="bg-tint-lilac"
+            tint="bg-[var(--mk-cat-3-soft)]"
           />
           <EntryCard
             href="#same-period"
             icon={<LayoutGrid className="size-5" />}
             title={zh ? "邊類表現好" : "Who led"}
             sub={zh ? "同期比較地區同類別" : "Regions and types by year"}
-            tint="bg-tint-sand"
+            tint="bg-[var(--mk-cat-4-soft)]"
           />
         </div>
         <p className="mt-3 text-xs text-canvas-muted">

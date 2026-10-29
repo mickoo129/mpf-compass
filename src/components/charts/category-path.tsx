@@ -5,24 +5,26 @@ import { catalogMeta, categoryCalendarPaths, sleeveCalendarPaths, type PathSerie
 import { ReturnCell } from "@/components/funds/return-cell";
 import { cn } from "@/lib/utils";
 
+// MKPA 分類色盤：基金類別按次序 1–5
 const CAT_COLORS: Record<string, string> = {
-  equity: "#00A758",
-  mixed: "#d4a84b",
-  bond: "#5b7086",
-  money: "#1f8a5c",
-  guaranteed: "#7b6bb0",
+  equity: "#2A78D6",
+  mixed: "#6250D6",
+  bond: "#EB6834",
+  money: "#0E9AA7",
+  guaranteed: "#C2417A",
 };
 
-const SLEEVE_COLORS: Record<string, string> = {
-  us: "#00A758",
-  hk: "#c24b3c",
-  china: "#d4a84b",
-  "greater-china": "#b8831f",
-  asia: "#2c9a6a",
-  europe: "#4d6fa8",
-  japan: "#c45c7a",
-  korea: "#8a5a44",
-  global: "#5b7086",
+// MKPA 分類色盤：地區按次序；大中華用中國嘅深色；環球用中性色（7）。指數圖用返同一套。
+export const SLEEVE_COLORS: Record<string, string> = {
+  us: "#2A78D6",
+  hk: "#6250D6",
+  china: "#EB6834",
+  "greater-china": "#C94714",
+  asia: "#0E9AA7",
+  europe: "#C99A2E",
+  japan: "#C2417A",
+  korea: "#8A5A44",
+  global: "#5B7086",
 };
 
 function chartRows(series: PathSeries[], mode: "nav" | "ret") {
@@ -142,7 +144,7 @@ export function CategoryPathChart({ zh }: { zh: boolean }) {
                 key={s.id}
                 type="monotone"
                 dataKey={s.id}
-                stroke={colors[s.id] ?? "#00A758"}
+                stroke={colors[s.id] ?? "#5B7086"}
                 strokeWidth={s.id === "equity" || s.id === "us" ? 2.4 : 1.7}
                 dot={{ r: 3 }}
                 connectNulls
