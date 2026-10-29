@@ -60,12 +60,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0E5E57]/90 backdrop-blur-md">
+      <header className="mk-header sticky top-0 z-40 border-b border-white/10 bg-[#0E5E57]/90 backdrop-blur-md">
         <div className="mk-wrap flex h-14 items-center justify-between gap-3">
           <Link to="/" className="flex min-w-0 items-center gap-2 text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
             <img className="mk-logo" src="/favicon.svg" alt="" width={32} height={32} />
             <span className="truncate text-base leading-none font-semibold tracking-tight sm:text-lg">{copy.app.zh}</span>
-            <span className="hidden text-xs tracking-[0.14em] text-canvas-muted lg:inline">MPF COMPASS</span>
           </Link>
           <div className="hidden md:block">{links(true)}</div>
           <div className="flex items-center gap-1">

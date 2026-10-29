@@ -325,7 +325,7 @@ function CheckupPage() {
                     </p>
                   </div>
                   <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => void share()}>
-                    {copied ? (zh ? "已複製連結" : "Link copied") : zh ? "分享結果" : "Share"}
+                    {copied ? (zh ? "已複製連結" : "Link copied") : zh ? "分享呢個方案" : "Share"}
                   </Button>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
