@@ -24,7 +24,7 @@
   --color-ink: #0E5E57;
   --color-up: #00753E;
   --color-down: #C62828;
-  --color-warn: #c4922a;
+  --color-warn: #8A5B00;
   --color-ring: #00A758;
   --color-accent: #7FE0AE;
   --color-tint-sky: #E7F1EF;
@@ -107,7 +107,7 @@
 
 /* 分頁底色：成頁用目前分頁嘅分類淺底（--pc-soft，由 app-shell 設定）；頁頭、頁尾保留深青綠 */
 body { background: #F6F9F8; background-image: none; }
-.mk-page { background: var(--pc-soft, #E6F6EE); transition: background-color .2s; }
+.mk-page { --mk-head-h: 104px; background: var(--pc-soft, #E6F6EE); transition: background-color .2s; } /* 頁頭總高：56 + 分頁行 44 + 色帶 4 */
 .mk-page > main { --color-canvas: #1D2B2A; --color-canvas-muted: #5B6B6A; color: var(--color-canvas); }
 @media print { .mk-page { background: #fff !important; } }
 

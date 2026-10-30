@@ -35,4 +35,5 @@ MKPA 工具之一。呢個 repo 只放呢一個工具，獨立部署去 Netlify�
 - React + Vite + TanStack Start，要 build（`npm run build`），有 SSR functions。改完要跑 `npm run typecheck`、`npm test`、`npm run build` 確認冇壞。
 - 設計標準嘅 React 版本喺 `src/components/layout/mk-standard.tsx`（電子名片、列印頁頭）。
 - 頁頭同頁尾用深青綠 `#0E5E57`；中間內容區嘅底色跟分頁轉（首頁宏利綠淺底、基金庫 1、計劃 2、比較 3、健康檢查 4、智選 5 嘅淺底），白色卡片放上面。分頁顏色喺 `app-shell.tsx` 嘅 `NAV`，內容區文字色喺 `styles.css` 嘅 `.mk-page > main`。（2026 年 10 月之前成頁深青綠底，已改。）
+- 「分享呢個方案」：頁面用 `mk-standard.tsx` 嘅 `useShareLink()` 登記點樣砌連結，頁頭先會出分享掣。連結格式：基金庫 `?q=&category=&region=…`、比較 `?f=基金id,…`、健康檢查 `?s=&h=`、智選 `?p=年齡.退休年齡.目標.帳戶.時段.基金數.結餘.供款&r=…`（`&scheme=` 只喺鎖定計劃時先有）。
 - GitHub Actions 星期一至六更新 MPFA 資料（`src/data/funds.json` 等），唔好手動改。

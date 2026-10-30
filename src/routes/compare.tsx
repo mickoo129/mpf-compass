@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useShareLink } from "@/components/layout/mk-standard";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,10 @@ import { cn } from "@/lib/utils";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/compare")({
+  // ?f=<fundId>,… opens a shared comparison (分享呢個方案).
+  validateSearch: (raw: Record<string, unknown>): { f?: string } => ({
+    f: typeof raw.f === "string" && raw.f ? raw.f : undefined,
+  }),
   head: () => ({
     meta: seo({ title: "比較強積金基金", description: "供應商、基金回報同收費排行，最多四隻基金並排比較，收費以港幣計。", path: "/compare" }),
   }),
@@ -39,6 +44,27 @@ function ComparePage() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const clear = useAppStore((s) => s.clearCompare);
   const funds = ids.map(fundById).filter((f): f is NonNullable<typeof f> => !!f);
+  const setCompare = useAppStore((s) => s.setCompare);
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/compare" });
+  // A shared link replaces the list once, then the address goes back to /compare
+  // so later changes are not undone by a stale link.
+  useEffect(() => {
+    if (!search.f) return;
+    const shared = search.f.split(",").filter((id) => fundById(id));
+    if (shared.length) setCompare(shared);
+    void navigate({ search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.f]);
+  useShareLink(
+    funds.length >= 2
+      ? () => {
+          const url = new URL("/compare", window.location.origin);
+          url.searchParams.set("f", funds.map((f) => f.id).join(","));
+          return url.toString();
+        }
+      : null,
+  );
   const schemeEn = useAppStore((s) => s.profile.schemeEn);
   const [onlyScheme, setOnlyScheme] = useState(false);
   const providers = providerStats();

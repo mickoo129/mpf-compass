@@ -4,7 +4,7 @@ import { allFunds, CAL_YEARS, median, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import type { Fund } from "@/lib/mpf/types";
 
 const FUND_COLOR = "#00A758";
-const PEER_COLOR = "#b9c6d3";
+const PEER_COLOR = "#6F7377"; // MKPA 分類色 7（中性）
 
 /**
  * Calendar-year returns of one fund beside the median of similar funds, so

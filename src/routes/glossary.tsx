@@ -28,7 +28,7 @@ function GlossaryPage() {
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {keys.map((k) => (
-          <Card key={k} id={k} className="scroll-mt-20">
+          <Card key={k} id={k} className="scroll-mt-28">
             <h2 className="mb-1 font-display text-lg">{zh ? GLOSSARY[k].zh : GLOSSARY[k].en}</h2>
             <p className="text-sm text-muted">{zh ? GLOSSARY[k].bodyZh : GLOSSARY[k].bodyEn}</p>
           </Card>
