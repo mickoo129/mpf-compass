@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const canShare = useShareAvailable();
-  const navRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   // 手機上導覽左右捲動：轉頁時將選中嗰粒捲入畫面中間（只郁橫向，唔會捲成頁）
   useEffect(() => {
     const box = navRef.current;
@@ -77,8 +77,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  // 分頁掣：跟 MKPA 標準 .mk-tabs / .mk-tab（同 claimsreport 一樣），放喺工具名右邊；手機落第二行左右捲
   const navRow = (
-    <div ref={navRef} className="mk-nav flex gap-1 overflow-x-auto py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <nav ref={navRef} className="mk-tabs" aria-label={locale === "zh" ? "分頁" : "Sections"}>
       {NAV.map((item) => {
         const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
         return (
@@ -86,34 +87,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             key={item.to}
             to={item.to}
             data-active={active}
-            style={{ ["--nc" as string]: item.color, ["--ni" as string]: item.ink } as React.CSSProperties}
-            className={cn(
-              "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm whitespace-nowrap transition-colors",
-              active ? "bg-[var(--ni)] font-semibold text-white" : "font-medium text-canvas-muted hover:bg-white/10 hover:text-white",
-            )}
+            aria-current={active ? "page" : undefined}
+            style={{ ["--c" as string]: item.color, ["--c-ink" as string]: item.ink } as React.CSSProperties}
+            className="mk-tab"
           >
-            <span aria-hidden className={cn("size-2 shrink-0 rounded-full", active ? "bg-white" : "bg-[var(--nc)] ring-2 ring-white/40")} />
             {t(locale, copy.nav[item.key])}
             {item.to === "/compare" && compareIds.length > 0 ? <span className="font-num text-xs">({compareIds.length})</span> : null}
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 
   return (
     <div className="mk-page flex min-h-dvh flex-col" style={pageVars}>
-      <header className="mk-header sticky top-0 z-40 border-b border-white/10 bg-[#0E5E57]/90 backdrop-blur-md">
+      <header className="mk-header">
         <div className="mk-wrap mk-bar">
-          <Link to="/" className="mk-title text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
+          <Link to="/" className="mk-title" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
             <img className="mk-logo" src="/favicon.svg" alt="" width={32} height={32} />
             <span className="mk-name">
               {copy.app.zh}
               <small className="mk-sub">強積金成分基金分析及比較</small>
             </span>
           </Link>
+          {navRow}
           <div className="mk-actions">
-            <Button asChild variant="ghost" size="icon" className="hidden text-white hover:bg-white/10 hover:text-white sm:inline-flex">
+            <Button asChild variant="ghost" size="icon" className="hidden text-fg hover:bg-black/5 hover:text-fg sm:inline-flex">
               <Link to="/funds" search={{ focus: true }} aria-label={locale === "zh" ? "搜尋基金" : "Search funds"}>
                 <Search className="size-5" />
               </Link>
@@ -143,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="sm"
-              className="hidden text-xs text-white hover:bg-white/10 hover:text-white md:inline-flex"
+              className="hidden text-xs text-fg hover:bg-black/5 hover:text-fg md:inline-flex"
               onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
             >
               {locale === "zh" ? "EN" : "繁"}
@@ -151,7 +150,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/10 hover:text-white md:hidden"
+              className="text-fg hover:bg-black/5 hover:text-fg md:hidden"
               onClick={() => setOpen(true)}
               aria-label={locale === "zh" ? "選單" : "Menu"}
             >
@@ -159,7 +158,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </div>
-        <div className="mk-wrap border-t border-white/10">{navRow}</div>
         <div aria-hidden className="h-1 w-full" style={{ background: pageColor }} />
       </header>
       <Sheet open={open} onOpenChange={setOpen}>
