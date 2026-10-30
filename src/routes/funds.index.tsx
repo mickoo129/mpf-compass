@@ -344,7 +344,7 @@ function FundsPage() {
         <select
           value={cat}
           onChange={(e) => setCat(e.target.value as FundCategory | "all")}
-          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
+          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none"
         >
           <option value="all">{zh ? "全部類別" : "All types"}</option>
           {(Object.keys(CATEGORY_LABEL) as FundCategory[]).map((c) => (
@@ -356,7 +356,7 @@ function FundsPage() {
         <select
           value={region}
           onChange={(e) => setRegion(e.target.value as RegionId | "all")}
-          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
+          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none"
         >
           <option value="all">{zh ? "全部地區" : "All regions"}</option>
           {REGION_ORDER.map((r) => (
@@ -368,7 +368,7 @@ function FundsPage() {
         <select
           value={theme}
           onChange={(e) => setTheme(e.target.value as ThemeId | "all")}
-          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
+          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none"
         >
           <option value="all">{zh ? "全部主題" : "All themes"}</option>
           {THEME_ORDER.map((t) => (
@@ -383,7 +383,7 @@ function FundsPage() {
             setProvider(e.target.value);
             setScheme("all");
           }}
-          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)]"
+          className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none"
         >
           <option value="all">{zh ? "全部供應商" : "All providers"}</option>
           {providers.map((p) => (
@@ -393,7 +393,7 @@ function FundsPage() {
           ))}
         </select>
         {schemeOptions.length === 1 ? (
-          <div className="flex h-11 min-w-0 items-center rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4">
+          <div className="flex h-11 min-w-0 items-center rounded-md bg-card px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none sm:col-span-2 lg:col-span-4">
             <span className="text-subtle">{zh ? "計劃" : "Scheme"} · </span>
             <span className="ml-1 truncate font-medium">{zh ? schemeOptions[0]!.zh : schemeOptions[0]!.en}</span>
           </div>
@@ -401,7 +401,7 @@ function FundsPage() {
           <select
             value={schemeValue}
             onChange={(e) => setScheme(e.target.value)}
-            className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg shadow-[var(--shadow-border)] sm:col-span-2 lg:col-span-4"
+            className="h-11 w-full min-w-0 rounded-md bg-card px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none sm:col-span-2 lg:col-span-4"
           >
             <option value="all">
               {lockedProvider
