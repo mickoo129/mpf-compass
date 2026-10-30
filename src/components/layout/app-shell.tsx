@@ -112,7 +112,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           {navRow}
           <div className="mk-actions">
-            <Button asChild variant="ghost" size="icon" className="hidden text-white hover:bg-white/10 hover:text-white sm:inline-flex">
+            <Button asChild variant="ghost" size="icon" className="hidden size-9 text-white hover:bg-white/10 hover:text-white sm:inline-flex">
               <Link to="/funds" search={{ focus: true }} aria-label={locale === "zh" ? "搜尋基金" : "Search funds"}>
                 <Search className="size-5" />
               </Link>
@@ -150,7 +150,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/10 hover:text-white md:hidden"
+              className="size-9 text-white hover:bg-white/10 hover:text-white md:hidden"
               onClick={() => setOpen(true)}
               aria-label={locale === "zh" ? "選單" : "Menu"}
             >
