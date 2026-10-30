@@ -167,6 +167,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </a>
           </nav>
           <MkEcard zh={locale === "zh"} />
+          <p className="mk-home-link text-center text-canvas">
+            <a href="https://mkpa.netlify.app/" target="_blank" rel="noopener noreferrer">
+              {locale === "zh" ? "MKPA 工具箱：睇其他實用工具 ↗" : "MKPA Toolbox: more tools ↗"}
+            </a>
+          </p>
           <p className="mk-copy text-center !text-canvas-muted">
             © {new Date().getFullYear()} Michael Koo Protection Alliance (MKPA). {locale === "zh" ? "版權所有。" : "All rights reserved."}
           </p>
