@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, X, Search, Printer } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { copy, t } from "@/lib/i18n";
 import { catalogMeta } from "@/lib/mpf/catalog";
 import { useAppStore } from "@/lib/store";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ResetButton } from "@/components/layout/reset-button";
 import { cn } from "@/lib/utils";
-import { MkEcard, MkPrintHead } from "@/components/layout/mk-standard";
+import { MkEcard, MkPrintHead, shareCurrent, useShareAvailable } from "@/components/layout/mk-standard";
 
 // 每個分頁一隻 MKPA 分類色（按 1→8 次序；首頁屬總覽，用宏利綠）；選中嗰粒掣用該色做底
 const NAV = [
@@ -26,6 +26,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const compareIds = useAppStore((s) => s.compareIds);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const canShare = useShareAvailable();
+  const navRef = useRef<HTMLDivElement>(null);
+  // 手機上導覽左右捲動：轉頁時將選中嗰粒捲入畫面中間（只郁橫向，唔會捲成頁）
+  useEffect(() => {
+    const box = navRef.current;
+    const el = box?.querySelector<HTMLElement>("[data-active='true']");
+    if (!box || !el) return;
+    box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.clientWidth) / 2, behavior: "smooth" });
+  }, [pathname]);
   // 目前分頁：成頁底色轉做該分頁淺底（--pc-soft），標題色條、細標題用該分頁顏色
   const page = NAV.find((n) => (n.to === "/" ? pathname === "/" : pathname.startsWith(n.to))) ?? NAV[0];
   const pageColor = page.color;
@@ -68,42 +77,73 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  const navRow = (
+    <div ref={navRef} className="mk-nav flex gap-1 overflow-x-auto py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {NAV.map((item) => {
+        const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            data-active={active}
+            style={{ ["--nc" as string]: item.color, ["--ni" as string]: item.ink } as React.CSSProperties}
+            className={cn(
+              "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm whitespace-nowrap transition-colors",
+              active ? "bg-[var(--ni)] font-semibold text-white" : "font-medium text-canvas-muted hover:bg-white/10 hover:text-white",
+            )}
+          >
+            <span aria-hidden className={cn("size-2 shrink-0 rounded-full", active ? "bg-white" : "bg-[var(--nc)] ring-2 ring-white/40")} />
+            {t(locale, copy.nav[item.key])}
+            {item.to === "/compare" && compareIds.length > 0 ? <span className="font-num text-xs">({compareIds.length})</span> : null}
+          </Link>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="mk-page flex min-h-dvh flex-col" style={pageVars}>
       <header className="mk-header sticky top-0 z-40 border-b border-white/10 bg-[#0E5E57]/90 backdrop-blur-md">
-        <div className="mk-wrap flex h-14 items-center justify-between gap-3">
-          <Link to="/" className="flex min-w-0 items-center gap-2 text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
+        <div className="mk-wrap mk-bar">
+          <Link to="/" className="mk-title text-white" aria-label={locale === "zh" ? "返回首頁" : "Home"}>
             <img className="mk-logo" src="/favicon.svg" alt="" width={32} height={32} />
             <span className="mk-name">
-              <span className="truncate text-base leading-none font-semibold tracking-tight sm:text-lg">{copy.app.zh}</span>
+              {copy.app.zh}
               <small className="mk-sub">強積金成分基金分析及比較</small>
             </span>
           </Link>
-          <div className="hidden md:block">{links(true)}</div>
-          <div className="flex items-center gap-1">
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/10 hover:text-white"
-            >
+          <div className="mk-actions">
+            <Button asChild variant="ghost" size="icon" className="hidden text-white hover:bg-white/10 hover:text-white sm:inline-flex">
               <Link to="/funds" search={{ focus: true }} aria-label={locale === "zh" ? "搜尋基金" : "Search funds"}>
                 <Search className="size-5" />
               </Link>
             </Button>
-            <button
-              type="button"
-              className="mk-print-btn"
-              onClick={() => window.print()}
-              aria-label={locale === "zh" ? "列印 / 存 PDF" : "Print / Save PDF"}
-            >
-              <Printer className="size-4" />
-              <span className="hidden sm:inline">{locale === "zh" ? "列印 / 存 PDF" : "Print / PDF"}</span>
+            {canShare ? (
+              <button type="button" className="mk-share-btn" onClick={shareCurrent}>
+                {locale === "zh" ? (
+                  <>
+                    分享<span className="mk-long">呢個方案</span>
+                  </>
+                ) : (
+                  "Share"
+                )}
+              </button>
+            ) : null}
+            <button type="button" className="mk-print-btn" onClick={() => window.print()}>
+              {locale === "zh" ? (
+                <>
+                  列印<span className="mk-long"> / 存 PDF</span>
+                </>
+              ) : (
+                <>
+                  Print<span className="mk-long"> / PDF</span>
+                </>
+              )}
             </button>
             <Button
               variant="ghost"
               size="sm"
-              className="font-mono text-xs text-white hover:bg-white/10 hover:text-white"
+              className="hidden text-xs text-white hover:bg-white/10 hover:text-white md:inline-flex"
               onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
             >
               {locale === "zh" ? "EN" : "繁"}
@@ -113,12 +153,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               size="icon"
               className="text-white hover:bg-white/10 hover:text-white md:hidden"
               onClick={() => setOpen(true)}
-              aria-label="Menu"
+              aria-label={locale === "zh" ? "選單" : "Menu"}
             >
               <Menu className="size-5" />
             </Button>
           </div>
         </div>
+        <div className="mk-wrap border-t border-white/10">{navRow}</div>
         <div aria-hidden className="h-1 w-full" style={{ background: pageColor }} />
       </header>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -135,6 +176,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {locale === "zh" ? "強積金詞彙" : "Glossary"}
           </Link>
+          <button
+            type="button"
+            onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
+            className="mt-1 block w-full rounded-md px-2.5 py-2.5 text-left text-sm font-medium text-muted hover:bg-bg-warm hover:text-fg"
+          >
+            {locale === "zh" ? "English" : "繁體中文"}
+          </button>
           <div className="mt-6 border-t border-border pt-4">
             <ResetButton className="w-full justify-center" onDone={() => setOpen(false)} />
             <p className="mt-2 text-xs text-subtle">

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
+import { mkShare, useShareLink } from "@/components/layout/mk-standard";
 import { BalanceInput } from "@/components/funds/fee-card";
 import { FundPicker } from "@/components/funds/fund-picker";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ function parseHoldings(h: string | undefined): Row[] {
 const LIGHT: Record<Light, { zh: string; en: string; cls: string; dot: string }> = {
   good: { zh: "良好", en: "OK", cls: "bg-tint-mint", dot: "bg-up" },
   watch: { zh: "留意", en: "Watch", cls: "bg-tint-sand", dot: "bg-warn" },
-  act: { zh: "值得檢討", en: "Review", cls: "bg-[#fbe9e6]", dot: "bg-down" },
+  act: { zh: "值得檢討", en: "Review", cls: "bg-[#FDECEC]", dot: "bg-down" },
 };
 
 function CheckupPage() {
@@ -74,7 +75,6 @@ function CheckupPage() {
 
   const [scheme, setScheme] = useState<string>(search.s ?? "");
   const [rows, setRows] = useState<Row[]>(() => parseHoldings(search.h));
-  const [copied, setCopied] = useState(false);
   const [touched, setTouched] = useState(() => parseHoldings(search.h).length > 0);
 
 
@@ -126,24 +126,8 @@ function CheckupPage() {
     const each = Math.floor(100 / rows.length);
     update(rows.map((r, i) => ({ ...r, pct: i === 0 ? 100 - each * (rows.length - 1) : each })));
   }
-  async function share() {
-    const url = window.location.href;
-    if (typeof navigator.share === "function" && window.matchMedia("(pointer: coarse)").matches) {
-      try {
-        await navigator.share({ text: zh ? "強積金健康檢查（積金羅盤）" : "MPF checkup", url });
-        return;
-      } catch {
-        /* fall back to copy */
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      window.prompt(zh ? "複製以下連結：" : "Copy this link:", url);
-    }
-  }
+  // 分享呢個方案：網址已經包住計劃同持有基金（?s=&h=），唔包任何姓名
+  useShareLink(result ? () => window.location.href : null);
 
   return (
     <div>
@@ -294,7 +278,7 @@ function CheckupPage() {
           </Card>
         </div>
 
-        <div id="result" className="min-w-0 scroll-mt-20 space-y-4 lg:col-span-7">
+        <div id="result" className="min-w-0 scroll-mt-28 space-y-4 lg:col-span-7">
           {!result ? (
             <Card className="border-dashed">
               <h2 className="mb-1 font-display text-lg">{zh ? "檢查結果" : "Results"}</h2>
@@ -324,8 +308,8 @@ function CheckupPage() {
                         : `${result.items.filter((i) => i.light === "good").length} OK, ${result.items.filter((i) => i.light !== "good").length} to look at`}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => void share()}>
-                    {copied ? (zh ? "已複製連結" : "Link copied") : zh ? "分享呢個方案" : "Share"}
+                  <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => mkShare()}>
+                    {zh ? "分享呢個方案" : "Share"}
                   </Button>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">

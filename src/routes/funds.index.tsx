@@ -29,6 +29,7 @@ import { annReturn, calendar3yAnn } from "@/lib/mpf/returns";
 import { indexFund, scoreQuery } from "@/lib/mpf/search";
 import type { Fund, FundCategory } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
+import { useShareLink } from "@/components/layout/mk-standard";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
@@ -40,8 +41,13 @@ type FundsSearch = {
   scheme?: string;
   provider?: string;
   category?: FundCategory;
+  region?: RegionId;
+  theme?: ThemeId;
+  sort?: SortKey;
+  dir?: "asc";
 };
 
+const SORT_KEYS: SortKey[] = ["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince", "y2025", "fer", "aumM", "riskClass"];
 const PAGE = 40;
 const PERIOD_SHORT_ZH: Partial<Record<SortKey, string>> = { ret1y: "1年", ret3yCal: "3年", ret5y: "5年", ret10y: "10年", retSince: "成立", y2025: "2025" };
 const PERIOD_SHORT_EN: Partial<Record<SortKey, string>> = { ret1y: "1Y", ret3yCal: "3Y", ret5y: "5Y", ret10y: "10Y", retSince: "Since", y2025: "2025" };
@@ -62,6 +68,10 @@ export const Route = createFileRoute("/funds/")({
       raw.category === "guaranteed"
         ? raw.category
         : undefined,
+    region: typeof raw.region === "string" && (REGION_ORDER as readonly string[]).includes(raw.region) ? (raw.region as RegionId) : undefined,
+    theme: typeof raw.theme === "string" && (THEME_ORDER as readonly string[]).includes(raw.theme) ? (raw.theme as ThemeId) : undefined,
+    sort: typeof raw.sort === "string" && SORT_KEYS.includes(raw.sort as SortKey) ? (raw.sort as SortKey) : undefined,
+    dir: raw.dir === "asc" ? "asc" : undefined,
   }),
   head: ({ match }) => {
     const q = (match.search as FundsSearch).q;
@@ -92,13 +102,34 @@ function FundsPage() {
     if (q.trim()) setByRelevance(true);
   }, [q]);
   const [cat, setCat] = useState<FundCategory | "all">(search.category ?? "all");
-  const [region, setRegion] = useState<RegionId | "all">("all");
-  const [theme, setTheme] = useState<ThemeId | "all">("all");
+  const [region, setRegion] = useState<RegionId | "all">(search.region ?? "all");
+  const [theme, setTheme] = useState<ThemeId | "all">(search.theme ?? "all");
   const [provider, setProvider] = useState(search.provider ?? "all");
   const [scheme, setScheme] = useState(search.scheme ?? "all");
   const [sleeve, setSleeve] = useState(search.sleeve ?? "all");
-  const [sort, setSort] = useState<SortKey>("ret5y");
-  const [dir, setDir] = useState<"desc" | "asc">("desc");
+  const [sort, setSort] = useState<SortKey>(search.sort ?? "ret5y");
+  const [dir, setDir] = useState<"desc" | "asc">(search.dir ?? "desc");
+
+  // 分享呢個方案：有搜尋、篩選或者改咗排序先出掣；連結重現同一個清單
+  const filtered = !!q.trim() || cat !== "all" || region !== "all" || theme !== "all" || provider !== "all" || scheme !== "all" || sleeve !== "all" || sort !== "ret5y" || dir !== "desc";
+  useShareLink(
+    filtered
+      ? () => {
+          const url = new URL("/funds", window.location.origin);
+          const set = (k: string, v: string | undefined) => v && v !== "all" && url.searchParams.set(k, v);
+          set("q", q.trim() || undefined);
+          set("category", cat);
+          set("region", region);
+          set("theme", theme);
+          set("provider", provider);
+          set("scheme", scheme);
+          set("sleeve", sleeve);
+          if (sort !== "ret5y") set("sort", sort);
+          if (dir === "asc") set("dir", "asc");
+          return url.toString();
+        }
+      : null,
+  );
 
   // Keep ?q= in the address bar so a search can be bookmarked or sent to a client.
   useEffect(() => {

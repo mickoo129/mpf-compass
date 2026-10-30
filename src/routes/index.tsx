@@ -123,7 +123,7 @@ function Home() {
         </p>
       </section>
 
-      <div id="same-period" className="mb-10 scroll-mt-20">
+      <div id="same-period" className="mb-10 scroll-mt-28">
         <ReturnHeatmap zh={zh} />
       </div>
 

@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { PageTitle } from "@/components/layout/app-shell";
+import { mkShare, useShareLink } from "@/components/layout/mk-standard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,13 +31,42 @@ import { fmtAxisHkd, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { projectScenarios, scenarioRates } from "@/lib/mpf/forecast";
 import { buildRegime, HORIZON_COPY } from "@/lib/mpf/regime";
 import { buildAllocation, compareSavedMix, GOAL_COPY, MIX_SIZE_COPY, MIX_SIZE_OPTS, resolvedMixSize, resolvedReview, REVIEW_COPY, REVIEW_OPTS, expectedReturn, REASON_EN, riskBudget, scoreFunds, sleevePrior, suitabilityChecks, targetRisk } from "@/lib/mpf/score";
-import type { GoalId } from "@/lib/mpf/types";
+import type { GoalId, Profile } from "@/lib/mpf/types";
 import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-type RecommendSearch = { scheme?: string; r?: string };
+type RecommendSearch = { scheme?: string; r?: string; p?: string };
+
+// ?p= carries the client's settings so a shared link rebuilds the same mix:
+// age.retireAge.goal.account.horizon.mixSize.balance.monthly (no names).
+function encodeSettings(pr: Profile): string {
+  return [pr.age, pr.retireAge, pr.goal, pr.account === "contribution" ? "c" : "p", pr.switchHorizon ?? "6m", pr.mixSize, pr.balance, pr.monthly].join(".");
+}
+function decodeSettings(raw: string | undefined): Partial<Profile> | null {
+  if (!raw) return null;
+  const [a, ra, g, ac, sh, n, b, m] = raw.split(".");
+  const num = (x: string | undefined, lo: number, hi: number) => {
+    const v = Number(x);
+    return Number.isFinite(v) && v >= lo && v <= hi ? v : undefined;
+  };
+  const out: Partial<Profile> = {};
+  const age = num(a, 18, 70);
+  const retire = num(ra, 50, 70);
+  if (age != null) out.age = age;
+  if (retire != null) out.retireAge = retire;
+  if (g === "growth" || g === "balanced" || g === "preserve" || g === "lowfee" || g === "dis") out.goal = g;
+  if (ac === "c" || ac === "p") out.account = ac === "c" ? "contribution" : "personal";
+  if (sh === "1m" || sh === "3m" || sh === "6m" || sh === "1y") out.switchHorizon = sh;
+  if (n === "auto") out.mixSize = "auto";
+  else if (["1", "2", "3", "4", "5"].includes(n ?? "")) out.mixSize = Number(n) as Profile["mixSize"];
+  const bal = num(b, 0, 1e9);
+  const mon = num(m, 0, 1e6);
+  if (bal != null) out.balance = bal;
+  if (mon != null) out.monthly = mon;
+  return out;
+}
 
 export const Route = createFileRoute("/recommend")({
   // ?scheme=<schemeEn> lets a scheme page (or an adviser's WhatsApp link) open 智選 locked to one scheme.
@@ -44,6 +74,7 @@ export const Route = createFileRoute("/recommend")({
     ({
       scheme: typeof raw.scheme === "string" && raw.scheme ? raw.scheme : undefined,
       r: typeof raw.r === "string" && raw.r ? raw.r : undefined,
+      p: typeof raw.p === "string" && raw.p ? raw.p : undefined,
     }),
   head: ({ match }) => {
     const { r } = match.search as RecommendSearch;
@@ -78,11 +109,16 @@ function RecommendPage() {
   const schemes = uniqueSchemes();
   const search = Route.useSearch();
   useEffect(() => {
-    if (search.scheme && schemes.some((s) => s.en === search.scheme)) {
-      setProfile({ account: "contribution", schemeEn: search.scheme });
+    const settings = decodeSettings(search.p);
+    const scheme = search.scheme && schemes.some((s) => s.en === search.scheme) ? search.scheme : null;
+    if (settings) {
+      // A shared 方案: same settings; the scheme is only locked if it was locked when shared.
+      setProfile({ ...settings, schemeEn: scheme });
+    } else if (scheme) {
+      setProfile({ account: "contribution", schemeEn: scheme });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search.scheme]);
+  }, [search.scheme, search.p]);
   const horizon = profile.switchHorizon ?? "6m";
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
   const regime = useMemo(
@@ -140,7 +176,6 @@ function RecommendPage() {
   const [advanced, setAdvanced] = useState(
     () => profile.mixSize !== "auto" || profile.reviewEvery !== "auto",
   );
-  const [copied, setCopied] = useState(false);
 
   const comparison = useMemo(() => compareSavedMix(lastMix, alloc, ranked), [lastMix, alloc, ranked]);
   const mixAgeMs = lastMix ? Date.now() - new Date(lastMix.at).getTime() : 0;
@@ -178,45 +213,18 @@ function RecommendPage() {
     [lastMix, markets.data],
   );
 
-  function mixText(): string {
-    const scheme = alloc[0] ? (zh ? alloc[0].fund.schemeZh : alloc[0].fund.schemeEn) : "";
+  // 分享呢個方案：連結包括計劃、目標、年齡同配置（?scheme=&r=），撳開會重現；唔包姓名。
+  // 分享嗰陣順手記低配置，下次返嚟就見到「至今大約升跌」。
+  function mixUrl(): string {
     const url = new URL("/recommend", window.location.origin);
-    if (alloc[0]) url.searchParams.set("scheme", alloc[0].fund.schemeEn);
-    // Saving on share means the link also carries "since last time" for the next visit.
+    if (profile.schemeEn) url.searchParams.set("scheme", profile.schemeEn);
+    url.searchParams.set("p", encodeSettings(profile));
     const saved = buildSaved();
     saveMix(saved);
     url.searchParams.set("r", encodeMix(saved));
-    return [
-      zh ? "積金羅盤 · 配置參考（研究用，並非投資建議）" : "MPF Compass mix (research only, not advice)",
-      `${zh ? "計劃" : "Scheme"}：${scheme}`,
-      `${zh ? "目標" : "Goal"}：${zh ? GOAL_COPY[profile.goal].zh : GOAL_COPY[profile.goal].en} · ${zh ? `${profile.age} 歲` : `age ${profile.age}`}`,
-      "",
-      ...alloc.map((a) => `${Math.round(a.weight * 100)}%  ${zh ? a.fund.nameZh : a.fund.nameEn}`),
-      "",
-      `${zh ? "基金數字截至" : "Fund figures as of"} ${catalogMeta.asOf}`,
-      url.toString(),
-    ].join("\n");
+    return url.toString();
   }
-
-  async function shareMix() {
-    const text = mixText();
-    // Phones: open the share sheet (WhatsApp, Messages…). Desktop: copy to clipboard.
-    if (typeof navigator.share === "function" && window.matchMedia("(pointer: coarse)").matches) {
-      try {
-        await navigator.share({ text });
-        return;
-      } catch {
-        /* cancelled or unsupported: fall back to copying */
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      window.prompt(zh ? "複製以下內容：" : "Copy this:", text);
-    }
-  }
+  useShareLink(alloc.length ? mixUrl : null);
 
   // On a phone the inputs sit below the results. While they fill the screen the
   // sticky button offers the way back up instead of the way down.
@@ -237,7 +245,7 @@ function RecommendPage() {
         title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
         subtitle={zh ? "結果喺下面。想改年齡、目標或者計劃就撳「修改條件」，改完撳「睇結果」返上嚟。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      <div className="sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0E5E57]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+      <div className="sticky top-[var(--mk-head-h)] z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0E5E57]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
         <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
             ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}再睇`
@@ -250,7 +258,7 @@ function RecommendPage() {
 
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div id="inputs" className="order-2 min-w-0 scroll-mt-28 space-y-5 lg:order-1 lg:col-span-5">
+        <div id="inputs" className="order-2 min-w-0 scroll-mt-40 space-y-5 lg:order-1 lg:col-span-5">
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "你嘅情況" : "Your situation"}</h2>
             <p className="mb-4 text-xs text-subtle">
@@ -448,7 +456,7 @@ function RecommendPage() {
           </Card>
         </div>
 
-        <div id="mix" className="order-1 min-w-0 scroll-mt-28 space-y-5 lg:order-2 lg:col-span-7">
+        <div id="mix" className="order-1 min-w-0 scroll-mt-40 space-y-5 lg:order-2 lg:col-span-7">
           <Card>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
@@ -468,11 +476,11 @@ function RecommendPage() {
                 variant="outline"
                 size="sm"
                 className="shrink-0 whitespace-nowrap"
-                onClick={() => void shareMix()}
+                onClick={() => mkShare(mixUrl())}
                 disabled={!alloc.length}
                 title={zh ? "分享或複製呢個配置，可以直接貼落 WhatsApp" : "Share or copy this mix"}
               >
-                {copied ? (zh ? "已複製" : "Copied") : zh ? "分享呢個方案" : "Share mix"}
+                {zh ? "分享呢個方案" : "Share mix"}
               </Button>
             </div>
             {alloc.length ? (
