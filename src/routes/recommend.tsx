@@ -312,7 +312,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "你而家嘅計劃（只喺呢個計劃揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
@@ -331,7 +331,7 @@ function RecommendPage() {
               <div className="mt-4">
                 <Label>{zh ? "只喺呢個計劃揀基金（可以唔揀）" : "Limit to one scheme (optional)"}</Label>
                 <select
-                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+                  className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >

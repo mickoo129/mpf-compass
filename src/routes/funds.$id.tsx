@@ -97,7 +97,7 @@ function FundDetail() {
       </p>
       <label className="mb-1 block text-xs text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
       <select
-        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg shadow-[var(--shadow-border)] [color-scheme:light]"
+        className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
         value={fund.id}
         onChange={(e) => {
           if (e.target.value && e.target.value !== fund.id) void navigate({ to: "/funds/$id", params: { id: e.target.value } });

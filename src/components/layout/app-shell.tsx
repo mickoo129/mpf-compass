@@ -241,8 +241,7 @@ export function PageTitle({
       {kicker ? (
         <p className="mb-2 font-mono text-xs tracking-[0.18em] text-[var(--pc-ink)] uppercase">{kicker}</p>
       ) : null}
-      <h1 className="relative w-full pl-3.5 text-xl font-semibold tracking-tight text-[var(--pc-ink)] sm:text-3xl lg:text-4xl">
-        <span className="absolute top-1 bottom-1 left-0 w-[3px] rounded-full bg-[var(--pc)]" />
+      <h1 className="relative w-full text-xl font-semibold tracking-tight text-[var(--pc-ink)] sm:text-3xl lg:text-4xl">
         {title}
       </h1>
       {subtitle ? <p className="mt-2 w-full text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
