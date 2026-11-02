@@ -211,3 +211,99 @@ export const getReturnHistory = createServerFn({ method: "GET" }).handler(async 
   if (series.length) historyCache = { at: Date.now(), data };
   return data;
 });
+
+/* ===== 市況參考：撳入去睇單一指數走勢（時段跟 Yahoo Finance：1D 5D 1M 6M YTD 1Y 5Y All）===== */
+
+export const CHART_RANGES = ["1d", "5d", "1mo", "6mo", "ytd", "1y", "5y", "max"] as const;
+export type ChartRange = (typeof CHART_RANGES)[number];
+
+// 每個時段用幾密嘅數據點：即日用分鐘線，長年期用週線／月線
+const RANGE_INTERVAL: Record<ChartRange, string> = {
+  "1d": "5m",
+  "5d": "15m",
+  "1mo": "1d",
+  "6mo": "1d",
+  ytd: "1d",
+  "1y": "1d",
+  "5y": "1wk",
+  max: "1mo",
+};
+
+export interface IndexChart {
+  symbol: string;
+  range: ChartRange;
+  /** Unix seconds and close. */
+  points: { t: number; c: number }[];
+  /** Baseline for the change figure: previous close for 1D, first point otherwise. */
+  base: number | null;
+  last: number | null;
+  /** Time of the last quote (Unix seconds) and the exchange's time zone. */
+  asOf: number | null;
+  timeZone: string | null;
+}
+
+type ChartBody = {
+  chart?: {
+    result?: {
+      meta: {
+        regularMarketPrice?: number;
+        regularMarketTime?: number;
+        chartPreviousClose?: number;
+        previousClose?: number;
+        exchangeTimezoneName?: string;
+      };
+      timestamp?: number[];
+      indicators?: { quote?: { close?: (number | null)[] }[] };
+    }[];
+  };
+};
+
+/** Pure parser so it can be tested without the network. */
+export function parseIndexChart(symbol: string, range: ChartRange, body: ChartBody): IndexChart | null {
+  const result = body.chart?.result?.[0];
+  if (!result) return null;
+  const ts = result.timestamp ?? [];
+  const closes = result.indicators?.quote?.[0]?.close ?? [];
+  const points: { t: number; c: number }[] = [];
+  for (let i = 0; i < ts.length; i++) {
+    const c = closes[i];
+    if (c != null && Number.isFinite(c)) points.push({ t: ts[i]!, c });
+  }
+  if (points.length < 2) return null;
+  const last = result.meta.regularMarketPrice ?? points.at(-1)!.c;
+  const prev = result.meta.previousClose ?? result.meta.chartPreviousClose ?? null;
+  const base = range === "1d" ? (prev ?? points[0]!.c) : points[0]!.c;
+  return {
+    symbol,
+    range,
+    points,
+    base,
+    last,
+    asOf: result.meta.regularMarketTime ?? points.at(-1)!.t,
+    timeZone: result.meta.exchangeTimezoneName ?? null,
+  };
+}
+
+const chartCache = new Map<string, { at: number; data: IndexChart | null }>();
+
+export const getIndexChart = createServerFn({ method: "GET" })
+  .validator((input: { symbol: string; range: string }) => {
+    // Only the indices shown on the page, only Yahoo's ranges: nothing else reaches Yahoo.
+    if (!INDICES.some((i) => i.symbol === input?.symbol)) throw new Error("Unknown index");
+    if (!(CHART_RANGES as readonly string[]).includes(input?.range)) throw new Error("Unknown range");
+    return { symbol: input.symbol, range: input.range as ChartRange };
+  })
+  .handler(async ({ data }): Promise<IndexChart | null> => {
+    const key = `${data.symbol}|${data.range}`;
+    const ttl = data.range === "1d" || data.range === "5d" ? 60_000 : 30 * 60_000;
+    const hit = chartCache.get(key);
+    if (hit && Date.now() - hit.at < ttl) return hit.data;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(data.symbol)}?interval=${RANGE_INTERVAL[data.range]}&range=${data.range}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; MPFCompass/1.0)", Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const parsed = parseIndexChart(data.symbol, data.range, (await res.json()) as ChartBody);
+    if (parsed) chartCache.set(key, { at: Date.now(), data: parsed });
+    return parsed;
+  });

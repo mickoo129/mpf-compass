@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Sparkline } from "@/components/charts/sparkline";
 import { CategoryPathChart } from "@/components/charts/category-path";
 import { IndexPathChart } from "@/components/charts/index-path";
+import { MarketDetail } from "@/components/charts/market-detail";
 import { ReturnHeatmap } from "@/components/charts/return-heatmap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import {
 import { fmtAum, fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
 import { MPFA_PERIOD_NOTE, PERIOD_LABEL, type MedianPeriod } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
+import type { MarketQuote } from "@/lib/mpf/types";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { seo } from "@/lib/seo";
@@ -43,6 +45,7 @@ function Home() {
   const locale = useAppStore((s) => s.locale);
   const zh = locale === "zh";
   const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
+  const [detail, setDetail] = useState<MarketQuote | null>(null);
   const [period, setPeriod] = useState<MedianPeriod>("ret1y");
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -133,8 +136,8 @@ function Home() {
             <h2 className="font-display text-xl">{zh ? "市況參考（非基金）" : "Market context (not funds)"}</h2>
             <p className="mt-1 w-full text-xs leading-relaxed text-canvas-muted">
               {zh
-                ? "Yahoo 指數，開啟頁面時更新。不是積金局單位價，亦不是上方官方年化。"
-                : "Yahoo indices, refresh on load. Not MPFA NAVs and not the official returns above."}
+                ? "Yahoo 指數，開啟頁面時更新。不是積金局單位價，亦不是上方官方年化。撳任何一格睇走勢圖同相關基金。"
+                : "Yahoo indices, refresh on load. Not MPFA NAVs and not the official returns above. Tap one for its chart and related funds."}
             </p>
           </div>
           <p className="font-mono text-xs text-canvas-muted">
@@ -150,7 +153,14 @@ function Home() {
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {(markets.data?.quotes ?? []).map((q) => (
-              <Card key={q.symbol} className="p-3 sm:p-3">
+              <button
+                key={q.symbol}
+                type="button"
+                onClick={() => setDetail(q)}
+                aria-label={zh ? `${q.nameZh}：睇走勢圖` : `${q.nameEn}: see chart`}
+                className="group block min-w-0 rounded-xl text-left focus-visible:ring-2 focus-visible:ring-[#00A758] focus-visible:outline-none"
+              >
+              <Card className="h-full p-3 transition-shadow group-hover:ring-[#00A758] sm:p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs text-muted">{zh ? q.nameZh : q.nameEn}</p>
@@ -165,6 +175,7 @@ function Home() {
                   <span className="text-subtle">{zh ? "年初至今" : "YTD"} {fmtPct(q.ytdPct, 1)}</span>
                 </div>
               </Card>
+              </button>
             ))}
           </div>
         )}
@@ -173,6 +184,7 @@ function Home() {
             ? markets.data?.notes
             : "Index quotes via Yahoo Finance (HK delayed ~15 minutes). This is not MPFA fund NAV, and not the fund snapshot date."}
         </p>
+        <MarketDetail quote={detail} zh={zh} onClose={() => setDetail(null)} />
       </section>
 
       <div className="mb-10">
