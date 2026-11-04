@@ -275,7 +275,10 @@ export function CompareHint() {
   const browsing = pathname.startsWith("/funds") || pathname === "/schemes";
   if (!ids.length || !browsing) return null;
   return (
-    <div className="fixed right-4 bottom-4 z-30 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-primary shadow-[var(--shadow-border)]">
+    <>
+    {/* 留位：捲到最底時，頁尾唔會俾呢粒提示遮住 */}
+    <div aria-hidden className="h-16 bg-[#0E5E57] print:hidden" />
+    <div className="fixed right-4 bottom-4 z-30 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-primary shadow-[var(--shadow-border)] print:hidden">
       <Link to="/compare" className="text-sm">
         {locale === "zh" ? `比較 ${ids.length} 隻基金` : `Compare ${ids.length}`}
       </Link>
@@ -283,5 +286,6 @@ export function CompareHint() {
         <X className="size-3.5" />
       </button>
     </div>
+    </>
   );
 }

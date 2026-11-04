@@ -19,7 +19,7 @@ export type MedianPeriod = (typeof MEDIAN_PERIODS)[number];
 
 export const PERIOD_LABEL: Record<AnnPeriod, { zh: string; en: string }> = {
   ret1y: { zh: "1年", en: "1Y" },
-  ret3yCal: { zh: "3年", en: "3Y" },
+  ret3yCal: { zh: "2023–25", en: "2023–25" },
   ret5y: { zh: "5年", en: "5Y" },
   ret10y: { zh: "10年", en: "10Y" },
   retSince: { zh: "成立至今", en: "Since" },
@@ -31,8 +31,8 @@ export const PERIOD_LABEL: Record<AnnPeriod, { zh: string; en: string }> = {
 };
 
 export const MPFA_PERIOD_NOTE = {
-  zh: "積金局基金平台公布年化／累積：1年、5年、10年、成立至今，以及曆年 2021–2025（截至 2026-09-30）。沒有官方 1個月、3個月、半年、年初至今或滾動 3年。「3年」由 2023–2025 曆年複利推算，截至 2026-09-30。",
-  en: "MPFA publishes annualized/cumulative 1Y, 5Y, 10Y, since launch, and calendar 2021–2025 (as of 2026-09-30). No official 1M, 3M, 6M, YTD, or trailing 3Y. “3Y” is compounded from calendar 2023–2025, through 31 Dec 2025.",
+  zh: "積金局基金平台公布年化／累積：1年、5年、10年、成立至今，以及曆年 2021–2025（截至 2026-09-30）。沒有官方 1個月、3個月、半年、年初至今或滾動 3年。「2023–25」係 2023、2024、2025 三個曆年回報複利推算嘅年化數字，截至 2025-12-31，同其他欄嘅截數日唔同。",
+  en: "MPFA publishes annualized/cumulative 1Y, 5Y, 10Y, since launch, and calendar 2021–2025 (as of 2026-09-30). No official 1M, 3M, 6M, YTD, or trailing 3Y. “2023–25” is the annualized compound of calendar 2023–2025, through 31 Dec 2025.",
 };
 
 export function calendar3yAnn(fund: Fund): number | null {

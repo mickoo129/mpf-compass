@@ -468,7 +468,7 @@ function RecommendPage() {
               </p>
               <p className="mt-1 text-xs leading-relaxed text-subtle">
                 {zh
-                  ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。"
+                  ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。配置會跟每日市況微調，隔幾日再開可能唔同；想之後對照，就撳「記低配置」或者「分享呢個方案」留低今次結果。"
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
@@ -487,7 +487,7 @@ function RecommendPage() {
               <p className="mb-3 rounded-md bg-tint-mint px-3 py-2 text-sm">
                 {zh ? "呢個配置平均開支比率 " : "Weighted FER "}
                 <b className="font-mono">{fmtPctPlain(mixFer(alloc))}</b>
-                {zh ? "，即係每年約 " : ", about "}
+                {zh ? "，即係大約 " : ", about "}
                 <FeeAmount fer={mixFer(alloc)} zh={zh} className="font-mono font-medium" />
                 {profile.balance > 0 ? null : (
                   <span className="block text-xs text-muted">{zh ? "喺「你嘅情況」填上結餘，就會用你自己嘅金額計。" : "Enter your balance to see your own amount."}</span>
@@ -601,7 +601,7 @@ function RecommendPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "至退休的假設滾存" : "Illustrative path to retirement"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "至退休嘅假設滾存" : "Illustrative path to retirement"}</h2>
             {usingExample ? (
               <p className="mb-2 rounded-md bg-tint-sand px-3 py-2 text-xs text-fg">
                 {zh
@@ -786,7 +786,8 @@ function RecommendPage() {
                         </span>
                       </span>
                     </span>
-                    <span className="flex items-center gap-3">
+                    <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted">
+                      {zh ? "5年年化" : "5Y p.a."}
                       <ReturnCell value={s.fund.ret5y} />
                     </span>
                   </Link>

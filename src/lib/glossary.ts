@@ -59,9 +59,9 @@ export const GLOSSARY: Record<TermKey, { zh: string; en: string; bodyZh: string;
     bodyEn: "Total return over the whole period: 34% over 5 years turns HK$10,000 into about HK$13,400.",
   },
   est3y: {
-    zh: "3年（推算）",
-    en: "3-year (derived)",
-    bodyZh: "積金局冇公布三年年化回報。呢度用 2023、2024、2025 三個曆年回報複利推算，截至 2025 年底，同其他欄嘅截數日唔同。",
+    zh: "2023–25（三年年化）",
+    en: "2023–25 (3-year, annualized)",
+    bodyZh: "積金局冇公布三年年化回報。呢個數係用 2023、2024、2025 三個曆年回報複利推算出嚟嘅每年平均，截至 2025 年底；同 1年、5年嗰啲（截至最新月底）唔係同一段時間，所以唔好直接拎嚟比。",
     bodyEn: "MPFA does not publish 3-year returns. This compounds calendar 2023–2025, ending 2025-12-31.",
   },
   median: {

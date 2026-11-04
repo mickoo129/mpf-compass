@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { PageTitle } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { TAG_ZH, allFunds, catalogMeta, fundById, peerRank, peerRankBy, SLEEVE_LABEL } from "@/lib/mpf/catalog";
 import { fmtAum, fmtPct, fmtPctPlain } from "@/lib/mpf/format";
-import { estimateTodayMove } from "@/lib/mpf/forecast";
 import { RangeCard } from "@/components/funds/range-card";
 import { Term } from "@/components/ui/term";
 import { describeFund } from "@/lib/mpf/describe";
@@ -16,7 +14,6 @@ import { seo } from "@/lib/seo";
 import { FeeCard } from "@/components/funds/fee-card";
 import { YearVsPeers } from "@/components/charts/year-vs-peers";
 import { annReturn, calendar3yAnn, cumReturn, PERIOD_LABEL } from "@/lib/mpf/returns";
-import { getMarkets } from "@/lib/server/markets";
 import { useAppStore } from "@/lib/store";
 
 export const Route = createFileRoute("/funds/$id")({
@@ -47,7 +44,6 @@ function FundDetail() {
   const zh = locale === "zh";
   const toggle = useAppStore((s) => s.toggleCompare);
   const compared = useAppStore((s) => s.compareIds.includes(id));
-  const markets = useQuery({ queryKey: ["markets"], queryFn: () => getMarkets() });
   const [peerPeriod, setPeerPeriod] = useState<"ret1y" | "ret3yCal" | "ret5y" | "ret10y" | "retSince">("ret5y");
 
   if (!fund) {
@@ -61,8 +57,6 @@ function FundDetail() {
     );
   }
 
-  const quote = markets.data?.quotes.find((q) => q.symbol === fund.bench);
-  const today = estimateTodayMove(quote?.changePct ?? null, fund.beta);
   const rank1 = peerRank(fund, "ret1y");
   const rank5 = peerRank(fund, "ret5y");
   const rank10 = peerRank(fund, "ret10y");
@@ -75,11 +69,11 @@ function FundDetail() {
     .slice(0, 5);
   const periods = [
     ["ret1y", rank1],
-    ["ret3yCal", rank3],
     ["ret5y", rank5],
     ["ret10y", rank10],
     ["retSince", rankSince],
   ] as const;
+  const cal3 = calendar3yAnn(fund);
   const siblings = allFunds
     .filter((f) => f.schemeEn === fund.schemeEn)
     .sort((a, b) => (zh ? a.nameZh.localeCompare(b.nameZh, "zh-HK") : a.nameEn.localeCompare(b.nameEn)));
@@ -144,7 +138,7 @@ function FundDetail() {
       <Card className="mb-8">
         <h2 className="mb-1 font-display text-lg">{zh ? "回報時段" : "Return periods"}</h2>
         <p className="mb-2 text-xs text-subtle">
-          {zh ? `積金局數字，截至 ${catalogMeta.asOf}。「3年」係推算，撳「?」睇解釋。` : `MPFA figures as of ${catalogMeta.asOf}. “3Y” is derived; tap ? for details.`}
+          {zh ? `積金局數字，截至 ${catalogMeta.asOf}。` : `MPFA figures as of ${catalogMeta.asOf}.`}
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
@@ -154,7 +148,6 @@ function FundDetail() {
                 {periods.map(([p]) => (
                   <th key={p} className="py-2 pl-1 text-right font-medium whitespace-nowrap">
                     {zh ? (p === "retSince" ? "成立" : PERIOD_LABEL[p].zh) : PERIOD_LABEL[p].en}
-                    {p === "ret3yCal" ? <Term k="est3y">{""}</Term> : null}
                   </th>
                 ))}
               </tr>
@@ -177,21 +170,38 @@ function FundDetail() {
                 ))}
               </tr>
               <tr>
-                <td className="py-2 pr-2 text-xs whitespace-nowrap text-muted">{zh ? "同類排名" : "Peer rank"}</td>
+                <td className="py-2 pr-2 text-xs text-muted">
+                  {zh ? "同類排名" : "Peer rank"}
+                  <span className="block whitespace-nowrap">{zh ? "（1 最好）" : "(1 = best)"}</span>
+                </td>
                 {periods.map(([p, rank]) => (
-                  <td key={p} className="py-2 pl-1 text-right font-mono text-xs text-muted">
-                    {rank ? `${rank.rank}/${rank.total}` : "—"}
+                  <td key={p} className="py-2 pl-1 text-right text-xs text-muted">
+                    {rank ? (
+                      zh ? (
+                        <>
+                          <span className="block font-num text-fg">第 {rank.rank}</span>
+                          <span className="block">共 {rank.total} 隻</span>
+                        </>
+                      ) : (
+                        <span className="font-num">{rank.rank} of {rank.total}</span>
+                      )
+                    ) : (
+                      "—"
+                    )}
                   </td>
                 ))}
               </tr>
             </tbody>
           </table>
         </div>
-        {today != null ? (
-          <p className="mt-3 text-xs text-subtle">
-            {zh
-              ? `參考：基準指數今日 ${fmtPct(quote?.changePct)} × 貝塔 ${fund.beta} ≈ ${fmtPct(today)}（非官方 NAV）。`
-              : `Ref: benchmark today ${fmtPct(quote?.changePct)} × beta ${fund.beta} ≈ ${fmtPct(today)} (not an official NAV).`}
+        {cal3 != null ? (
+          // 三個曆年推算嘅數截數日唔同，唔放入上面個表，免得同 1年、5年直接比
+          <p className="mt-3 text-xs text-muted">
+            <Term k="est3y">{zh ? "2023–25 三年年化（推算）" : "2023–25, annualized (derived)"}</Term>
+            {"："}
+            <ReturnCell value={cal3} digits={1} />
+            {rank3 ? (zh ? `，同類第 ${rank3.rank}（共 ${rank3.total} 隻）` : `, rank ${rank3.rank} of ${rank3.total}`) : null}
+            {zh ? "。截至 2025 年底，同上面唔係同一段時間。" : ". To end-2025, a different period from the table."}
           </p>
         ) : null}
       </Card>

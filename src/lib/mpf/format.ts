@@ -1,7 +1,15 @@
 export function fmtPct(n: number | null | undefined, digits = 2): string {
   if (n == null || Number.isNaN(n)) return "—";
-  const sign = n > 0 ? "+" : "";
-  return `${sign}${n.toFixed(digits)}%`;
+  const s = n.toFixed(digits);
+  if (Number(s) === 0) return `${(0).toFixed(digits)}%`; // 唔顯示「-0.0%」
+  return `${n > 0 ? "+" : ""}${s}%`;
+}
+
+/** 息率變動用「點子」（1 點子 = 0.01 個百分點），例如美債息升 6 點子。 */
+export function fmtBp(diffPctPoints: number | null | undefined, zh = true): string {
+  if (diffPctPoints == null || Number.isNaN(diffPctPoints)) return "—";
+  const bp = Math.round(diffPctPoints * 100);
+  return `${bp > 0 ? "+" : ""}${bp}${zh ? " 點子" : " bp"}`;
 }
 
 export function fmtPctPlain(n: number | null | undefined, digits = 2): string {

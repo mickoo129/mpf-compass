@@ -49,7 +49,7 @@ type FundsSearch = {
 
 const SORT_KEYS: SortKey[] = ["ret1y", "ret3yCal", "ret5y", "ret10y", "retSince", "y2025", "fer", "aumM", "riskClass"];
 const PAGE = 40;
-const PERIOD_SHORT_ZH: Partial<Record<SortKey, string>> = { ret1y: "1年", ret3yCal: "3年", ret5y: "5年", ret10y: "10年", retSince: "成立", y2025: "2025" };
+const PERIOD_SHORT_ZH: Partial<Record<SortKey, string>> = { ret1y: "1年", ret3yCal: "2023–25", ret5y: "5年", ret10y: "10年", retSince: "成立", y2025: "2025" };
 const PERIOD_SHORT_EN: Partial<Record<SortKey, string>> = { ret1y: "1Y", ret3yCal: "3Y", ret5y: "5Y", ret10y: "10Y", retSince: "Since", y2025: "2025" };
 const SEARCH_INDEX = new Map(allFunds.map((f) => [f.id, indexFund(f, [SLEEVE_LABEL[f.sleeve]?.zh ?? "", SLEEVE_LABEL[f.sleeve]?.en ?? ""])]));
 
@@ -310,11 +310,11 @@ function FundsPage() {
             </button>
           ) : null}
         </div>
-        <div className="flex gap-2 sm:hidden">
+        <div className="flex gap-2 min-[1170px]:hidden">
           <button
             type="button"
             onClick={() => setShowFilters((v) => !v)}
-            className="h-11 flex-1 rounded-md bg-card px-3 text-left text-sm text-fg shadow-[var(--shadow-border)]"
+            className="h-11 flex-1 sm:hidden rounded-md bg-card px-3 text-left text-sm text-fg shadow-[var(--shadow-border)]"
             aria-expanded={showFilters}
           >
             {zh ? "篩選" : "Filters"}
@@ -426,7 +426,7 @@ function FundsPage() {
         {zh ? `顯示 ${rows.length} / ${allFunds.length}` : `Showing ${rows.length} / ${allFunds.length}`}
       </p>
 
-      <div className="hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:block">
+      <div className="hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] min-[1170px]:block">
         <table className="w-full min-w-[1100px] text-sm">
           <thead className="border-b border-border text-xs">
             <tr className="text-muted">
@@ -435,7 +435,7 @@ function FundsPage() {
               <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("riskClass", zh ? "風險" : "Risk")}<Term k="risk">{""}</Term></span></th>
               <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("fer", zh ? "開支比率" : "FER")}<Term k="fer">{""}</Term></span></th>
               <th className="px-3 py-3">{header("ret1y", zh ? "1年" : "1Y")}</th>
-              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("ret3yCal", zh ? "3年" : "3Y")}<Term k="est3y">{""}</Term></span></th>
+              <th className="px-3 py-3"><span className="inline-flex items-center justify-end gap-1">{header("ret3yCal", "2023–25")}<Term k="est3y">{""}</Term></span></th>
               <th className="px-3 py-3">{header("ret5y", zh ? "5年" : "5Y")}</th>
               <th className="px-3 py-3">{header("ret10y", zh ? "10年" : "10Y")}</th>
               <th className="px-3 py-3">{header("retSince", zh ? "成立" : "Since")}</th>
@@ -452,25 +452,52 @@ function FundsPage() {
         </table>
       </div>
 
-      <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:hidden">
-        {rows.slice(0, limit).map((f) => (
-          <li key={f.id}>
-            <Link to="/funds/$id" params={{ id: f.id }} className="flex items-center gap-3 px-3 py-2.5 active:bg-tint-sky">
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm leading-snug font-medium">{zh ? f.nameZh : f.nameEn}</span>
-                <span className="block truncate text-xs text-subtle">
-                  {zh ? f.schemeZh : f.schemeEn} · {zh ? "風險" : "Risk"} {f.riskClass ?? "—"} · {fmtPctPlain(f.fer)}
+      {/* 手機同 iPad 用精簡列表；iPad 闊啲，順便顯示多幾個數同「比較」掣 */}
+      <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] min-[1170px]:hidden">
+        {rows.slice(0, limit).map((f) => {
+          const shown: SortKey = sort === "fer" || sort === "riskClass" || sort === "aumM" ? "ret1y" : sort;
+          const compared = compareIds.includes(f.id);
+          return (
+            <li key={f.id} className="flex items-center gap-2 pr-2 sm:pr-3">
+              <Link to="/funds/$id" params={{ id: f.id }} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 active:bg-tint-sky">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm leading-snug font-medium">{zh ? f.nameZh : f.nameEn}</span>
+                  <span className="block truncate text-xs text-subtle">
+                    {zh ? f.schemeZh : f.schemeEn} · {zh ? "風險" : "Risk"} {f.riskClass ?? "—"}
+                    <span className="sm:hidden"> · {fmtPctPlain(f.fer)}</span>
+                  </span>
                 </span>
-              </span>
-              <span className="shrink-0 text-right font-mono text-sm">
-                <ReturnCell value={sortValue(f, sort === "fer" || sort === "riskClass" || sort === "aumM" ? "ret1y" : sort)} />
-                <span className="block text-xs text-subtle">
-                  {sort === "fer" || sort === "riskClass" || sort === "aumM" ? (zh ? "1年" : "1Y") : zh ? PERIOD_SHORT_ZH[sort] : PERIOD_SHORT_EN[sort]}
+                <span className="shrink-0 text-right text-sm sm:hidden">
+                  <ReturnCell value={sortValue(f, shown)} />
+                  <span className="block text-xs text-subtle">{zh ? PERIOD_SHORT_ZH[shown] : PERIOD_SHORT_EN[shown]}</span>
                 </span>
-              </span>
-            </Link>
-          </li>
-        ))}
+                <span className="hidden shrink-0 grid-cols-4 gap-4 text-right text-sm sm:grid">
+                  {(["ret1y", "ret5y", "ret10y"].includes(shown) ? (["ret1y", "ret5y", "ret10y"] as SortKey[]) : (["ret1y", "ret5y", shown] as SortKey[])).map((k) => (
+                    <span key={k} className={cn("w-16", k === shown && "font-semibold")}>
+                      <ReturnCell value={sortValue(f, k)} />
+                      <span className="block text-xs font-normal text-subtle">{zh ? PERIOD_SHORT_ZH[k] : PERIOD_SHORT_EN[k]}</span>
+                    </span>
+                  ))}
+                  <span className={cn("w-16", sort === "fer" && "font-semibold")}>
+                    <span className="font-num tabular-nums">{fmtPctPlain(f.fer)}</span>
+                    <span className="block text-xs font-normal text-subtle">{zh ? "開支比率" : "FER"}</span>
+                  </span>
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => toggle(f.id)}
+                disabled={!compared && compareIds.length >= 4}
+                className={cn(
+                  "hidden h-9 shrink-0 rounded-md px-3 text-xs font-medium ring-1 sm:inline-flex sm:items-center",
+                  compared ? "bg-primary text-white ring-primary" : "text-primary ring-border disabled:opacity-40",
+                )}
+              >
+                {compared ? (zh ? "已加入" : "Added") : zh ? "比較" : "Compare"}
+              </button>
+            </li>
+          );
+        })}
       </ul>
       {rows.length === 0 ? (
         <div className="py-10 text-center text-sm text-canvas-muted">
