@@ -1,9 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { allFunds, median, uniqueSchemes } from "@/lib/mpf/catalog";
+import { allFunds, uniqueSchemes } from "@/lib/mpf/catalog";
 import { fmtAum, fmtNum } from "@/lib/mpf/format";
-import { calendar3yAnn } from "@/lib/mpf/returns";
 import { useAppStore } from "@/lib/store";
 import { seo } from "@/lib/seo";
 
@@ -23,10 +22,9 @@ function SchemesPage() {
     const funds = allFunds.filter((f) => f.schemeEn === s.en);
     return {
       ...s,
-      ret1y: median(funds.map((f) => f.ret1y ?? NaN)),
-      ret3y: median(funds.map((f) => calendar3yAnn(f) ?? NaN)),
-      ret5y: median(funds.map((f) => f.ret5y ?? NaN)),
-      ret10y: median(funds.map((f) => f.ret10y ?? NaN)),
+      // 每個計劃都有核心累積基金，投資方向同收費上限一樣，所以用佢比較計劃最公平；
+      // 成個計劃嘅回報中位數會受股票／債券基金比例影響，唔適合拎嚟比。
+      caf: funds.filter((f) => f.isCaf).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9))[0] ?? null,
       minFer: Math.min(...funds.map((f) => f.fer ?? 9)),
       hasDis: funds.some((f) => f.isDis),
       tracker: funds.filter((f) => f.isTracker).length,
@@ -43,13 +41,13 @@ function SchemesPage() {
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "按計劃可查看其成分基金（與基金庫相同篩選）。想只喺該計劃內篩選參考配置，可以用「智選」。"
+            ? "撳計劃名睇佢有咩基金；撳「智選」就只喺嗰個計劃入面計參考配置。回報用各計劃嘅核心累積基金比較：每個計劃都有、投資方向同收費上限一樣，比較最公平。"
             : "Tap a scheme to see its constituent funds in the library. Use Recommend to score only within that scheme."
         }
       />
       <AsOfLine zh={zh} />
       <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:block">
-        <table className="w-full min-w-[800px] text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b border-border text-xs text-muted">
             <tr>
               <th className="px-3 py-3 text-left font-medium">{zh ? "計劃" : "Scheme"}</th>
@@ -57,10 +55,9 @@ function SchemesPage() {
               <th className="px-3 py-3 text-right font-medium">{zh ? "基金數" : "Funds"}</th>
               <th className="px-3 py-3 text-right font-medium">{zh ? "平均開支" : "Avg FER"}</th>
               <th className="px-3 py-3 text-right font-medium">{zh ? "最低開支" : "Min FER"}</th>
-              <th className="px-3 py-3 text-right font-medium">{zh ? "1年" : "1Y"}</th>
-              <th className="px-3 py-3 text-right font-medium">{zh ? "3年" : "3Y"}</th>
-              <th className="px-3 py-3 text-right font-medium">{zh ? "5年" : "5Y"}</th>
-              <th className="px-3 py-3 text-right font-medium">{zh ? "10年" : "10Y"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? <>核心累積<br />開支</> : "CAF FER"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? <>核心累積<br />1年</> : "CAF 1Y"}</th>
+              <th className="px-3 py-3 text-right font-medium">{zh ? <>核心累積<br />5年</> : "CAF 5Y"}</th>
               <th className="px-3 py-3 text-right font-medium" />
             </tr>
           </thead>
@@ -83,10 +80,9 @@ function SchemesPage() {
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.count}</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.ferAvg.toFixed(2)}%</td>
                 <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.minFer.toFixed(2)}%</td>
-                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret1y} /></td>
-                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret3y} /></td>
-                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret5y} /></td>
-                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.ret10y} /></td>
+                <td className="px-3 py-2.5 text-right font-num tabular-nums">{s.caf?.fer != null ? `${s.caf.fer.toFixed(2)}%` : "—"}</td>
+                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.caf?.ret1y ?? null} /></td>
+                <td className="px-3 py-2.5 text-right"><ReturnCell value={s.caf?.ret5y ?? null} /></td>
                 <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <Link
                     to="/recommend"
@@ -112,8 +108,8 @@ function SchemesPage() {
               </span>
             </Link>
             <span className="shrink-0 text-right font-mono text-sm">
-              <ReturnCell value={s.ret5y} />
-              <span className="block text-xs text-subtle">{zh ? "5年中位" : "5Y med."}</span>
+              <ReturnCell value={s.caf?.ret5y ?? null} />
+              <span className="block text-xs text-subtle">{zh ? <>核心累積<br />5年</> : "CAF 5Y"}</span>
             </span>
             <Link
               to="/recommend"

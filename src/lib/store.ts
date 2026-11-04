@@ -31,6 +31,8 @@ function normalizeHorizon(h: unknown): SwitchHorizon {
 interface AppState {
   locale: Locale;
   compareIds: string[];
+  /** When the compare list last changed (ms). Old lists are dropped so the next client doesn't see them. */
+  compareAt: number | null;
   profile: Profile;
   lastMix: SavedMix | null;
   setLocale: (locale: Locale) => void;
@@ -44,25 +46,28 @@ interface AppState {
   resetSession: () => void;
 }
 
+const COMPARE_TTL_MS = 3 * 60 * 60 * 1000;
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       locale: "zh",
       compareIds: [],
+      compareAt: null,
       profile: defaultProfile,
       lastMix: null,
       setLocale: (locale) => set({ locale }),
       toggleCompare: (id) => {
         const cur = get().compareIds;
         if (cur.includes(id)) {
-          set({ compareIds: cur.filter((x) => x !== id) });
+          set({ compareIds: cur.filter((x) => x !== id), compareAt: Date.now() });
           return;
         }
         if (cur.length >= 4) return;
-        set({ compareIds: [...cur, id] });
+        set({ compareIds: [...cur, id], compareAt: Date.now() });
       },
-      clearCompare: () => set({ compareIds: [] }),
-      setCompare: (ids) => set({ compareIds: [...new Set(ids)].slice(0, 4) }),
+      clearCompare: () => set({ compareIds: [], compareAt: null }),
+      setCompare: (ids) => set({ compareIds: [...new Set(ids)].slice(0, 4), compareAt: Date.now() }),
       setProfile: (patch) => {
         const profile = {
           ...get().profile,
@@ -73,19 +78,22 @@ export const useAppStore = create<AppState>()(
         set({ profile });
       },
       saveMix: (mix) => set({ lastMix: mix }),
-      resetSession: () => set({ profile: defaultProfile, compareIds: [], lastMix: null }),
+      resetSession: () => set({ profile: defaultProfile, compareIds: [], compareAt: null, lastMix: null }),
     }),
     {
       name: "mpf-compass",
       // The saved mix stays on this device so a member can come back in a month and compare.
       // Personal figures (age, balance) are deliberately not kept.
-      partialize: (s) => ({ locale: s.locale, compareIds: s.compareIds, lastMix: s.lastMix }),
+      partialize: (s) => ({ locale: s.locale, compareIds: s.compareIds, compareAt: s.compareAt, lastMix: s.lastMix }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
+        // 比較清單超過 3 個鐘冇郁過就當係上一位客人嘅，唔再帶返出嚟
+        const fresh = typeof p.compareAt === "number" && Date.now() - p.compareAt < COMPARE_TTL_MS;
         return {
           ...current,
           locale: p.locale === "en" || p.locale === "zh" ? p.locale : current.locale,
-          compareIds: Array.isArray(p.compareIds) ? p.compareIds.slice(0, 4) : current.compareIds,
+          compareIds: fresh && Array.isArray(p.compareIds) ? p.compareIds.slice(0, 4) : [],
+          compareAt: fresh ? (p.compareAt as number) : null,
           lastMix:
             p.lastMix && typeof p.lastMix.at === "string" && Array.isArray(p.lastMix.holdings) ? p.lastMix : current.lastMix,
         };

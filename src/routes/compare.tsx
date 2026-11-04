@@ -224,7 +224,7 @@ function ComparePage() {
                 <th className="px-3 py-2.5 text-right">{provHeader("aum", zh ? "資產" : "AUM")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("fer", zh ? "開支" : "FER")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("ret1y", zh ? "1年" : "1Y")}</th>
-                <th className="px-3 py-2.5 text-right">{provHeader("ret3y", zh ? "3年" : "3Y")}</th>
+                <th className="px-3 py-2.5 text-right">{provHeader("ret3y", "2023–25")}</th>
                 <th className="px-3 py-2.5 text-right">{provHeader("ret5y", zh ? "5年" : "5Y")}</th>
                 <th className="px-4 py-2.5 text-right">{provHeader("ret10y", zh ? "10年" : "10Y")}</th>
               </tr>
@@ -275,7 +275,7 @@ function ComparePage() {
               <tr>
                 <th className="px-4 py-2.5 text-left font-medium text-muted">{zh ? "基金" : "Fund"}</th>
                 <th className="px-3 py-2.5 text-right">{sortHeader("ret1y", zh ? "1年" : "1Y")}</th>
-                <th className="px-3 py-2.5 text-right">{sortHeader("ret3yCal", zh ? "3年" : "3Y")}</th>
+                <th className="px-3 py-2.5 text-right">{sortHeader("ret3yCal", "2023–25")}</th>
                 <th className="px-3 py-2.5 text-right">{sortHeader("ret5y", zh ? "5年" : "5Y")}</th>
                 <th className="px-3 py-2.5 text-right">{sortHeader("ret10y", zh ? "10年" : "10Y")}</th>
                 <th className="px-4 py-2.5 text-right font-medium text-muted" />
@@ -343,20 +343,20 @@ function CustomCompare({
 }) {
   const chart = [
     { key: zh ? "1年" : "1Y", ...Object.fromEntries(funds.map((f) => [f.id, f.ret1y ?? 0])) },
-    { key: zh ? "3年" : "3Y", ...Object.fromEntries(funds.map((f) => [f.id, calendar3yAnn(f) ?? 0])) },
     { key: zh ? "5年" : "5Y", ...Object.fromEntries(funds.map((f) => [f.id, f.ret5y ?? 0])) },
     { key: zh ? "10年" : "10Y", ...Object.fromEntries(funds.map((f) => [f.id, f.ret10y ?? 0])) },
     { key: zh ? "成立" : "Since", ...Object.fromEntries(funds.map((f) => [f.id, f.retSince ?? 0])) },
+    { key: "2023–25", ...Object.fromEntries(funds.map((f) => [f.id, calendar3yAnn(f) ?? 0])) },
   ];
   // Categorical colours kept apart from the green/red used for gains and losses.
   const colors = ["#3072D4", "#D86F35", "#953CB3", "#158E92"]; // MKPA 分類色盤 1–4
   type RowDef = { label: React.ReactNode; get: (f: Fund) => number | null; kind: "ret" | "low" | "plain"; fmt?: (v: number) => string };
   const rows: RowDef[] = [
     { label: zh ? "1年" : "1Y", get: (f) => f.ret1y, kind: "ret" },
-    { label: <Term k="est3y">{zh ? "3年" : "3Y"}</Term>, get: (f) => calendar3yAnn(f), kind: "ret" },
     { label: zh ? "5年" : "5Y", get: (f) => f.ret5y, kind: "ret" },
     { label: zh ? "10年" : "10Y", get: (f) => f.ret10y, kind: "ret" },
     { label: zh ? "成立至今" : "Since", get: (f) => f.retSince, kind: "ret" },
+    { label: <Term k="est3y">2023–25</Term>, get: (f) => calendar3yAnn(f), kind: "ret" },
     { label: "2025", get: (f) => f.y2025, kind: "ret" },
     { label: "2024", get: (f) => f.y2024, kind: "ret" },
     { label: "2023", get: (f) => f.y2023, kind: "ret" },

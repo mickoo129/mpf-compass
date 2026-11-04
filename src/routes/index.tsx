@@ -23,7 +23,7 @@ import {
   sleeveStats,
   uniqueSchemes,
 } from "@/lib/mpf/catalog";
-import { fmtAum, fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
+import { fmtAum, fmtBp, fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
 import { MPFA_PERIOD_NOTE, PERIOD_LABEL, type MedianPeriod } from "@/lib/mpf/returns";
 import { getMarkets } from "@/lib/server/markets";
 import type { MarketQuote } from "@/lib/mpf/types";
@@ -54,7 +54,22 @@ function Home() {
   const totalAum = schemes.reduce((s, x) => s + x.aum, 0);
   const cats = categoryStats();
   const sleeves = sleeveStats(period).filter((s) => s.count >= 3).slice(0, 12);
-  const lowFee = [...allFunds].filter((f) => f.fer != null).sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9)).slice(0, 5);
+  // 各類最平：唔同類型唔放埋一齊排，免得貨幣、預設投資基金霸晒頭幾名
+  const lowFeeGroups = (
+    [
+      ["equity", zh ? "股票基金" : "Equity"],
+      ["mixed", zh ? "混合資產（唔計預設投資）" : "Mixed (excl. DIS)"],
+      ["bond", zh ? "債券基金" : "Bond"],
+    ] as const
+  ).map(([cat, label]) => {
+    const seen = new Set<string>();
+    const funds = allFunds
+      .filter((f) => f.fer != null && f.category === cat && !f.isDis)
+      .sort((a, b) => (a.fer ?? 9) - (b.fer ?? 9))
+      .filter((f) => (seen.has(f.nameZh) ? false : (seen.add(f.nameZh), true)))
+      .slice(0, 2);
+    return { cat, label, funds };
+  });
 
   return (
     <div>
@@ -171,8 +186,21 @@ function Home() {
                   <Sparkline data={q.spark} />
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs">
-                  <span className={cn("font-mono tabular-nums", retClass(q.changePct))}>{fmtPct(q.changePct)}</span>
-                  <span className="text-subtle">{zh ? "年初至今" : "YTD"} {fmtPct(q.ytdPct, 1)}</span>
+                  {q.symbol === "^TNX" ? (
+                    // 息率：講升跌幾多點子，唔講息率本身變咗幾多 %
+                    <>
+                      <span className="font-num text-muted tabular-nums">{fmtBp(q.price != null && q.prevClose != null ? q.price - q.prevClose : null, zh)}</span>
+                      <span className="text-subtle">
+                        {zh ? "年初至今" : "YTD"}{" "}
+                        {fmtBp(q.price != null && q.ytdPct != null ? q.price - q.price / (1 + q.ytdPct / 100) : null, zh)}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={cn("font-num tabular-nums", retClass(q.changePct))}>{fmtPct(q.changePct)}</span>
+                      <span className="text-subtle">{zh ? "年初至今" : "YTD"} {fmtPct(q.ytdPct, 1)}</span>
+                    </>
+                  )}
                 </div>
               </Card>
               </button>
@@ -190,33 +218,40 @@ function Home() {
       <div className="mb-10">
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl">{zh ? "開支比率最低" : "Lowest expense ratio"}</h2>
+            <h2 className="font-display text-xl">{zh ? "各類最低開支比率" : "Lowest expense ratio by type"}</h2>
             <Badge>MPFA {catalogMeta.asOf}</Badge>
           </div>
           <p className="mb-3 text-xs text-muted">
             {zh
-              ? "開支比率係每年從基金扣除嘅總收費。下面金額係每 $1 萬結餘每年收幾多（填咗結餘就用你嘅金額）。"
+              ? "開支比率係每年從基金扣除嘅總收費。唔同類型收費水平唔同，所以分開排。下面金額係每 $1 萬結餘每年收幾多（填咗結餘就用你嘅金額）。預設投資策略基金收費有法定上限，另計。"
               : "The fund expense ratio (FER) is the annual ongoing cost. Lower is better among peers."}
           </p>
-          <ol className="space-y-2">
-            {lowFee.map((f, i) => (
-              <li key={f.id}>
-                <Link to="/funds/$id" params={{ id: f.id }} className="flex items-start justify-between gap-3 text-sm">
-                  <span className="flex min-w-0 gap-2">
-                    <span className="font-mono text-subtle">{i + 1}</span>
-                    <span className="min-w-0">
-                      <span className="block">{zh ? f.nameZh : f.nameEn}</span>
-                      <span className="block text-xs text-subtle">{zh ? f.schemeZh : f.schemeEn}</span>
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-right font-mono tabular-nums text-primary">
-                    {f.fer?.toFixed(2)}%
-                    <FeeAmount fer={f.fer} zh={zh} unit={false} className="block text-xs text-muted" />
-                  </span>
-                </Link>
-              </li>
+          <div className="space-y-4">
+            {lowFeeGroups.map((g) => (
+              <div key={g.cat}>
+                <p className="mb-1.5 text-xs font-medium text-muted">{g.label}</p>
+                <ol className="space-y-2">
+                  {g.funds.map((f, i) => (
+                    <li key={f.id}>
+                      <Link to="/funds/$id" params={{ id: f.id }} className="flex items-start justify-between gap-3 text-sm">
+                        <span className="flex min-w-0 gap-2">
+                          <span className="font-num text-subtle">{i + 1}</span>
+                          <span className="min-w-0">
+                            <span className="block">{zh ? f.nameZh : f.nameEn}</span>
+                            <span className="block text-xs text-subtle">{zh ? f.schemeZh : f.schemeEn}</span>
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-right font-num tabular-nums text-primary">
+                          {f.fer?.toFixed(2)}%
+                          <FeeAmount fer={f.fer} zh={zh} unit={false} className="block text-xs text-muted" />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             ))}
-          </ol>
+          </div>
         </Card>
       </div>
 

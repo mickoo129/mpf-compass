@@ -50,7 +50,7 @@ function rankTint(rank: number, n: number): string {
 }
 
 export function ReturnHeatmap({ zh }: { zh: boolean }) {
-  const [mode, setMode] = useState<Mode>("rank");
+  const [mode, setMode] = useState<Mode>("value");
 
   const rows = useMemo(() => {
     return GROUPS.map((g) => ({
@@ -84,12 +84,12 @@ export function ReturnHeatmap({ zh }: { zh: boolean }) {
           <h2 className="font-display text-xl">{zh ? "同期比較：邊類好、邊類差" : "Same period: who led, who lagged"}</h2>
           <p className="mt-1 text-xs text-muted">
             {zh
-              ? `每格係該類基金喺該年嘅中位數回報（排中間嗰隻）。綠色較好、紅色較差。冇一類年年領先。近1年截至 ${catalogMeta.asOf}。`
-              : `Each cell is the median return of that group in that year. Green led, red lagged. No group leads every year. 1Y to ${catalogMeta.asOf}.`}
+              ? `每格係該類基金喺該年嘅中位數回報（排中間嗰隻）。綠色係升、紅色係跌，顏色越深幅度越大；揀「按同年排名著色」就睇同一年邊類跑得前。冇一類年年領先。近1年截至 ${catalogMeta.asOf}。`
+              : `Each cell is the median return of that group in that year. Green rose, red fell; switch to rank colouring to see who led each year. No group leads every year. 1Y to ${catalogMeta.asOf}.`}
           </p>
         </div>
         <div className="flex shrink-0 rounded-md border border-border p-0.5 text-xs" role="tablist">
-          {(["rank", "value"] as Mode[]).map((m) => (
+          {(["value", "rank"] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"

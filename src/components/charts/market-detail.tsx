@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SLEEVE_LABEL } from "@/lib/mpf/catalog";
-import { fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
+import { fmtBp, fmtNum, fmtPct, retClass } from "@/lib/mpf/format";
 import type { MarketQuote } from "@/lib/mpf/types";
 import { CHART_RANGES, getIndexChart, type ChartRange } from "@/lib/server/markets";
 import { cn } from "@/lib/utils";
@@ -82,7 +82,11 @@ export function MarketDetail({ quote, zh, onClose }: { quote: MarketQuote | null
             <DialogTitle className="pr-8">{zh ? quote.nameZh : quote.nameEn}</DialogTitle>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="font-num text-2xl font-semibold tabular-nums">{fmtLevel(quote.symbol, c?.last ?? quote.price)}</span>
-              {change != null ? (
+              {quote.symbol === "^TNX" && c?.base != null && c.last != null ? (
+                <span className="font-num text-sm text-muted tabular-nums">
+                  {fmtBp(c.last - c.base, zh)} <span>（{zh ? RANGE_LABEL[range].zh : RANGE_LABEL[range].en}）</span>
+                </span>
+              ) : change != null ? (
                 <span className={cn("font-num text-sm tabular-nums", retClass(change))}>
                   {fmtPct(change)} <span className="text-muted">（{zh ? RANGE_LABEL[range].zh : RANGE_LABEL[range].en}）</span>
                 </span>
