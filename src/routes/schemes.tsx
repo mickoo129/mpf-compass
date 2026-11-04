@@ -46,7 +46,7 @@ function SchemesPage() {
         }
       />
       <AsOfLine zh={zh} />
-      <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:block">
+      <div className="mb-4 hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] lg:block">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b border-border text-xs text-muted">
             <tr>
@@ -98,7 +98,7 @@ function SchemesPage() {
           </tbody>
         </table>
       </div>
-      <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] md:hidden">
+      <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] lg:hidden">
         {schemes.map((s) => (
           <li key={s.en} className="flex items-center gap-3 px-3 py-2.5">
             <Link to="/funds" search={{ scheme: s.en }} className="min-w-0 flex-1 active:opacity-70">
@@ -109,7 +109,7 @@ function SchemesPage() {
             </Link>
             <span className="shrink-0 text-right font-mono text-sm">
               <ReturnCell value={s.caf?.ret5y ?? null} />
-              <span className="block text-xs text-subtle">{zh ? <>核心累積<br />5年</> : "CAF 5Y"}</span>
+              <span className="block text-xs whitespace-nowrap text-subtle">{zh ? "核心累積 5年" : "CAF 5Y"}</span>
             </span>
             <Link
               to="/recommend"
