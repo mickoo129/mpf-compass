@@ -109,7 +109,7 @@ function SchemesPage() {
             </Link>
             <span className="shrink-0 text-right font-mono text-sm">
               <ReturnCell value={s.caf?.ret5y ?? null} />
-              <span className="block text-xs text-subtle">{zh ? <>核心累積<br />5年</> : "CAF 5Y"}</span>
+              <span className="block text-xs whitespace-nowrap text-subtle">{zh ? "核心累積 5年" : "CAF 5Y"}</span>
             </span>
             <Link
               to="/recommend"
