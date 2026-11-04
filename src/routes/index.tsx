@@ -189,8 +189,8 @@ function Home() {
                   {q.symbol === "^TNX" ? (
                     // 息率：講升跌幾多點子，唔講息率本身變咗幾多 %
                     <>
-                      <span className="font-num text-muted tabular-nums">{fmtBp(q.price != null && q.prevClose != null ? q.price - q.prevClose : null, zh)}</span>
-                      <span className="text-subtle">
+                      <span className="font-num whitespace-nowrap text-muted tabular-nums">{fmtBp(q.price != null && q.prevClose != null ? q.price - q.prevClose : null, zh)}</span>
+                      <span className="whitespace-nowrap text-subtle">
                         {zh ? "年初至今" : "YTD"}{" "}
                         {fmtBp(q.price != null && q.ytdPct != null ? q.price - q.price / (1 + q.ytdPct / 100) : null, zh)}
                       </span>

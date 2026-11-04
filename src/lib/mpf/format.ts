@@ -9,7 +9,7 @@ export function fmtPct(n: number | null | undefined, digits = 2): string {
 export function fmtBp(diffPctPoints: number | null | undefined, zh = true): string {
   if (diffPctPoints == null || Number.isNaN(diffPctPoints)) return "—";
   const bp = Math.round(diffPctPoints * 100);
-  return `${bp > 0 ? "+" : ""}${bp}${zh ? " 點子" : " bp"}`;
+  return `${bp > 0 ? "+" : ""}${bp}${zh ? "點子" : "bp"}`;
 }
 
 export function fmtPctPlain(n: number | null | undefined, digits = 2): string {
