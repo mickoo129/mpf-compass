@@ -15,8 +15,8 @@ import { useShareLink } from "@/components/layout/mk-standard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IntField, MoneyField } from "@/components/ui/number-field";
 import { Slider } from "@/components/ui/slider";
 import { ReturnCell } from "@/components/funds/return-cell";
 import { RangeCard } from "@/components/funds/range-card";
@@ -288,7 +288,7 @@ function RecommendPage() {
               <Field label={zh ? "年齡" : "Age"}>
                 <div className="flex items-center gap-3">
                   <Slider min={18} max={64} value={[profile.age]} onValueChange={([v]) => setProfile({ age: v ?? 35 })} />
-                  <span className="w-8 font-mono text-sm tabular-nums">{profile.age}</span>
+                  <IntField value={profile.age} min={18} max={64} onCommit={(n) => setProfile({ age: n })} aria-label={zh ? "年齡" : "Age"} className="h-9 w-14 shrink-0 px-2 text-center" />
                 </div>
               </Field>
               <Field label={zh ? "預計退休年齡" : "Retire age"}>
@@ -299,7 +299,14 @@ function RecommendPage() {
                     value={[profile.retireAge]}
                     onValueChange={([v]) => setProfile({ retireAge: v ?? 65 })}
                   />
-                  <span className="w-8 font-mono text-sm tabular-nums">{profile.retireAge}</span>
+                  <IntField
+                    value={profile.retireAge}
+                    min={50}
+                    max={70}
+                    onCommit={(n) => setProfile({ retireAge: n })}
+                    aria-label={zh ? "預計退休年齡" : "Retire age"}
+                    className="h-9 w-14 shrink-0 px-2 text-center"
+                  />
                 </div>
               </Field>
               <Field label={zh ? "現有結餘（港元）" : "Balance (HKD)"}>
@@ -815,22 +822,11 @@ function RecommendPage() {
 }
 
 function MoneyInput({ value, onChange }: { value: number; onChange: (n: number) => void }) {
-  const [text, setText] = useState(value ? String(Math.round(value)) : "");
-  useEffect(() => {
-    const next = value ? String(Math.round(value)) : "";
-    setText((cur) => (Number(cur || 0) === value ? cur : next));
-  }, [value]);
   return (
-    <Input
-      inputMode="numeric"
-      value={text}
-      placeholder="0"
-      onChange={(e) => {
-        const raw = e.target.value.replace(/[^\d]/g, "");
-        setText(raw);
-        onChange(raw === "" ? 0 : Number(raw));
-      }}
-    />
+    <span className="relative block">
+      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-subtle">$</span>
+      <MoneyField value={value} onChange={onChange} placeholder="0" className="pl-7" />
+    </span>
   );
 }
 

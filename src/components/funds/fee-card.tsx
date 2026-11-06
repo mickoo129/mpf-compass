@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { MoneyField } from "@/components/ui/number-field";
 import { cheapestAnywhere, cheapestSwitch } from "@/lib/mpf/fee-peers";
 import { annualFee, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, FEE_GAP_GROSS, FEE_UNIT, feeGap } from "@/lib/mpf/fees";
 import { fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
@@ -23,10 +22,6 @@ export function BalanceInput({
 }) {
   const value = useAppStore((s) => s.profile[field]);
   const setProfile = useAppStore((s) => s.setProfile);
-  const [text, setText] = useState(value ? String(Math.round(value)) : "");
-  useEffect(() => {
-    setText((cur) => (Number(cur || 0) === value ? cur : value ? String(Math.round(value)) : ""));
-  }, [value]);
   return (
     <label className={cn("block", className)}>
       <span className="mb-1 block text-xs text-muted">
@@ -34,16 +29,11 @@ export function BalanceInput({
       </span>
       <span className="relative block">
         <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-subtle">$</span>
-        <Input
-          inputMode="numeric"
-          value={text ? Number(text).toLocaleString("en-HK") : ""}
+        <MoneyField
+          value={value}
           placeholder={field === "balance" ? (zh ? "例如 80,000" : "e.g. 80,000") : zh ? "例如 3,000" : "e.g. 3,000"}
-          className="pl-7 font-mono"
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^\d]/g, "").slice(0, 9);
-            setText(raw);
-            setProfile({ [field]: raw === "" ? 0 : Number(raw) });
-          }}
+          className="pl-7"
+          onChange={(n) => setProfile({ [field]: n })}
         />
       </span>
     </label>
