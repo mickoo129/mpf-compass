@@ -71,7 +71,7 @@ export function RangeCard({
               : "Not a forecast: how every past window of the same length actually turned out."}
           </p>
         </div>
-        <div className="flex shrink-0 rounded-md border border-border p-0.5 text-xs" role="tablist">
+        <div className="flex shrink-0 rounded-md border border-border p-0.5 text-xs print:hidden" role="tablist">
           {WINDOWS.map((w) => (
             <button
               key={w.months}

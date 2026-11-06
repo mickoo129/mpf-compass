@@ -142,9 +142,25 @@ function CheckupPage() {
       />
       <AsOfLine zh={zh} />
 
+      {/* 列印版：一行講清楚客人情況（唔印輸入欄） */}
+      <p className="mb-3 hidden rounded-lg border border-black/15 bg-white p-3 text-sm text-fg print:block">
+        <b>{zh ? "客人情況：" : "Client: "}</b>
+        {zh
+          ? [
+              scheme ? `計劃「${schemes.find((x) => x.en === scheme)?.zh ?? scheme}」` : "",
+              `${profile.age} 歲`,
+              `預計 ${profile.retireAge} 歲退休`,
+              profile.balance > 0 ? `結餘 $${profile.balance.toLocaleString("en-HK")}` : "結餘未填（收費以 $200,000 做例子）",
+              profile.monthly > 0 ? `每月供款 $${profile.monthly.toLocaleString("en-HK")}` : "",
+            ]
+              .filter(Boolean)
+              .join("、")
+          : `Age ${profile.age}, retire at ${profile.retireAge}`}
+      </p>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="min-w-0 space-y-5 lg:col-span-5">
-          <Card>
+          <Card className="print:hidden">
             <h2 className="mb-1 font-display text-lg">{zh ? "1. 你而家嘅計劃" : "1. Your scheme"}</h2>
             <p className="mb-2 text-xs text-muted">
               {zh ? "唔肯定？可以喺「積金易」App 或者周年權益報表睇到。" : "Not sure? Check the eMPF app or your annual benefit statement."}
@@ -164,8 +180,11 @@ function CheckupPage() {
           </Card>
 
           <Card className={cn(!scheme && "opacity-60")}>
-            <h2 className="mb-1 font-display text-lg">{zh ? "2. 你持有嘅基金同比例" : "2. Your funds and split"}</h2>
-            <p className="mb-3 text-xs text-muted">
+            <h2 className="mb-1 font-display text-lg">
+              <span className="print:hidden">{zh ? "2. 你持有嘅基金同比例" : "2. Your funds and split"}</span>
+              <span className="hidden print:inline">{zh ? "持有基金" : "Holdings"}</span>
+            </h2>
+            <p className="mb-3 text-xs text-muted print:hidden">
               {zh ? "逐隻加入，會先平均分配；知道實際比例就改返每隻嘅 %。" : "Add each fund; they are split evenly until you type the real shares."}
             </p>
             {rows.length ? (
@@ -180,7 +199,8 @@ function CheckupPage() {
                           {SLEEVE_LABEL[f.sleeve]?.[zh ? "zh" : "en"]} · {zh ? "開支比率" : "FER"} {fmtPctPlain(f.fer)}
                         </span>
                       </span>
-                      <span className="relative w-20 shrink-0">
+                      <span className="hidden shrink-0 font-num text-sm print:inline">{r.pct}%</span>
+                      <span className="relative w-20 shrink-0 print:hidden">
                         <Input
                           inputMode="numeric"
                           value={r.pct ? String(r.pct) : ""}
@@ -197,7 +217,7 @@ function CheckupPage() {
                       </span>
                       <button
                         type="button"
-                        className="shrink-0 rounded p-2 text-subtle hover:text-down"
+                        className="shrink-0 rounded p-2 text-subtle hover:text-down print:hidden"
                         aria-label={zh ? "移除" : "Remove"}
                         onClick={() => update(rows.filter((_, j) => j !== i))}
                       >
@@ -208,6 +228,7 @@ function CheckupPage() {
                 })}
               </ul>
             ) : null}
+            <div className="print:hidden">
             <FundPicker
               zh={zh}
               schemeEn={scheme || undefined}
@@ -224,8 +245,9 @@ function CheckupPage() {
                     : "Tap to choose, or type a name"
               }
             />
+            </div>
             {rows.length ? (
-              <div className="mt-3 flex items-center justify-between gap-2 text-sm">
+              <div className="mt-3 flex items-center justify-between gap-2 text-sm print:hidden">
                 <span className={cn("font-mono", ready ? "text-up" : "text-warn")}>
                   {zh ? "合共 " : "Total "}
                   {total}%{ready ? " ✓" : zh ? `（仲差 ${100 - total}%）` : ` (${100 - total}% to go)`}
@@ -238,7 +260,7 @@ function CheckupPage() {
               </div>
             ) : null}
             {result ? (
-              <Button asChild className="mt-3 w-full lg:hidden">
+              <Button asChild className="mt-3 w-full lg:hidden print:hidden">
                 <a href="#result">
                   {zh
                     ? `睇檢查結果（${result.items.filter((i) => i.light !== "good").length} 項要留意）`
@@ -248,7 +270,7 @@ function CheckupPage() {
             ) : null}
           </Card>
 
-          <Card>
+          <Card className="print:hidden">
             <h2 className="mb-3 font-display text-lg">{zh ? "3. 你嘅情況（可選）" : "3. About you (optional)"}</h2>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
@@ -356,7 +378,7 @@ function CheckupPage() {
                     </div>
                   ) : null}
                   {item.compareIds && item.compareIds.length > 1 ? (
-                    <div className="mt-3">
+                    <div className="mt-3 print:hidden">
                       <Button
                         size="sm"
                         variant="outline"
@@ -410,14 +432,14 @@ function CheckupPage() {
                       ? "唔係建議，只係大部分人會用嚟比較嘅基準。累積數字假設扣費前回報一樣（每年 5%）。"
                       : "Not a recommendation, just the common benchmark. Assumes the same gross return (5% a year)."}
                   </p>
-                  <Link to="/funds/$id" params={{ id: result.dis.caf.id }} className="mt-2 inline-block text-sm text-[#00753E] underline underline-offset-2">
+                  <Link to="/funds/$id" params={{ id: result.dis.caf.id }} className="mt-2 inline-block text-sm text-[#00753E] underline underline-offset-2 print:hidden">
                     {zh ? "睇核心累積基金詳情" : "See the Core Accumulation Fund"}
                   </Link>
                 </Card>
               ) : null}
 
               {scheme ? (
-                <Card>
+                <Card className="print:hidden">
                   <h3 className="font-display text-lg">{zh ? "下一步" : "Next"}</h3>
                   <p className="mt-1 text-sm text-muted">
                     {zh
