@@ -39,6 +39,16 @@ export interface CheckupResult {
   equityShare: number; // 0..1, from each fund's equity sensitivity
   riskClass: number | null;
   regions: { region: RegionId | "china-bloc"; share: number }[];
+  /** 對照：如果全部放喺同計劃嘅核心累積基金（預設投資策略）。唔係建議，只係常用基準。 */
+  dis: {
+    caf: Fund;
+    fer: number;
+    annual: number;
+    annualNow: number;
+    /** 到退休累積相差：正數 = 轉核心累積會少收，負數 = 而家已經平過佢。 */
+    gap: number;
+    example: boolean;
+  } | null;
 }
 
 const CHINA_BLOC: RegionId[] = ["hk", "china", "greater-china"];
@@ -255,7 +265,8 @@ export function runCheckup(
   const cash = holdings
     .filter((h) => h.fund.category === "money" || h.fund.category === "guaranteed" || h.fund.isConservative)
     .reduce((s, h) => s + h.weight, 0);
-  if (cash > 0.3 && years >= 15) {
+  // 25% 或以上就提，唔好等到超過三成
+  if (cash >= 0.25 && years >= 15) {
     items.push({
       key: "cash",
       light: cash > 0.6 ? "act" : "watch",
@@ -278,5 +289,25 @@ export function runCheckup(
     });
   }
 
-  return { items, fer, annualFeeHkd: annual, equityShare, riskClass, regions };
+  // 對照基準：同計劃、同會員類別嘅核心累積基金
+  const cafs = schemeFunds.filter((f) => f.isCaf && f.fer != null).sort((x, y) => (x.fer ?? 9) - (y.fer ?? 9));
+  const caf =
+    holdings.find((h) => h.fund.isCaf)?.fund ?? // 已經有持有：用返同一隻
+    cafs.find((f) => !holdings[0] || sameMemberClass(holdings[0].fund, f)) ?? // 同一會員類別
+    cafs[0] ??
+    null;
+  const allInCaf = holdings.length > 0 && holdings.every((h) => h.fund.isCaf);
+  const dis =
+    caf && fer != null && !allInCaf
+      ? {
+          caf,
+          fer: caf.fer as number,
+          annual: annualFee(base, caf.fer) ?? 0,
+          annualNow: annual ?? 0,
+          gap: fer >= (caf.fer as number) ? feeGap(base, perMonth, years, fer, caf.fer as number) : -feeGap(base, perMonth, years, caf.fer as number, fer),
+          example,
+        }
+      : null;
+
+  return { items, fer, annualFeeHkd: annual, equityShare, riskClass, regions, dis };
 }

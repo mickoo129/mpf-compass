@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { FeeAmount } from "@/components/funds/fee-card";
 import { Term } from "@/components/ui/term";
 import {
   allFunds,
   CATEGORY_LABEL,
   catalogMeta,
+  fundBase,
+  fundClass,
   fundRegion,
   fundThemes,
   REGION_LABEL,
@@ -175,7 +176,7 @@ function FundsPage() {
   const schemeOptions = lockedProvider ? schemes.filter((s) => s.providerCode === lockedProvider) : schemes;
   const schemeValue = schemeOptions.some((s) => s.en === scheme) ? scheme : "all";
 
-  const rows = useMemo(() => {
+  const allRows = useMemo(() => {
     const query = q.trim();
     const scores = new Map<string, number>();
     let list = allFunds.filter((f) => {
@@ -201,6 +202,25 @@ function FundsPage() {
     });
     return list;
   }, [q, cat, region, theme, provider, schemeValue, sleeve, sort, dir, byRelevance]);
+
+  // 同一隻基金嘅唔同單位類別（例如 A 類別、T 類別）只顯示排得最前嗰行，註明「另有 T 類別」
+  const { rows, otherClasses } = useMemo(() => {
+    const seen = new Map<string, Fund>();
+    const others = new Map<string, string[]>();
+    const out: Fund[] = [];
+    for (const f of allRows) {
+      const base = fundBase(f);
+      const first = seen.get(base);
+      if (!first) {
+        seen.set(base, f);
+        out.push(f);
+        continue;
+      }
+      const letter = fundClass(f);
+      if (letter) others.set(first.id, [...(others.get(first.id) ?? []), letter]);
+    }
+    return { rows: out, otherClasses: others };
+  }, [allRows]);
 
   useEffect(() => setLimit(PAGE), [q, cat, region, theme, provider, schemeValue, sleeve]);
   const filtersActive =
@@ -243,7 +263,7 @@ function FundsPage() {
         title={zh ? "全港成分基金" : "All constituent funds"}
         subtitle={
           zh
-            ? "按類別、地區、主題、供應商篩選。積金局沒有科技／金融等行業分類；主題只包括官方有標示的指數、DIS、醫療、ESG。"
+            ? "打基金名或者公司名搵，亦可以按類別、地區、主題同計劃篩選。"
             : "Filter by type, region, theme and provider. MPFA has no GICS sectors; themes are official flags only (index, DIS, healthcare, ESG)."
         }
       />
@@ -423,7 +443,9 @@ function FundsPage() {
       </div>
 
       <p className="mb-3 text-xs text-canvas-muted">
-        {zh ? `顯示 ${rows.length} / ${allFunds.length}` : `Showing ${rows.length} / ${allFunds.length}`}
+        {zh
+          ? `顯示 ${rows.length} 隻基金${allRows.length > rows.length ? `（同一基金唔同類別已合併，共 ${allRows.length} 個單位）` : ""}`
+          : `Showing ${rows.length} funds${allRows.length > rows.length ? ` (${allRows.length} unit classes)` : ""}`}
       </p>
 
       <div className="hidden overflow-x-auto rounded-xl bg-card text-fg shadow-[var(--shadow-border)] min-[1170px]:block">
@@ -446,7 +468,7 @@ function FundsPage() {
           </thead>
           <tbody>
             {rows.slice(0, limit).map((f) => (
-              <FundRow key={f.id} fund={f} zh={zh} compared={compareIds.includes(f.id)} onToggle={() => toggle(f.id)} />
+              <FundRow key={f.id} fund={f} zh={zh} others={otherClasses.get(f.id)} compared={compareIds.includes(f.id)} onToggle={() => toggle(f.id)} />
             ))}
           </tbody>
         </table>
@@ -462,6 +484,7 @@ function FundsPage() {
               <Link to="/funds/$id" params={{ id: f.id }} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 active:bg-tint-sky">
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm leading-snug font-medium">{zh ? f.nameZh : f.nameEn}</span>
+                  <OtherClasses letters={otherClasses.get(f.id)} zh={zh} />
                   <span className="block truncate text-xs text-subtle">
                     {zh ? f.schemeZh : f.schemeEn} · {zh ? "風險" : "Risk"} {f.riskClass ?? "—"}
                     <span className="sm:hidden"> · {fmtPctPlain(f.fer)}</span>
@@ -538,14 +561,21 @@ function sortValue(fund: Fund, key: SortKey): number | null {
   return fund[key];
 }
 
+function OtherClasses({ letters, zh }: { letters?: string[]; zh: boolean }) {
+  if (!letters?.length) return null;
+  return <span className="mt-0.5 block text-xs text-muted">{zh ? `另有 ${letters.join("、")} 類別` : `Also class ${letters.join(", ")}`}</span>;
+}
+
 function FundRow({
   fund,
   zh,
+  others,
   compared,
   onToggle,
 }: {
   fund: Fund;
   zh: boolean;
+  others?: string[];
   compared: boolean;
   onToggle: () => void;
 }) {
@@ -554,6 +584,7 @@ function FundRow({
       <td className="px-3 py-2.5">
         <Link to="/funds/$id" params={{ id: fund.id }} className="block">
           <span className="font-medium">{zh ? fund.nameZh : fund.nameEn}</span>
+          <OtherClasses letters={others} zh={zh} />
           <span className="mt-0.5 block text-xs text-subtle">
             {zh ? fund.providerZh : fund.providerEn} · {zh ? fund.schemeZh : fund.schemeEn}
           </span>
@@ -565,8 +596,8 @@ function FundRow({
       </td>
       <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fund.riskClass ?? "—"}</td>
       <td className="px-3 py-2.5 text-right font-mono tabular-nums">
+        {/* 表入面只顯示百分比，令每行唔會因為港幣金額變高；港幣喺基金頁同比較頁睇 */}
         {fund.fer != null ? `${fund.fer.toFixed(2)}%` : "—"}
-        <FeeAmount fer={fund.fer} zh={zh} className="block text-xs text-muted" />
       </td>
       <td className="px-3 py-2.5 text-right">
         <ReturnCell value={fund.ret1y} />
