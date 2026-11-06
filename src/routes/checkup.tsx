@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { useShareLink } from "@/components/layout/mk-standard";
+import { encodeSettings } from "@/lib/mpf/settings-link";
 import { BalanceInput } from "@/components/funds/fee-card";
 import { FundPicker } from "@/components/funds/fund-picker";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { Term } from "@/components/ui/term";
 import { fundById, SLEEVE_LABEL, uniqueSchemes } from "@/lib/mpf/catalog";
 import { regionLabel, runCheckup, type Light } from "@/lib/mpf/checkup";
 import { fmtPctPlain } from "@/lib/mpf/format";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, readLastCheckup } from "@/lib/store";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
@@ -99,7 +100,7 @@ function CheckupPage() {
   const setCompareNote = useAppStore((s) => s.setCompareNote);
   const setLastCheckup = useAppStore((s) => s.setLastCheckup);
   // 由上面分頁返嚟（網址冇資料）就用返今次瀏覽最後嘅輸入，唔使重新入過
-  const [start] = useState(() => (search.s || search.h ? search : (useAppStore.getState().lastCheckup ?? {})));
+  const [start] = useState(() => (search.s || search.h ? search : (readLastCheckup() ?? {})));
   const schemes = uniqueSchemes();
 
   const [scheme, setScheme] = useState<string>(start.s ?? "");
@@ -587,7 +588,7 @@ function CheckupPage() {
                       : "See a reference mix inside this scheme for your age and goal."}
                   </p>
                   <Button asChild className="mt-3 w-full sm:w-auto">
-                    <Link to="/recommend" search={{ scheme }}>
+                    <Link to="/recommend" search={{ scheme, p: encodeSettings(profile) }}>
                       {zh ? "用呢個計劃睇參考配置" : "See a reference mix in this scheme"}
                     </Link>
                   </Button>

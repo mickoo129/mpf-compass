@@ -55,6 +55,20 @@ interface AppState {
 const COMPARE_TTL_MS = 3 * 60 * 60 * 1000;
 
 export type CheckupState = { s?: string; h?: string; m?: "a" };
+const CHECKUP_KEY = "mpf-compass-checkup";
+
+/** 今次瀏覽最後嘅健康檢查（記憶體優先，重新載入就讀 sessionStorage）。 */
+export function readLastCheckup(): CheckupState | null {
+  const mem = useAppStore.getState().lastCheckup;
+  if (mem) return mem;
+  try {
+    const raw = sessionStorage.getItem(CHECKUP_KEY);
+    const v = raw ? (JSON.parse(raw) as CheckupState) : null;
+    return v && typeof v === "object" ? { s: v.s, h: v.h, m: v.m === "a" ? "a" : undefined } : null;
+  } catch {
+    return null;
+  }
+}
 export type CompareNote = { ids: string[]; whyZh: string; whyEn: string; back: CheckupState };
 
 export const useAppStore = create<AppState>()(
@@ -67,7 +81,16 @@ export const useAppStore = create<AppState>()(
       lastMix: null,
       lastCheckup: null,
       compareNote: null,
-      setLastCheckup: (c) => set({ lastCheckup: c }),
+      setLastCheckup: (c) => {
+        // 同時寫入 sessionStorage：重新載入頁面都仲喺度，閂咗個分頁就冇
+        try {
+          if (c) sessionStorage.setItem(CHECKUP_KEY, JSON.stringify(c));
+          else sessionStorage.removeItem(CHECKUP_KEY);
+        } catch {
+          /* 私隱模式等情況寫唔到，照用記憶體 */
+        }
+        set({ lastCheckup: c });
+      },
       setCompareNote: (n) => set({ compareNote: n }),
       setLocale: (locale) => set({ locale }),
       toggleCompare: (id) => {
@@ -91,7 +114,14 @@ export const useAppStore = create<AppState>()(
         set({ profile });
       },
       saveMix: (mix) => set({ lastMix: mix }),
-      resetSession: () => set({ profile: defaultProfile, compareIds: [], compareAt: null, lastMix: null, lastCheckup: null, compareNote: null }),
+      resetSession: () => {
+        try {
+          sessionStorage.removeItem(CHECKUP_KEY);
+        } catch {
+          /* ignore */
+        }
+        set({ profile: defaultProfile, compareIds: [], compareAt: null, lastMix: null, lastCheckup: null, compareNote: null });
+      },
     }),
     {
       name: "mpf-compass",
