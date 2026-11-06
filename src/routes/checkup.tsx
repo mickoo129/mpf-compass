@@ -96,12 +96,21 @@ function CheckupPage() {
   const profile = useAppStore((s) => s.profile);
   const setProfile = useAppStore((s) => s.setProfile);
   const setCompare = useAppStore((s) => s.setCompare);
+  const setCompareNote = useAppStore((s) => s.setCompareNote);
+  const setLastCheckup = useAppStore((s) => s.setLastCheckup);
+  // 由上面分頁返嚟（網址冇資料）就用返今次瀏覽最後嘅輸入，唔使重新入過
+  const [start] = useState(() => (search.s || search.h ? search : (useAppStore.getState().lastCheckup ?? {})));
   const schemes = uniqueSchemes();
 
-  const [scheme, setScheme] = useState<string>(search.s ?? "");
-  const [byAmount, setByAmount] = useState(search.m === "a");
-  const [rows, setRows] = useState<Row[]>(() => parseHoldings(search.h, search.m === "a"));
-  const [touched, setTouched] = useState(() => parseHoldings(search.h).length > 0);
+  const [scheme, setScheme] = useState<string>(start.s ?? "");
+  const [byAmount, setByAmount] = useState(start.m === "a");
+  const [rows, setRows] = useState<Row[]>(() => parseHoldings(start.h, start.m === "a"));
+  const [touched, setTouched] = useState(() => parseHoldings(start.h).length > 0);
+  useEffect(() => {
+    if (start.s || start.h) setLastCheckup(start);
+    if (start !== search && (start.s || start.h)) void navigate({ search: start, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const total = rows.reduce((s, r) => s + r.pct, 0);
   const amtTotal = rows.reduce((s, r) => s + r.amt, 0);
@@ -122,15 +131,17 @@ function CheckupPage() {
     return runCheckup(holdings, profile);
   }, [ready, rows, total, amtTotal, byAmount, profile]);
 
+  function checkupSearch(nextScheme: string, nextRows: Row[], amounts = byAmount) {
+    return {
+      s: nextScheme || undefined,
+      h: nextRows.length ? nextRows.map((r) => `${r.id}:${amounts ? Math.round(r.amt) : r.pct}`).join(",") : undefined,
+      m: amounts ? ("a" as const) : undefined,
+    };
+  }
   function syncUrl(nextScheme: string, nextRows: Row[], amounts = byAmount) {
-    void navigate({
-      search: {
-        s: nextScheme || undefined,
-        h: nextRows.length ? nextRows.map((r) => `${r.id}:${amounts ? Math.round(r.amt) : r.pct}`).join(",") : undefined,
-        m: amounts ? "a" : undefined,
-      },
-      replace: true,
-    });
+    const next = checkupSearch(nextScheme, nextRows, amounts);
+    setLastCheckup(next);
+    void navigate({ search: next, replace: true });
   }
   function update(nextRows: Row[]) {
     setRows(nextRows);
@@ -507,6 +518,13 @@ function CheckupPage() {
                         className="w-full sm:w-auto"
                         onClick={() => {
                           setCompare(item.compareIds!);
+                          setCompareNote({
+                            ids: item.compareIds!,
+                            whyZh: item.compareWhyZh ?? "",
+                            whyEn: item.compareWhyEn ?? "",
+                            back: checkupSearch(scheme, rows),
+                          });
+                          setLastCheckup(checkupSearch(scheme, rows));
                           void navigate({ to: "/compare" });
                         }}
                       >

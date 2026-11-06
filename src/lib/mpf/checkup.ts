@@ -7,7 +7,7 @@
  * Everything here describes the holdings against public MPFA data; it does not
  * tell the member what to buy.
  */
-import { allFunds, fundBase, fundRegion, median, sameMemberClass, type RegionId } from "./catalog";
+import { allFunds, fundBase, fundRegion, median, sameMemberClass, SLEEVE_LABEL, type RegionId } from "./catalog";
 import { cheapestSwitch } from "./fee-peers";
 import { annualFee, EXAMPLE_BALANCE, EXAMPLE_MONTHLY, feeGap } from "./fees";
 import type { Fund } from "./types";
@@ -30,6 +30,9 @@ export interface CheckItem {
   ideas?: { fund: Fund; zh: string; en: string }[];
   /** The lagging holdings plus the best 5-year funds of the same type across all schemes, ready for 比較. */
   compareIds?: string[];
+  /** 去到比較頁顯示：點解揀呢幾隻、根據咩數字。 */
+  compareWhyZh?: string;
+  compareWhyEn?: string;
 }
 
 export interface CheckupResult {
@@ -230,17 +233,40 @@ export function runCheckup(
       const better = schemeFunds
         .filter((f) => f.sleeve === h.fund.sleeve && f.category === h.fund.category && !heldIds.has(f.id) && sameMemberClass(h.fund, f) && f.ret5y != null && h.fund.ret5y != null && f.ret5y > h.fund.ret5y + 0.5)
         .sort((a, b) => (b.ret5y ?? 0) - (a.ret5y ?? 0))[0];
-      return { h, med, better, behind: h.fund.ret5y != null && med != null ? med - h.fund.ret5y : 0 };
+      return { h, med, peerCount: peers.length, better, behind: h.fund.ret5y != null && med != null ? med - h.fund.ret5y : 0 };
     })
     .filter((x) => x.behind >= 1);
   const worst = [...laggards].sort((a, b) => b.behind - a.behind).slice(0, 2);
   const leaderCount = worst.length === 1 ? 2 : 1;
-  const compareIds = worst.length
-    ? [...worst.map((x) => x.h.fund.id), ...worst.flatMap((x) => peerLeaders(x.h.fund, leaderCount, heldIds).map((f) => f.id))]
+  const leaders = worst.map((x) => ({ x, top: peerLeaders(x.h.fund, leaderCount, heldIds) }));
+  const compareIds = worst.length ? [...worst.map((x) => x.h.fund.id), ...leaders.flatMap((l) => l.top.map((f) => f.id))] : undefined;
+  const sleeveZh = (f: Fund) => SLEEVE_LABEL[f.sleeve]?.zh ?? "同類";
+  const sleeveEn = (f: Fund) => SLEEVE_LABEL[f.sleeve]?.en ?? "same type";
+  const compareWhyZh = worst.length
+    ? leaders
+        .map(
+          ({ x, top }) =>
+            `「${x.h.fund.nameZh}」係你持有嘅基金，五年年化 ${x.h.fund.ret5y?.toFixed(1)}%；全港 ${x.peerCount} 隻${sleeveZh(x.h.fund)}基金嘅五年年化中位數係 ${x.med?.toFixed(1)}%，佢低咗 ${x.behind.toFixed(1)}%。` +
+            (top.length
+              ? `一齊比較嘅${top.map((f) => `「${f.nameZh}」（${f.schemeZh}，五年年化 ${f.ret5y?.toFixed(1)}%）`).join("、")}，係其他計劃入面同類（${sleeveZh(x.h.fund)}）五年年化回報最高嘅基金，每個計劃最多揀一隻。`
+              : ""),
+        )
+        .join("")
+    : undefined;
+  const compareWhyEn = worst.length
+    ? leaders
+        .map(
+          ({ x, top }) =>
+            `${x.h.fund.nameEn} (held) returned ${x.h.fund.ret5y?.toFixed(1)}% a year over 5 years, ${x.behind.toFixed(1)}% below the median of ${x.peerCount} ${sleeveEn(x.h.fund)} funds (${x.med?.toFixed(1)}%). ` +
+            (top.length ? `The others are the highest 5-year ${sleeveEn(x.h.fund)} funds in other schemes, one per scheme.` : ""),
+        )
+        .join(" ")
     : undefined;
   items.push({
     key: "laggards",
     compareIds,
+    compareWhyZh,
+    compareWhyEn,
     light: laggards.length ? (laggards.some((x) => x.behind >= 2.5) ? "act" : "watch") : "good",
     titleZh: "同類表現",
     titleEn: "Versus similar funds",

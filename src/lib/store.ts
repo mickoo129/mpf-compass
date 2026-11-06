@@ -35,6 +35,12 @@ interface AppState {
   compareAt: number | null;
   profile: Profile;
   lastMix: SavedMix | null;
+  /** 健康檢查最後嘅輸入（計劃、基金、比例或金額）。只留喺今次瀏覽，唔存落機。 */
+  lastCheckup: CheckupState | null;
+  /** 由健康檢查撳去比較時，記低點解揀嗰幾隻同點樣返去。 */
+  compareNote: CompareNote | null;
+  setLastCheckup: (c: CheckupState | null) => void;
+  setCompareNote: (n: CompareNote | null) => void;
   setLocale: (locale: Locale) => void;
   toggleCompare: (id: string) => void;
   clearCompare: () => void;
@@ -48,6 +54,9 @@ interface AppState {
 
 const COMPARE_TTL_MS = 3 * 60 * 60 * 1000;
 
+export type CheckupState = { s?: string; h?: string; m?: "a" };
+export type CompareNote = { ids: string[]; whyZh: string; whyEn: string; back: CheckupState };
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -56,6 +65,10 @@ export const useAppStore = create<AppState>()(
       compareAt: null,
       profile: defaultProfile,
       lastMix: null,
+      lastCheckup: null,
+      compareNote: null,
+      setLastCheckup: (c) => set({ lastCheckup: c }),
+      setCompareNote: (n) => set({ compareNote: n }),
       setLocale: (locale) => set({ locale }),
       toggleCompare: (id) => {
         const cur = get().compareIds;
@@ -78,7 +91,7 @@ export const useAppStore = create<AppState>()(
         set({ profile });
       },
       saveMix: (mix) => set({ lastMix: mix }),
-      resetSession: () => set({ profile: defaultProfile, compareIds: [], compareAt: null, lastMix: null }),
+      resetSession: () => set({ profile: defaultProfile, compareIds: [], compareAt: null, lastMix: null, lastCheckup: null, compareNote: null }),
     }),
     {
       name: "mpf-compass",
