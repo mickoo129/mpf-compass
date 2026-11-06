@@ -207,8 +207,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               ? `基金數據截至 ${catalogMeta.asOf}（積金局每月更新）· ${catalogMeta.fundCount} 隻基金 · ${catalogMeta.schemeCount} 個計劃`
               : `MPFA data as of ${catalogMeta.asOf} (monthly) · ${catalogMeta.fundCount} funds · ${catalogMeta.schemeCount} schemes`}
           </p>
-          <ResetButton className="mt-3 bg-white/5 text-canvas-muted ring-white/15 hover:bg-white/10 hover:text-white" />
-          <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <ResetButton className="mt-3 print:hidden bg-white/5 text-canvas-muted ring-white/15 hover:bg-white/10 hover:text-white" />
+          <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs print:hidden">
             <Link to="/glossary" className="text-canvas-muted underline-offset-2 hover:text-white hover:underline">
               {locale === "zh" ? "強積金詞彙" : "Glossary"}
             </Link>
@@ -248,7 +248,7 @@ export function PageTitle({
       <h1 className="relative w-full text-xl font-semibold tracking-tight text-[var(--pc-ink)] sm:text-3xl lg:text-4xl">
         {title}
       </h1>
-      {subtitle ? <p className="mt-2 w-full text-sm leading-relaxed text-canvas-muted sm:text-base">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-2 w-full text-sm leading-relaxed text-canvas-muted sm:text-base print:hidden">{subtitle}</p> : null}
     </div>
   );
 }

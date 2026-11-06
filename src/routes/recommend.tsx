@@ -245,7 +245,25 @@ function RecommendPage() {
         title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
         subtitle={zh ? "結果喺下面。想改年齡、目標或者計劃就撳「修改條件」，改完撳「睇結果」返上嚟。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      <div className="sticky top-[var(--mk-head-h)] z-30 -mx-4 mb-5 flex items-center gap-2 border-b border-white/10 bg-[#0E5E57]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
+      {/* 列印版：一行講清楚客人情況（唔印輸入欄） */}
+      <p className="mb-3 hidden rounded-lg border border-black/15 bg-white p-3 text-sm text-fg print:block">
+        <b>{zh ? "客人情況：" : "Client: "}</b>
+        {zh
+          ? [
+              `${profile.age} 歲`,
+              `預計 ${profile.retireAge} 歲退休`,
+              `目標「${GOAL_COPY[profile.goal].zh}」`,
+              profile.account === "contribution" ? "供款帳戶" : "個人帳戶",
+              profile.schemeEn ? `只揀「${schemes.find((x) => x.en === profile.schemeEn)?.zh ?? profile.schemeEn}」嘅基金` : "全港計劃比較",
+              profile.balance > 0 ? `結餘 $${profile.balance.toLocaleString("en-HK")}` : "",
+              profile.monthly > 0 ? `每月供款 $${profile.monthly.toLocaleString("en-HK")}` : "",
+              `${HORIZON_COPY[horizon].zh}後再睇`,
+            ]
+              .filter(Boolean)
+              .join("、")
+          : `Age ${profile.age}, retire at ${profile.retireAge}, goal ${GOAL_COPY[profile.goal].en}`}
+      </p>
+      <div className="sticky top-[var(--mk-head-h)] z-30 -mx-4 mb-5 flex print:hidden items-center gap-2 border-b border-white/10 bg-[#0E5E57]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
         <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
             ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}再睇`
@@ -258,7 +276,7 @@ function RecommendPage() {
 
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div id="inputs" className="order-2 min-w-0 scroll-mt-40 space-y-5 lg:order-1 lg:col-span-5">
+        <div id="inputs" className="order-2 min-w-0 scroll-mt-40 space-y-5 lg:order-1 lg:col-span-5 print:hidden">
           <Card>
             <h2 className="mb-1 font-display text-lg">{zh ? "你嘅情況" : "Your situation"}</h2>
             <p className="mb-4 text-xs text-subtle">
@@ -466,7 +484,7 @@ function RecommendPage() {
                   ? `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.zh ?? "已選計劃" : `全港比較後最佳計劃：${alloc[0]?.fund.schemeZh ?? "—"}`} · 共 ${alloc.length} 隻基金 · 距離退休 ${years} 年`
                   : `${profile.schemeEn ? schemes.find((s) => s.en === profile.schemeEn)?.en ?? "scheme" : `best scheme across HK: ${alloc[0]?.fund.schemeEn ?? "—"}`} · ${alloc.length} funds · ${years}y`}
               </p>
-              <p className="mt-1 text-xs leading-relaxed text-subtle">
+              <p className="mt-1 text-xs leading-relaxed text-subtle print:hidden">
                 {zh
                   ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。配置會跟每日市況微調，隔幾日再開可能唔同；想之後對照，就撳下面「記低配置」，或者頁頂「分享」留低今次結果。"
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
@@ -480,7 +498,7 @@ function RecommendPage() {
                 {zh ? "，即係大約 " : ", about "}
                 <FeeAmount fer={mixFer(alloc)} zh={zh} className="font-mono font-medium" />
                 {profile.balance > 0 ? null : (
-                  <span className="block text-xs text-muted">{zh ? "喺「你嘅情況」填上結餘，就會用你自己嘅金額計。" : "Enter your balance to see your own amount."}</span>
+                  <span className="block text-xs text-muted print:hidden">{zh ? "喺「你嘅情況」填上結餘，就會用你自己嘅金額計。" : "Enter your balance to see your own amount."}</span>
                 )}
               </p>
             ) : null}
@@ -570,7 +588,7 @@ function RecommendPage() {
             </Card>
           ) : null}
 
-          <Card>
+          <Card className="print:hidden">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="font-display text-lg">{zh ? `${review.labelZh}返嚟對照` : `Compare again: ${review.labelEn}`}</h2>
@@ -595,7 +613,12 @@ function RecommendPage() {
             {usingExample ? (
               <p className="mb-2 rounded-md bg-tint-sand px-3 py-2 text-xs text-fg">
                 {zh
-                  ? `示例：未填資料，暫時以結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(EXAMPLE_MONTHLY)} 計。喺上面「你嘅情況」填返自己嘅數字就會即時更新。`
+                  ? (
+                      <>
+                        {`示例：未填資料，暫時以結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(EXAMPLE_MONTHLY)} 計。`}
+                        <span className="print:hidden">喺上面「你嘅情況」填返自己嘅數字就會即時更新。</span>
+                      </>
+                    )
                   : `Example: nothing entered, so this uses a ${fmtHkd(EXAMPLE_BALANCE)} balance and ${fmtHkd(EXAMPLE_MONTHLY)} a month. Enter your own figures above to update.`}
               </p>
             ) : null}
@@ -632,7 +655,7 @@ function RecommendPage() {
               </ResponsiveContainer>
             </div>
             {assumed.length ? (
-              <details className="mt-3 rounded-md bg-tint-sky px-3 py-2 text-xs text-muted">
+              <details className="mt-3 rounded-md bg-tint-sky px-3 py-2 text-xs text-muted print:hidden">
                 <summary className="cursor-pointer text-fg">
                   {zh ? `「中間」${assumedTotal.toFixed(1)}% 點樣計？` : `How is the middle ${assumedTotal.toFixed(1)}% worked out?`}
                 </summary>
@@ -698,7 +721,7 @@ function RecommendPage() {
             ) : null}
           </Card>
 
-          <details className="group rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)] sm:p-5">
+          <details className="group rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)] sm:p-5 print:hidden">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
               <span>
                 <span className="font-display text-lg">{zh ? "點樣揀出嚟？" : "How was this picked?"}</span>
@@ -756,7 +779,7 @@ function RecommendPage() {
             </div>
           </details>
 
-          <Card>
+          <Card className="print:hidden">
             <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃入面，其他評分較高嘅基金" : "Other well-scored funds in the same scheme"}</h2>
             <ul className="space-y-2 text-sm">
               {others.map((s, i) => (
