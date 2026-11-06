@@ -28,7 +28,16 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
   const beat = data.filter((d) => d.fund != null && d.peers != null && d.fund > d.peers).length;
   const counted = data.filter((d) => d.fund != null && d.peers != null).length;
   const sleeve = SLEEVE_LABEL[fund.sleeve]?.[zh ? "zh" : "en"] ?? "";
-  const pct = (v: number | null) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`);
+  // 手機位唔夠：細畫面用整數，闊啲先顯示一個小數位
+  const pct = (v: number | null) =>
+    v == null ? (
+      "—"
+    ) : (
+      <>
+        <span className="sm:hidden">{`${v > 0 ? "+" : ""}${v.toFixed(0)}%`}</span>
+        <span className="hidden sm:inline">{`${v > 0 ? "+" : ""}${v.toFixed(1)}%`}</span>
+      </>
+    );
 
   return (
     <Card className={className}>
@@ -77,17 +86,17 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
         <table className="w-full text-center text-xs">
           <tbody>
             <tr>
-              <th className="pr-2 text-left font-normal text-muted">{zh ? "基金" : "Fund"}</th>
+              <th className="pr-2 text-left font-normal whitespace-nowrap text-muted">{zh ? "基金" : "Fund"}</th>
               {data.map((d) => (
-                <td key={d.year} className={`px-1 py-0.5 font-mono ${d.fund == null ? "text-subtle" : d.fund >= 0 ? "text-up" : "text-down"}`}>
+                <td key={d.year} className={`px-0.5 py-0.5 font-mono sm:px-1 ${d.fund == null ? "text-subtle" : d.fund >= 0 ? "text-up" : "text-down"}`}>
                   {pct(d.fund)}
                 </td>
               ))}
             </tr>
             <tr>
-              <th className="pr-2 text-left font-normal text-muted">{zh ? "同類" : "Peers"}</th>
+              <th className="pr-2 text-left font-normal whitespace-nowrap text-muted">{zh ? "同類" : "Peers"}</th>
               {data.map((d) => (
-                <td key={d.year} className="px-1 py-0.5 font-mono text-muted">
+                <td key={d.year} className="px-0.5 py-0.5 font-mono text-muted sm:px-1">
                   {pct(d.peers)}
                 </td>
               ))}

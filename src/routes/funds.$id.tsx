@@ -140,7 +140,8 @@ function FundDetail() {
         <p className="mb-2 text-xs text-subtle">
           {zh ? `積金局數字，截至 ${catalogMeta.asOf}。` : `MPFA figures as of ${catalogMeta.asOf}.`}
         </p>
-        <div className="overflow-x-auto">
+        {/* 細表限闊，闊螢幕唔使由左睇到最右 */}
+        <div className="max-w-2xl overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted">

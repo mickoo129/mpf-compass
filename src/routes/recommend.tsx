@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { PageTitle } from "@/components/layout/app-shell";
-import { mkShare, useShareLink } from "@/components/layout/mk-standard";
+import { useShareLink } from "@/components/layout/mk-standard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -468,20 +468,10 @@ function RecommendPage() {
               </p>
               <p className="mt-1 text-xs leading-relaxed text-subtle">
                 {zh
-                  ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。配置會跟每日市況微調，隔幾日再開可能唔同；想之後對照，就撳「記低配置」或者「分享呢個方案」留低今次結果。"
+                  ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。配置會跟每日市況微調，隔幾日再開可能唔同；想之後對照，就撳下面「記低配置」，或者頁頂「分享」留低今次結果。"
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="shrink-0 whitespace-nowrap"
-                onClick={() => mkShare(mixUrl())}
-                disabled={!alloc.length}
-                title={zh ? "分享或複製呢個配置，可以直接貼落 WhatsApp" : "Share or copy this mix"}
-              >
-                {zh ? "分享呢個方案" : "Share mix"}
-              </Button>
             </div>
             {alloc.length ? (
               <p className="mb-3 rounded-md bg-tint-mint px-3 py-2 text-sm">

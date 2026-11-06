@@ -183,10 +183,13 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   const lookEn = { "1m": "past month", "3m": "past 3 months", "6m": "past 6 months", "1y": "year to date" }[horizon];
   const outEn = { "1m": "next month", "3m": "next 3 months", "6m": "next 6 months", "1y": "next year" }[horizon];
 
+  // 息率變動用點子（0.01 個百分點），唔用息率本身變咗幾多 %
+  const yieldBp =
+    yieldLevel != null && yieldMove != null ? Math.round((yieldLevel - yieldLevel / (1 + yieldMove / 100)) * 100) : null;
   const lookbackZh = [
-    `美股（標普／納指）${lookbackLabelZh} ${fmt(us)}，處於 52 週區間約 ${pct(usStretch)}。`,
-    `港股 ${fmt(hk)}、中國相關 ${fmt(china)}、日經 ${fmt(japan)}、韓股 ${fmt(korea)}、台股 ${fmt(tw)}。`,
-    `美債 10 年 ${yieldLevel != null ? `${yieldLevel.toFixed(2)}%` : "—"}，窗口內 ${fmt(yieldMove)}；美元 ${fmt(dollar)}、金 ${fmt(gold)}。`,
+    `美股（標普 500、納指）${lookbackLabelZh}${fmt(us)}；而家喺過去一年最低同最高之間大約 ${pct(usStretch)} 嘅位置（100% 即係一年高位）。`,
+    `港股 ${fmt(hk)}、中國相關 ${fmt(china)}、日本 ${fmt(japan)}、韓國 ${fmt(korea)}、台灣 ${fmt(tw)}。`,
+    `美債 10 年息率 ${yieldLevel != null ? `${yieldLevel.toFixed(2)}%` : "—"}${yieldBp != null ? `，呢段時間${yieldBp >= 0 ? "升" : "跌"}咗 ${Math.abs(yieldBp)} 點子` : ""}；美元指數 ${fmt(dollar)}、金價 ${fmt(gold)}。`,
   ];
   const lookbackEn = [
     `US equities ${lookEn} ${fmt(us)}, ~${pct(usStretch)} of 52-week range.`,
@@ -198,8 +201,8 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   const outlookEn: string[] = [];
   outlookZh.push(
     usStretch != null && usStretch > 0.88
-      ? `${outlookLabelZh}：美股靠近 52 週高位，短期回吐風險較高。`
-      : `${outlookLabelZh}：美股未見極端過熱。`,
+      ? `${outlookLabelZh}：美股接近一年高位，短期回落嘅機會較大。`
+      : `${outlookLabelZh}：美股未見升得太急。`,
   );
   outlookEn.push(
     usStretch != null && usStretch > 0.88
@@ -207,22 +210,22 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
       : `${outEn}: US not stretched.`,
   );
   if ((koreaYtd ?? 0) > 28) {
-    outlookZh.push(`${outlookLabelZh}：韓股今年累積升幅大，回吐風險較高。`);
+    outlookZh.push(`${outlookLabelZh}：韓股今年升咗好多，回落嘅機會較大。`);
     outlookEn.push(`${outEn}: Korea’s YTD run is large; pull-back risk is higher.`);
   }
   if (hk != null && us != null && hk + 6 < us) {
-    outlookZh.push(`${outlookLabelZh}：港股相對美股滯後，唔代表一定會追返。`);
+    outlookZh.push(`${outlookLabelZh}：港股呢段時間跑輸美股，但唔代表之後一定追返。`);
     outlookEn.push(`${outEn}: HK has lagged the US; that does not mean it will catch up.`);
   }
   if (yieldLevel != null) {
     outlookZh.push(
       short
-        ? `${outlookLabelZh}：孳息 ${yieldLevel.toFixed(2)}%${yieldMove != null && yieldMove > 0 ? "且近月上行" : ""}。短線債券跟隨利率方向；預期回報主要是孳息，並非預測減息幅度。`
-        : `${outlookLabelZh}：債券預期回報主要來自現時 ${yieldLevel.toFixed(2)}% 起始孳息。孳息愈高，一年持有期的票息收益愈明確，不必猜測利率高位。`,
+        ? `${outlookLabelZh}：美債息率而家 ${yieldLevel.toFixed(2)}%${yieldMove != null && yieldMove > 0 ? "，近排仲上緊" : ""}。短期內債券價格會同息率反方向郁；債券回報主要靠收息，唔係靠估減息幾多。`
+        : `${outlookLabelZh}：債券之後嘅回報主要靠而家大約 ${yieldLevel.toFixed(2)}% 嘅息率。息率越高，持有一年收到嘅利息越穩陣，唔使估息口幾時到頂。`,
     );
     outlookEn.push(`${outEn}: bond outlook starts from ${yieldLevel.toFixed(2)}% yield, not a rate call.`);
   }
-  outlookZh.push("展望採用現時利率、52 週位置與過熱程度，並非把過去半年視為未來。指數亦不等於基金單位價；並非保證獲利。");
+  outlookZh.push("以上係用而家嘅息率、指數喺一年高低位嘅位置，同有冇升得太急嚟睇，唔係當過去就係將來。指數唔係基金價格，亦唔保證賺錢。");
   outlookEn.push("Outlook uses starting yield and 52-week stretch, not “past = future”. Not a profit guarantee.");
 
   return {

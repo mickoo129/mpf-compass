@@ -8,7 +8,8 @@
   /* 12px reads poorly for many members; the smallest text on the site is 13px. */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
-  --font-mono: "SF Mono", ui-monospace, "IBM Plex Mono", Menlo, Consolas, monospace;
+  /* 數字統一用 Barlow（MKPA 標準）；舊有 font-mono 嘅地方都變 Barlow + 等寬數字 */
+  --font-mono: "Barlow", "Noto Sans HK", system-ui, sans-serif;
 
   --color-bg: #0E5E57;
   --color-bg-warm: #0A4A44;
@@ -114,6 +115,7 @@ body { background: #F6F9F8; background-image: none; }
 /* 白色卡片上嘅綠色文字用深綠，確保對比度 */
 :where(.bg-card, .bg-white) .text-primary { color: #00753E; }
 .tabular-nums { font-family: var(--font-num); }
+.font-mono { font-variant-numeric: tabular-nums; }
 
 @media print {
   @page { size: A4; margin: 12mm; }

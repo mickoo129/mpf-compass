@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
-import { mkShare, useShareLink } from "@/components/layout/mk-standard";
+import { useShareLink } from "@/components/layout/mk-standard";
 import { BalanceInput } from "@/components/funds/fee-card";
 import { FundPicker } from "@/components/funds/fund-picker";
 import { Button } from "@/components/ui/button";
@@ -308,9 +308,6 @@ function CheckupPage() {
                         : `${result.items.filter((i) => i.light === "good").length} OK, ${result.items.filter((i) => i.light !== "good").length} to look at`}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => mkShare()}>
-                    {zh ? "分享呢個方案" : "Share"}
-                  </Button>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <Stat label={<Term k="fer">{zh ? "平均開支比率" : "Avg FER"}</Term>} value={result.fer != null ? `${result.fer.toFixed(2)}%` : "—"} />
@@ -380,6 +377,44 @@ function CheckupPage() {
                   ) : null}
                 </Card>
               ))}
+
+              {result.dis ? (
+                <Card>
+                  <h3 className="font-display text-lg">{zh ? "對照：如果全部放預設投資策略" : "Benchmark: all in the Default Investment Strategy"}</h3>
+                  <p className="mt-1 text-sm text-fg">
+                    {zh ? (
+                      [
+                        `全部轉做「${result.dis.caf.nameZh}」（約六成環球股票、四成債券，收費有法定上限，50 歲後會自動逐步減股票）：`,
+                        `開支比率 ${result.dis.fer.toFixed(2)}%（而家 ${result.fer?.toFixed(2)}%），`,
+                        `每年收費約 $${Math.round(result.dis.annual).toLocaleString("en-HK")}（而家 $${Math.round(result.dis.annualNow).toLocaleString("en-HK")}${result.dis.example ? "，以結餘 $200,000 做例子" : ""}）。`,
+                        result.dis.gap > 500
+                          ? `到 ${profile.retireAge} 歲累積大約少收 $${Math.round(result.dis.gap).toLocaleString("en-HK")}。`
+                          : result.dis.gap < -500
+                            ? `而家嘅組合收費已經低過核心累積，到 ${profile.retireAge} 歲累積大約少收 $${Math.round(-result.dis.gap).toLocaleString("en-HK")}。`
+                            : "收費同而家差唔多。",
+                        `風險級別 ${result.dis.caf.riskClass ?? "—"}（而家平均 ${result.riskClass?.toFixed(1) ?? "—"}）。`,
+                        profile.age >= 50
+                          ? `你而家 ${profile.age} 歲，預設投資策略已經開始逐年將部分轉去「65歲後基金」（約兩成股票），所以實際收費同風險會再低啲。`
+                          : "",
+                      ].join("")
+                    ) : (
+                      <>
+                        All in {result.dis.caf.nameEn}: FER {result.dis.fer.toFixed(2)}% (now {result.fer?.toFixed(2)}%), about HK$
+                        {Math.round(result.dis.annual).toLocaleString("en-HK")} a year (now HK${Math.round(result.dis.annualNow).toLocaleString("en-HK")}). Risk class{" "}
+                        {result.dis.caf.riskClass ?? "—"}.
+                      </>
+                    )}
+                  </p>
+                  <p className="mt-2 text-xs text-muted">
+                    {zh
+                      ? "唔係建議，只係大部分人會用嚟比較嘅基準。累積數字假設扣費前回報一樣（每年 5%）。"
+                      : "Not a recommendation, just the common benchmark. Assumes the same gross return (5% a year)."}
+                  </p>
+                  <Link to="/funds/$id" params={{ id: result.dis.caf.id }} className="mt-2 inline-block text-sm text-[#00753E] underline underline-offset-2">
+                    {zh ? "睇核心累積基金詳情" : "See the Core Accumulation Fund"}
+                  </Link>
+                </Card>
+              ) : null}
 
               {scheme ? (
                 <Card>
