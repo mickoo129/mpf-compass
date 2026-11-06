@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { useShareLink } from "@/components/layout/mk-standard";
 import { BalanceInput } from "@/components/funds/fee-card";
@@ -16,17 +16,19 @@ import { useAppStore } from "@/lib/store";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-type CheckupSearch = { s?: string; h?: string };
+type CheckupSearch = { s?: string; h?: string; m?: "a" };
 
 export const Route = createFileRoute("/checkup")({
   // ?s=<scheme>&h=<fundId>:<pct>,… keeps a checkup in the link so an adviser can send it.
+  // With &m=a the numbers after ":" are HK$ amounts (market value) instead of %.
   validateSearch: (raw: Record<string, unknown>): CheckupSearch => ({
     s: typeof raw.s === "string" && raw.s ? raw.s : undefined,
     h: typeof raw.h === "string" && raw.h ? raw.h : undefined,
+    m: raw.m === "a" ? "a" : undefined,
   }),
   head: ({ match }) => {
-    const { s, h } = match.search as CheckupSearch;
-    const rows = parseHoldings(h);
+    const { s, h, m } = match.search as CheckupSearch;
+    const rows = toPctRows(parseHoldings(h, m === "a"), m === "a");
     const funds = rows.map((r) => fundById(r.id)).filter((f): f is NonNullable<typeof f> => f != null);
     const scheme = funds[0]?.schemeZh ?? uniqueSchemes().find((x) => x.en === s)?.zh;
     return {
@@ -44,17 +46,39 @@ export const Route = createFileRoute("/checkup")({
   component: CheckupPage,
 });
 
-type Row = { id: string; pct: number };
+/** pct：比例模式嘅 %；amt：金額模式嘅港元市值（兩個戶口同一隻基金就加埋）。 */
+type Row = { id: string; pct: number; amt: number };
 
-function parseHoldings(h: string | undefined): Row[] {
+function parseHoldings(h: string | undefined, amounts = false): Row[] {
   if (!h) return [];
   return h
     .split(",")
     .map((p) => {
-      const [id, pct] = p.split(":");
-      return { id: id ?? "", pct: Math.max(0, Math.min(100, Number(pct) || 0)) };
+      const [id, v] = p.split(":");
+      const n = Math.max(0, Number(v) || 0);
+      return amounts ? { id: id ?? "", pct: 0, amt: Math.min(n, 1e9) } : { id: id ?? "", pct: Math.min(100, n), amt: 0 };
     })
     .filter((r) => fundById(r.id));
+}
+
+/** 金額轉做整數百分比（加埋等於 100），俾 SEO 描述同切換模式用。 */
+function toPctRows(rows: Row[], fromAmounts: boolean): Row[] {
+  if (!fromAmounts) return rows;
+  const sum = rows.reduce((t, r) => t + r.amt, 0);
+  if (sum <= 0) return rows.map((r) => ({ ...r, pct: 0 }));
+  const raw = rows.map((r) => (r.amt / sum) * 100);
+  const out = raw.map(Math.floor);
+  let left = 100 - out.reduce((t, x) => t + x, 0);
+  raw
+    .map((x, i) => ({ i, frac: x - Math.floor(x) }))
+    .sort((a, b) => b.frac - a.frac)
+    .forEach(({ i }) => {
+      if (left > 0) {
+        out[i] = (out[i] ?? 0) + 1;
+        left--;
+      }
+    });
+  return rows.map((r, i) => ({ ...r, pct: out[i] ?? 0 }));
 }
 
 const LIGHT: Record<Light, { zh: string; en: string; cls: string; dot: string }> = {
@@ -74,26 +98,35 @@ function CheckupPage() {
   const schemes = uniqueSchemes();
 
   const [scheme, setScheme] = useState<string>(search.s ?? "");
-  const [rows, setRows] = useState<Row[]>(() => parseHoldings(search.h));
+  const [byAmount, setByAmount] = useState(search.m === "a");
+  const [rows, setRows] = useState<Row[]>(() => parseHoldings(search.h, search.m === "a"));
   const [touched, setTouched] = useState(() => parseHoldings(search.h).length > 0);
 
-
   const total = rows.reduce((s, r) => s + r.pct, 0);
-  const ready = rows.length > 0 && Math.abs(total - 100) <= 1;
+  const amtTotal = rows.reduce((s, r) => s + r.amt, 0);
+  const missingAmt = rows.filter((r) => r.amt <= 0).length;
+  const ready = rows.length > 0 && (byAmount ? amtTotal > 0 && missingAmt === 0 : Math.abs(total - 100) <= 1);
+
+  // 用金額嗰陣，結餘就係各基金金額加埋（收費、累積差距都用呢個數計）
+  useEffect(() => {
+    if (byAmount && amtTotal > 0 && amtTotal !== profile.balance) setProfile({ balance: amtTotal });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [byAmount, amtTotal]);
 
   const result = useMemo(() => {
     if (!ready) return null;
     const holdings = rows
-      .map((r) => ({ fund: fundById(r.id)!, weight: r.pct / total }))
+      .map((r) => ({ fund: fundById(r.id)!, weight: byAmount ? r.amt / amtTotal : r.pct / total }))
       .filter((h) => h.fund);
     return runCheckup(holdings, profile);
-  }, [ready, rows, total, profile]);
+  }, [ready, rows, total, amtTotal, byAmount, profile]);
 
-  function syncUrl(nextScheme: string, nextRows: Row[]) {
+  function syncUrl(nextScheme: string, nextRows: Row[], amounts = byAmount) {
     void navigate({
       search: {
         s: nextScheme || undefined,
-        h: nextRows.length ? nextRows.map((r) => `${r.id}:${r.pct}`).join(",") : undefined,
+        h: nextRows.length ? nextRows.map((r) => `${r.id}:${amounts ? Math.round(r.amt) : r.pct}`).join(",") : undefined,
+        m: amounts ? "a" : undefined,
       },
       replace: true,
     });
@@ -101,6 +134,20 @@ function CheckupPage() {
   function update(nextRows: Row[]) {
     setRows(nextRows);
     syncUrl(scheme, nextRows);
+  }
+  function switchMode(amounts: boolean) {
+    if (amounts === byAmount) return;
+    let next: Row[];
+    if (amounts) {
+      // 比例 → 金額：有結餘就按比例分；冇就留空等你填
+      next = rows.map((r) => ({ ...r, amt: profile.balance > 0 ? Math.round((profile.balance * r.pct) / 100) : 0 }));
+    } else {
+      next = toPctRows(rows, true);
+      setTouched(true);
+    }
+    setByAmount(amounts);
+    setRows(next);
+    syncUrl(scheme, next, amounts);
   }
   function pickScheme(next: string) {
     setScheme(next);
@@ -111,15 +158,19 @@ function CheckupPage() {
   }
   function addFund(id: string) {
     if (!id || rows.some((r) => r.id === id)) return;
+    if (byAmount) {
+      update([...rows, { id, pct: 0, amt: 0 }]);
+      return;
+    }
     // Until a percentage is typed by hand, keep the split even so adding three
     // funds gives a usable 34/33/33 straight away.
     if (!touched) {
       const n = rows.length + 1;
       const each = Math.floor(100 / n);
-      update([...rows, { id, pct: 0 }].map((r, i) => ({ ...r, pct: i === 0 ? 100 - each * (n - 1) : each })));
+      update([...rows, { id, pct: 0, amt: 0 }].map((r, i) => ({ ...r, pct: i === 0 ? 100 - each * (n - 1) : each })));
       return;
     }
-    update([...rows, { id, pct: Math.max(0, 100 - total) }]);
+    update([...rows, { id, pct: Math.max(0, 100 - total), amt: 0 }]);
   }
   function spreadEvenly() {
     if (!rows.length) return;
@@ -181,25 +232,76 @@ function CheckupPage() {
 
           <Card className={cn(!scheme && "opacity-60")}>
             <h2 className="mb-1 font-display text-lg">
-              <span className="print:hidden">{zh ? "2. 你持有嘅基金同比例" : "2. Your funds and split"}</span>
+              <span className="print:hidden">{zh ? (byAmount ? "2. 你持有嘅基金同金額" : "2. 你持有嘅基金同比例") : "2. Your funds and split"}</span>
               <span className="hidden print:inline">{zh ? "持有基金" : "Holdings"}</span>
             </h2>
+            <div className="mb-2 inline-flex rounded-lg bg-black/5 p-1 text-sm print:hidden" role="tablist" aria-label={zh ? "輸入方式" : "Enter by"}>
+              {([false, true] as const).map((amounts) => (
+                <button
+                  key={String(amounts)}
+                  type="button"
+                  role="tab"
+                  aria-selected={byAmount === amounts}
+                  onClick={() => switchMode(amounts)}
+                  className={cn(
+                    "h-9 rounded-md px-3 whitespace-nowrap",
+                    byAmount === amounts ? "bg-white font-semibold text-fg shadow-sm" : "text-muted hover:text-fg",
+                  )}
+                >
+                  {amounts ? (zh ? "用金額（港元）" : "By amount (HK$)") : zh ? "用百分比" : "By %"}
+                </button>
+              ))}
+            </div>
             <p className="mb-3 text-xs text-muted print:hidden">
-              {zh ? "逐隻加入，會先平均分配；知道實際比例就改返每隻嘅 %。" : "Add each fund; they are split evenly until you type the real shares."}
+              {byAmount
+                ? zh
+                  ? "照住積金易或者周年權益報表，入每隻基金而家嘅市值。同一隻基金喺唔同戶口（例如供款戶口同個人戶口），將兩個金額加埋入。比例同結餘會自動計。"
+                  : "Enter each fund's current value from your statement. If a fund sits in two accounts, add the amounts together."
+                : zh
+                  ? "逐隻加入，會先平均分配；知道實際比例就改返每隻嘅 %。"
+                  : "Add each fund; they are split evenly until you type the real shares."}
             </p>
             {rows.length ? (
               <ul className="mb-3 space-y-2">
                 {rows.map((r, i) => {
                   const f = fundById(r.id)!;
                   return (
-                    <li key={r.id} className="flex items-center gap-2 rounded-lg bg-tint-sky p-2">
+                    <li key={r.id} className={cn("flex items-center gap-2 rounded-lg bg-tint-sky p-2", byAmount && "pb-5 print:pb-2")}>
                       <span className="min-w-0 flex-1 text-sm">
                         {zh ? f.nameZh : f.nameEn}
                         <span className="block text-xs text-subtle">
                           {SLEEVE_LABEL[f.sleeve]?.[zh ? "zh" : "en"]} · {zh ? "開支比率" : "FER"} {fmtPctPlain(f.fer)}
                         </span>
                       </span>
-                      <span className="hidden shrink-0 font-num text-sm print:inline">{r.pct}%</span>
+                      <span className="hidden shrink-0 text-right font-num text-sm print:inline">
+                        {byAmount ? (
+                          <>
+                            ${r.amt.toLocaleString("en-HK")}
+                            <span className="block text-xs text-subtle">{amtTotal > 0 ? `${((r.amt / amtTotal) * 100).toFixed(0)}%` : ""}</span>
+                          </>
+                        ) : (
+                          `${r.pct}%`
+                        )}
+                      </span>
+                      {byAmount ? (
+                        <span className="relative w-32 shrink-0 print:hidden">
+                          <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-subtle">$</span>
+                          <Input
+                            inputMode="numeric"
+                            value={r.amt ? r.amt.toLocaleString("en-HK") : ""}
+                            placeholder={zh ? "市值" : "Value"}
+                            aria-label={zh ? "金額（港元）" : "Amount (HK$)"}
+                            className="pl-6 text-right font-mono"
+                            onChange={(e) => {
+                              const v = Math.min(1e9, Number(e.target.value.replace(/[^\d]/g, "")) || 0);
+                              update(rows.map((x, j) => (j === i ? { ...x, amt: v } : x)));
+                            }}
+                          />
+                          <span className="absolute -bottom-4 right-1 text-[11px] text-subtle">
+                            {amtTotal > 0 && r.amt > 0 ? `${((r.amt / amtTotal) * 100).toFixed(0)}%` : ""}
+                          </span>
+                        </span>
+                      ) : (
                       <span className="relative w-20 shrink-0 print:hidden">
                         <Input
                           inputMode="numeric"
@@ -215,6 +317,7 @@ function CheckupPage() {
                         />
                         <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs text-subtle">%</span>
                       </span>
+                      )}
                       <button
                         type="button"
                         className="shrink-0 rounded p-2 text-subtle hover:text-down print:hidden"
@@ -248,11 +351,18 @@ function CheckupPage() {
             </div>
             {rows.length ? (
               <div className="mt-3 flex items-center justify-between gap-2 text-sm print:hidden">
+                {byAmount ? (
+                  <span className={cn("font-mono", ready ? "text-up" : "text-warn")}>
+                    {zh ? "合共 " : "Total "}${amtTotal.toLocaleString("en-HK")}
+                    {ready ? " ✓" : zh ? `（仲有 ${missingAmt} 隻未填金額）` : ` (${missingAmt} without an amount)`}
+                  </span>
+                ) : (
                 <span className={cn("font-mono", ready ? "text-up" : "text-warn")}>
                   {zh ? "合共 " : "Total "}
                   {total}%{ready ? " ✓" : zh ? `（仲差 ${100 - total}%）` : ` (${100 - total}% to go)`}
                 </span>
-                {rows.length > 1 ? (
+                )}
+                {!byAmount && rows.length > 1 ? (
                   <Button variant="ghost" size="sm" onClick={spreadEvenly}>
                     {zh ? "平均分配" : "Split evenly"}
                   </Button>
@@ -291,11 +401,26 @@ function CheckupPage() {
                   className="font-mono"
                 />
               </label>
-              <BalanceInput zh={zh} />
+              {byAmount ? (
+                <label className="block">
+                  <span className="mb-1 block text-xs text-muted">{zh ? "結餘（港元）" : "Balance (HK$)"}</span>
+                  <span className="flex h-11 items-center rounded-md border border-border bg-bg-warm/50 px-3 font-num text-sm">
+                    ${amtTotal.toLocaleString("en-HK")}
+                  </span>
+                </label>
+              ) : (
+                <BalanceInput zh={zh} />
+              )}
               <BalanceInput zh={zh} field="monthly" />
             </div>
             <p className="mt-2 text-xs text-subtle">
-              {zh ? "填咗結餘，收費會用實際金額計；唔填就用 $200,000 做例子。" : "With a balance, fees use the real amount; otherwise a HK$200,000 example."}
+              {byAmount
+                ? zh
+                  ? "用金額輸入，結餘就係上面各基金金額加埋，收費會用呢個數計。"
+                  : "In amount mode the balance is the sum of the amounts above."
+                : zh
+                  ? "填咗結餘，收費會用實際金額計；唔填就用 $200,000 做例子。"
+                  : "With a balance, fees use the real amount; otherwise a HK$200,000 example."}
             </p>
           </Card>
         </div>
@@ -313,9 +438,13 @@ function CheckupPage() {
                     ? zh
                       ? "再加入你持有嘅基金。"
                       : "Add the funds you hold."
-                    : zh
-                      ? `比例加埋要等於 100%（而家係 ${total}%）。`
-                      : `Shares must add up to 100% (now ${total}%).`}
+                    : byAmount
+                      ? zh
+                        ? `仲有 ${missingAmt} 隻基金未填金額。`
+                        : `${missingAmt} fund(s) still need an amount.`
+                      : zh
+                        ? `比例加埋要等於 100%（而家係 ${total}%）。`
+                        : `Shares must add up to 100% (now ${total}%).`}
               </p>
             </Card>
           ) : (
