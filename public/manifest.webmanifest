@@ -5,7 +5,7 @@
   "lang": "zh-Hant-HK",
   "start_url": "/?source=homescreen",
   "scope": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#0E5E57",
   "theme_color": "#0E5E57",
   "icons": [

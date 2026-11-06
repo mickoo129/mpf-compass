@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ResetButton } from "@/components/layout/reset-button";
 import { cn } from "@/lib/utils";
+import { installPrintGuard } from "@/lib/print-guard";
 import { MkEcard, MkPrintHead, shareCurrent, useShareAvailable } from "@/components/layout/mk-standard";
 
 // 每個分頁一隻 MKPA 分類色（按 1→8 次序；首頁屬總覽，用宏利綠）；選中嗰粒掣用該色做底
@@ -29,6 +30,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const canShare = useShareAvailable();
   const navRef = useRef<HTMLElement>(null);
   // 手機上導覽左右捲動：轉頁時將選中嗰粒捲入畫面中間（只郁橫向，唔會捲成頁）
+  // 手機唔支援列印（iPhone 主畫面 app 模式、app 內置瀏覽器）時，撳列印改為顯示提示
+  useEffect(() => installPrintGuard(), []);
+
   useEffect(() => {
     const box = navRef.current;
     const el = box?.querySelector<HTMLElement>("[data-active='true']");

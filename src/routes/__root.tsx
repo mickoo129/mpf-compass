@@ -20,8 +20,6 @@ export const Route = createRootRoute({
         description: "全港強積金成分基金比較、健康檢查同參考配置。回報、收費來自積金局，每月更新。",
       }),
       { name: "theme-color", content: "#0E5E57" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "apple-mobile-web-app-status-bar-style", content: "black" },
     ],
