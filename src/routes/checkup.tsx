@@ -8,6 +8,7 @@ import { FundPicker } from "@/components/funds/fund-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { IntField, MoneyField } from "@/components/ui/number-field";
 import { Term } from "@/components/ui/term";
 import { fundById, SLEEVE_LABEL, uniqueSchemes } from "@/lib/mpf/catalog";
 import { regionLabel, runCheckup, type Light } from "@/lib/mpf/checkup";
@@ -286,16 +287,12 @@ function CheckupPage() {
                       {byAmount ? (
                         <span className="relative w-32 shrink-0 print:hidden">
                           <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-subtle">$</span>
-                          <Input
-                            inputMode="numeric"
-                            value={r.amt ? r.amt.toLocaleString("en-HK") : ""}
+                          <MoneyField
+                            value={r.amt}
                             placeholder={zh ? "市值" : "Value"}
                             aria-label={zh ? "金額（港元）" : "Amount (HK$)"}
-                            className="pl-6 text-right font-mono"
-                            onChange={(e) => {
-                              const v = Math.min(1e9, Number(e.target.value.replace(/[^\d]/g, "")) || 0);
-                              update(rows.map((x, j) => (j === i ? { ...x, amt: v } : x)));
-                            }}
+                            className="pl-6 text-right"
+                            onChange={(v) => update(rows.map((x, j) => (j === i ? { ...x, amt: v } : x)))}
                           />
                           <span className="absolute -bottom-4 right-1 text-[11px] text-subtle">
                             {amtTotal > 0 && r.amt > 0 ? `${((r.amt / amtTotal) * 100).toFixed(0)}%` : ""}
@@ -385,20 +382,16 @@ function CheckupPage() {
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="mb-1 block text-xs text-muted">{zh ? "年齡" : "Age"}</span>
-                <Input
-                  inputMode="numeric"
-                  value={String(profile.age)}
-                  onChange={(e) => setProfile({ age: Math.min(64, Math.max(18, Number(e.target.value.replace(/[^\d]/g, "")) || 18)) })}
-                  className="font-mono"
-                />
+                <IntField value={profile.age} min={18} max={64} onCommit={(n) => setProfile({ age: n })} aria-label={zh ? "年齡" : "Age"} />
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs text-muted">{zh ? "預計退休年齡" : "Retire at"}</span>
-                <Input
-                  inputMode="numeric"
-                  value={String(profile.retireAge)}
-                  onChange={(e) => setProfile({ retireAge: Math.min(70, Math.max(50, Number(e.target.value.replace(/[^\d]/g, "")) || 65)) })}
-                  className="font-mono"
+                <IntField
+                  value={profile.retireAge}
+                  min={50}
+                  max={70}
+                  onCommit={(n) => setProfile({ retireAge: n })}
+                  aria-label={zh ? "預計退休年齡" : "Retire at"}
                 />
               </label>
               {byAmount ? (
