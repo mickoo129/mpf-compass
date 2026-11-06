@@ -6,7 +6,7 @@ import { AsOfLine, PageTitle } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReturnCell } from "@/components/funds/return-cell";
-import { allFunds, fundById, providerStats } from "@/lib/mpf/catalog";
+import { allFunds, catalogMeta, fundById, providerStats } from "@/lib/mpf/catalog";
 import { fmtAum, fmtHkd, fmtPctPlain } from "@/lib/mpf/format";
 import { BalanceInput, EXAMPLE_BALANCE, EXAMPLE_MONTHLY } from "@/components/funds/fee-card";
 import { FundPicker } from "@/components/funds/fund-picker";
@@ -44,6 +44,9 @@ function ComparePage() {
   const toggle = useAppStore((s) => s.toggleCompare);
   const clear = useAppStore((s) => s.clearCompare);
   const funds = ids.map(fundById).filter((f): f is NonNullable<typeof f> => !!f);
+  const compareNote = useAppStore((s) => s.compareNote);
+  // 只係清單同由健康檢查帶過嚟嗰陣一樣，先顯示「點解揀呢幾隻」
+  const fromCheckup = compareNote && compareNote.ids.length === ids.length && compareNote.ids.every((id) => ids.includes(id)) ? compareNote : null;
   const setCompare = useAppStore((s) => s.setCompare);
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/compare" });
@@ -139,6 +142,23 @@ function ComparePage() {
         subtitle={zh ? "最多四隻，回報、收費同風險一次過睇。" : "Up to four funds: returns, fees and risk together."}
       />
       <AsOfLine zh={zh} />
+
+      {fromCheckup ? (
+        <Card className="mb-5 bg-tint-sky">
+          <h2 className="font-display text-lg">{zh ? "由健康檢查帶過嚟：點解比較呢幾隻" : "From the checkup: why these funds"}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-fg">{zh ? fromCheckup.whyZh : fromCheckup.whyEn}</p>
+          <p className="mt-2 text-xs text-muted">
+            {zh
+              ? "數字係積金局公布嘅五年年化回報（截至 " + catalogMeta.asOf + "）。其他計劃嘅基金只適用於可以轉計劃嘅個人帳戶，供款帳戶通常只可以揀僱主計劃入面嘅基金。過往表現唔代表將來。"
+              : `MPFA 5-year annualized returns as of ${catalogMeta.asOf}. Other schemes apply only to accounts that can move. Past performance is no guide to the future.`}
+          </p>
+          <Button asChild variant="outline" size="sm" className="mt-3 print:hidden">
+            <Link to="/checkup" search={fromCheckup.back}>
+              {zh ? "返回健康檢查" : "Back to checkup"}
+            </Link>
+          </Button>
+        </Card>
+      ) : null}
       <Card className="relative z-20 mb-4 overflow-visible">
         <h2 className="mb-2 font-display text-lg">
           {zh ? `加入要比較嘅基金（${funds.length}／4）` : `Add funds to compare (${funds.length}/4)`}
