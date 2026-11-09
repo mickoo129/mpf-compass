@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: seo({
       title: "積金羅盤",
-      description: "你嘅強積金，一眼睇清：全港成分基金比較、同期表現、收費以港幣計、健康檢查同參考配置。數據來自積金局。",
+      description: "你的強積金，一眼看清：全港成分基金比較、同期表現、收費以港幣計、健康檢查和參考配置。數據來自積金局。",
     }),
   }),
   component: Home,
@@ -58,7 +58,7 @@ function Home() {
   const lowFeeGroups = (
     [
       ["equity", zh ? "股票基金" : "Equity"],
-      ["mixed", zh ? "混合資產（唔計預設投資）" : "Mixed (excl. DIS)"],
+      ["mixed", zh ? "混合資產（不計預設投資）" : "Mixed (excl. DIS)"],
       ["bond", zh ? "債券基金" : "Bond"],
     ] as const
   ).map(([cat, label]) => {
@@ -76,11 +76,11 @@ function Home() {
       <section className="mb-8 pt-2">
         <p className="mb-2 text-xs tracking-[0.16em] text-[var(--pc-ink)]">{zh ? "香港強積金 · 積金局數據" : "Hong Kong MPF · MPFA data"}</p>
         <h1 className="text-2xl leading-snug font-semibold text-[var(--pc-ink)] sm:text-4xl">
-          {zh ? "你嘅強積金，一眼睇清。" : "Your MPF, at a glance."}
+          {zh ? "你的強積金，一眼看清。" : "Your MPF, at a glance."}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-canvas-muted sm:text-base">
           {zh
-            ? `全港 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個計劃，收費、回報、風險一齊比。數字截至 ${catalogMeta.asOf}。`
+            ? `全港 ${catalogMeta.fundCount} 隻成分基金、${catalogMeta.schemeCount} 個計劃，收費、回報、風險一起比。數字截至 ${catalogMeta.asOf}。`
             : `${catalogMeta.fundCount} funds across ${catalogMeta.schemeCount} schemes. Figures as of ${catalogMeta.asOf}.`}
         </p>
         <form
@@ -109,27 +109,27 @@ function Home() {
             to="/checkup"
             icon={<HeartPulse className="size-5" />}
             title={zh ? "健康檢查" : "Checkup"}
-            sub={zh ? "我而家揀嗰幾隻得唔得？" : "Are my funds OK?"}
+            sub={zh ? "我現在選那幾隻是否合適？" : "Are my funds OK?"}
             tint="bg-[var(--mk-cat-1-soft)]"
           />
           <EntryCard
             to="/recommend"
             icon={<Sparkles className="size-5" />}
             title={zh ? "智選配置" : "Goal-based mix"}
-            sub={zh ? "按年齡同風險取向計好晒" : "By age and risk appetite"}
+            sub={zh ? "按年齡和風險取向計好全部" : "By age and risk appetite"}
             tint="bg-[var(--mk-cat-2-soft)]"
           />
           <EntryCard
             to="/compare"
             icon={<Scale className="size-5" />}
             title={zh ? "比較基金" : "Compare funds"}
-            sub={zh ? "最多四隻並排睇" : "Up to four side by side"}
+            sub={zh ? "最多四隻並排看" : "Up to four side by side"}
             tint="bg-[var(--mk-cat-3-soft)]"
           />
           <EntryCard
             href="#same-period"
             icon={<LayoutGrid className="size-5" />}
-            title={zh ? "邊類表現好" : "Who led"}
+            title={zh ? "哪類表現好" : "Who led"}
             sub={zh ? "同期比較地區同類別" : "Regions and types by year"}
             tint="bg-[var(--mk-cat-4-soft)]"
           />
@@ -151,7 +151,7 @@ function Home() {
             <h2 className="font-display text-xl">{zh ? "市況參考（非基金）" : "Market context (not funds)"}</h2>
             <p className="mt-1 w-full text-xs leading-relaxed text-canvas-muted">
               {zh
-                ? "Yahoo 指數，開啟頁面時更新。不是積金局單位價，亦不是上方官方年化。撳任何一格睇走勢圖同相關基金。"
+                ? "Yahoo 指數，開啟頁面時更新。不是積金局單位價，亦不是上方官方年化。按任何一格看走勢圖和相關基金。"
                 : "Yahoo indices, refresh on load. Not MPFA NAVs and not the official returns above. Tap one for its chart and related funds."}
             </p>
           </div>
@@ -172,7 +172,7 @@ function Home() {
                 key={q.symbol}
                 type="button"
                 onClick={() => setDetail(q)}
-                aria-label={zh ? `${q.nameZh}：睇走勢圖` : `${q.nameEn}: see chart`}
+                aria-label={zh ? `${q.nameZh}：看走勢圖` : `${q.nameEn}: see chart`}
                 className="group block min-w-0 rounded-xl text-left focus-visible:ring-2 focus-visible:ring-[#00A758] focus-visible:outline-none"
               >
               <Card className="h-full p-3 transition-shadow group-hover:ring-[#00A758] sm:p-3">
@@ -223,7 +223,7 @@ function Home() {
           </div>
           <p className="mb-3 text-xs text-muted">
             {zh
-              ? "開支比率係每年從基金扣除嘅總收費。唔同類型收費水平唔同，所以分開排。下面金額係每 $1 萬結餘每年收幾多（填咗結餘就用你嘅金額）。預設投資策略基金收費有法定上限，另計。"
+              ? "開支比率是每年從基金扣除的總收費。不同類型收費水平不同，所以分開排。下面金額是每 $1 萬結餘每年收多少（填了結餘就用你的金額）。預設投資策略基金收費有法定上限，另計。"
               : "The fund expense ratio (FER) is the annual ongoing cost. Lower is better among peers."}
           </p>
           <div className="space-y-4">

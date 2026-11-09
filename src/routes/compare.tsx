@@ -24,7 +24,7 @@ export const Route = createFileRoute("/compare")({
     f: typeof raw.f === "string" && raw.f ? raw.f : undefined,
   }),
   head: () => ({
-    meta: seo({ title: "比較強積金基金", description: "供應商、基金回報同收費排行，最多四隻基金並排比較，收費以港幣計。", path: "/compare" }),
+    meta: seo({ title: "比較強積金基金", description: "供應商、基金回報和收費排行，最多四隻基金並排比較，收費以港幣計。", path: "/compare" }),
   }),
   component: ComparePage,
 });
@@ -139,17 +139,17 @@ function ComparePage() {
       <PageTitle
         kicker={zh ? "比較" : "Compare"}
         title={zh ? "基金並排比較" : "Compare funds side by side"}
-        subtitle={zh ? "最多四隻，回報、收費同風險一次過睇。" : "Up to four funds: returns, fees and risk together."}
+        subtitle={zh ? "最多四隻，回報、收費和風險一次過看。" : "Up to four funds: returns, fees and risk together."}
       />
       <AsOfLine zh={zh} />
 
       {fromCheckup ? (
         <Card className="mb-5 bg-tint-sky">
-          <h2 className="font-display text-lg">{zh ? "由健康檢查帶過嚟：點解比較呢幾隻" : "From the checkup: why these funds"}</h2>
+          <h2 className="font-display text-lg">{zh ? "由健康檢查帶過來：為甚麼比較這幾隻" : "From the checkup: why these funds"}</h2>
           <p className="mt-1 text-sm leading-relaxed text-fg">{zh ? fromCheckup.whyZh : fromCheckup.whyEn}</p>
           <p className="mt-2 text-xs text-muted">
             {zh
-              ? "數字係積金局公布嘅五年年化回報（截至 " + catalogMeta.asOf + "）。其他計劃嘅基金只適用於可以轉計劃嘅個人帳戶，供款帳戶通常只可以揀僱主計劃入面嘅基金。過往表現唔代表將來。"
+              ? "數字是積金局公布的五年年化回報（截至 " + catalogMeta.asOf + "）。其他計劃的基金只適用於可以轉計劃的個人帳戶，供款帳戶通常只可以選僱主計劃內的基金。過往表現不代表將來。"
               : `MPFA 5-year annualized returns as of ${catalogMeta.asOf}. Other schemes apply only to accounts that can move. Past performance is no guide to the future.`}
           </p>
           <Button asChild variant="outline" size="sm" className="mt-3 print:hidden">
@@ -161,7 +161,7 @@ function ComparePage() {
       ) : null}
       <Card className="relative z-20 mb-4 overflow-visible">
         <h2 className="mb-2 font-display text-lg">
-          {zh ? `加入要比較嘅基金（${funds.length}／4）` : `Add funds to compare (${funds.length}/4)`}
+          {zh ? `加入要比較的基金（${funds.length}／4）` : `Add funds to compare (${funds.length}/4)`}
         </h2>
         <FundPicker
           zh={zh}
@@ -171,10 +171,10 @@ function ComparePage() {
           placeholder={
             funds.length >= 4
               ? zh
-                ? "已經揀滿四隻，先移走一隻"
+                ? "已經選滿四隻，先移走一隻"
                 : "Four selected; remove one first"
               : zh
-                ? "打基金名或者公司名，例如：宏利北美、滙豐核心"
+                ? "輸入基金名或公司名，例如：宏利北美、滙豐核心"
                 : "Type a fund or company name"
           }
         />
@@ -201,7 +201,7 @@ function ComparePage() {
           </div>
         ) : (
           <p className="mt-2 text-xs text-muted">
-            {zh ? "揀兩至四隻，下面就會並排顯示回報、收費（港幣）同風險。亦可以喺基金庫每隻旁邊撳「比較」。" : "Pick two to four to see returns, fees in HK$ and risk side by side."}
+            {zh ? "選兩至四隻，下面就會並排顯示回報、收費（港幣）和風險。亦可以在基金庫每隻旁邊按「比較」。" : "Pick two to four to see returns, fees in HK$ and risk side by side."}
           </p>
         )}
       </Card>
@@ -211,8 +211,8 @@ function ComparePage() {
       <details className="group mt-8 mb-2 rounded-xl bg-white/70 p-4 ring-1 ring-black/5">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-fg">
           <span>
-            <span className="font-display text-lg">{zh ? "排行榜：供應商同基金回報" : "Leaderboards: providers and funds"}</span>
-            <span className="block text-xs text-canvas-muted">{zh ? "想搵靈感揀邊隻嚟比，可以喺呢度撳「比較」加入" : "Browse and pin funds from here"}</span>
+            <span className="font-display text-lg">{zh ? "排行榜：供應商和基金回報" : "Leaderboards: providers and funds"}</span>
+            <span className="block text-xs text-canvas-muted">{zh ? "想找靈感選哪些基金來比較，可以在這裡按「比較」加入" : "Browse and pin funds from here"}</span>
           </span>
           <span className="shrink-0 text-xs whitespace-nowrap text-[var(--pc-ink)] group-open:hidden">{zh ? "展開" : "Show"}</span>
         </summary>
@@ -334,7 +334,7 @@ function ComparePage() {
                           pinned ? "bg-primary text-primary-fg" : "bg-white text-muted ring-1 ring-border",
                         )}
                       >
-                        {pinned ? (zh ? "已揀" : "Pinned") : zh ? "比較" : "Pin"}
+                        {pinned ? (zh ? "已選" : "Pinned") : zh ? "比較" : "Pin"}
                       </button>
                     </td>
                   </tr>
@@ -463,7 +463,7 @@ function CustomCompare({
         </table>
       </div>
       <p className="mt-2 text-xs text-canvas-muted">
-        {zh ? "淺綠色底係該項最好嗰隻（回報最高或者收費最低）。過往表現不代表將來。" : "Shaded cells are the best in each row. Past returns do not predict future ones."}
+        {zh ? "淺綠色底是該項最好那隻（回報最高或收費最低）。過往表現不代表將來。" : "Shaded cells are the best in each row. Past returns do not predict future ones."}
       </p>
     </>
   );
@@ -507,13 +507,13 @@ function FeeCompare({ funds, zh }: { funds: Fund[]; zh: boolean }) {
       {gap != null && low && high ? (
         <p className="mt-3 rounded-lg bg-tint-mint p-3 text-sm">
           {zh
-            ? `揀「${low.nameZh}」而唔係「${high.nameZh}」，${years} 年收費差距大約 `
+            ? `選「${low.nameZh}」而不是「${high.nameZh}」，${years} 年收費差距大約 `
             : `Choosing ${low.nameEn} over ${high.nameEn} saves about `}
           <b className="font-mono text-up">{fmtHkd(gap)}</b>
           {zh ? "。" : ` over ${years} years.`}
           <span className="mt-1 block text-[12px] text-muted">
             {zh
-              ? `假設扣費前回報一樣（每年 ${FEE_GAP_GROSS}%），${example ? "例子：" : ""}結餘 ${fmtHkd(base)}、每月供款 ${fmtHkd(perMonth)}。收費平唔代表表現一定好。`
+              ? `假設扣費前回報一樣（每年 ${FEE_GAP_GROSS}%），${example ? "例子：" : ""}結餘 ${fmtHkd(base)}、每月供款 ${fmtHkd(perMonth)}。收費低不代表表現一定好。`
               : `Same ${FEE_GAP_GROSS}% return before fees assumed. Cheaper does not mean better.`}
           </span>
         </p>

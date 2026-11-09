@@ -121,7 +121,7 @@ export function MarketDetail({ quote, zh, onClose }: { quote: MarketQuote | null
                 <Skeleton className="h-full" />
               ) : !c ? (
                 <p className="flex h-full items-center justify-center text-sm text-muted">
-                  {zh ? "暫時攞唔到呢個時段嘅走勢，請試下其他時段或者遲啲再睇。" : "No chart for this range right now."}
+                  {zh ? "暫時未能取得這個時段的走勢，請試試其他時段或稍後再看。" : "No chart for this range right now."}
                 </p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -161,7 +161,7 @@ export function MarketDetail({ quote, zh, onClose }: { quote: MarketQuote | null
 
             <p className="mt-2 text-xs leading-relaxed text-muted">
               {zh
-                ? "呢個係市場指數，唔係強積金基金價格，亦未扣基金收費。報價來自 Yahoo Finance，大約延遲 15 分鐘；唔喺交易時間會顯示上一個交易日。"
+                ? "這個是市場指數，不是強積金基金價格，亦未扣基金收費。報價來自 Yahoo Finance，大約延遲 15 分鐘；非交易時間會顯示上一個交易日。"
                 : "A market index, not an MPF fund price and before fund fees. Yahoo Finance, delayed about 15 minutes."}
             </p>
 
@@ -169,11 +169,11 @@ export function MarketDetail({ quote, zh, onClose }: { quote: MarketQuote | null
               {sleeve && sleeveName ? (
                 <Button asChild>
                   <Link to="/funds" search={{ sleeve }} onClick={onClose}>
-                    {zh ? `睇相關強積金基金（${sleeveName}）` : `See related MPF funds (${sleeveName})`}
+                    {zh ? `看相關強積金基金（${sleeveName}）` : `See related MPF funds (${sleeveName})`}
                   </Link>
                 </Button>
               ) : (
-                <span className="text-xs text-muted">{zh ? "強積金冇直接對應呢個指數嘅基金類別。" : "No MPF fund type tracks this directly."}</span>
+                <span className="text-xs text-muted">{zh ? "強積金沒有直接對應這個指數的基金類別。" : "No MPF fund type tracks this directly."}</span>
               )}
               <a
                 href={`https://finance.yahoo.com/quote/${encodeURIComponent(quote.symbol)}`}
@@ -181,7 +181,7 @@ export function MarketDetail({ quote, zh, onClose }: { quote: MarketQuote | null
                 rel="noopener noreferrer"
                 className="text-sm text-[#00753E] underline underline-offset-2"
               >
-                {zh ? "去 Yahoo Finance 睇更多 ↗" : "More on Yahoo Finance ↗"}
+                {zh ? "去 Yahoo Finance 看更多 ↗" : "More on Yahoo Finance ↗"}
               </a>
             </div>
           </>

@@ -9,7 +9,7 @@ export const Route = createFileRoute("/glossary")({
   head: () => ({
     meta: seo({
       title: "強積金詞彙",
-      description: "開支比率、風險級別、預設投資策略、年化同累積回報等強積金用語，用白話解釋。",
+      description: "開支比率、風險級別、預設投資策略、年化和累積回報等強積金用語，用白話解釋。",
       path: "/glossary",
     }),
   }),
@@ -24,7 +24,7 @@ function GlossaryPage() {
       <PageTitle
         kicker={zh ? "詞彙" : "Glossary"}
         title={zh ? "強積金用語，白話解釋" : "MPF terms in plain words"}
-        subtitle={zh ? "網站入面見到「?」，撳落去都會見到呢度嘅解釋。" : "Tap any “?” on the site to see these."}
+        subtitle={zh ? "網站內見到「?」，按下便會見到這裡的解釋。" : "Tap any “?” on the site to see these."}
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {keys.map((k) => (

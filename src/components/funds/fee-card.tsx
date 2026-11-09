@@ -25,7 +25,7 @@ export function BalanceInput({
   return (
     <label className={cn("block", className)}>
       <span className="mb-1 block text-xs text-muted">
-        {label ?? (field === "balance" ? (zh ? "你嘅結餘（港元）" : "Your balance (HK$)") : zh ? "每月供款（港元）" : "Monthly contribution (HK$)")}
+        {label ?? (field === "balance" ? (zh ? "你的結餘（港元）" : "Your balance (HK$)") : zh ? "每月供款（港元）" : "Monthly contribution (HK$)")}
       </span>
       <span className="relative block">
         <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-subtle">$</span>
@@ -85,9 +85,9 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
   const inScheme = cheapestSwitch(fund);
   const anywhere = cheapestAnywhere(fund);
   const alts = [
-    inScheme ? { fund: inScheme, labelZh: "同一計劃入面，同類收費最低", labelEn: "Cheapest same-type fund in this scheme" } : null,
+    inScheme ? { fund: inScheme, labelZh: "同一計劃內，同類收費最低", labelEn: "Cheapest same-type fund in this scheme" } : null,
     anywhere && anywhere.id !== inScheme?.id && (anywhere.fer ?? 9) < (inScheme?.fer ?? 9)
-      ? { fund: anywhere, labelZh: "其他計劃入面，同類收費最低（只適用於可以轉計劃嘅個人帳戶）", labelEn: "Cheapest same-type fund in another scheme (personal accounts only)" }
+      ? { fund: anywhere, labelZh: "其他計劃內，同類收費最低（只適用於可以轉計劃的個人帳戶）", labelEn: "Cheapest same-type fund in another scheme (personal accounts only)" }
       : null,
   ].filter((x): x is NonNullable<typeof x> => x != null);
 
@@ -96,7 +96,7 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
       <h2 className="mb-1 font-display text-lg">{zh ? "收費以港幣計" : "Fees in HK$"}</h2>
       <p className="mb-3 text-xs text-muted">
         {zh
-          ? `開支比率 ${fmtPctPlain(fund.fer)} 係每年從基金資產扣除嘅總收費（已包括管理費、受託人費等）。`
+          ? `開支比率 ${fmtPctPlain(fund.fer)} 是每年從基金資產扣除的總收費（已包括管理費、受託人費等）。`
           : `FER ${fmtPctPlain(fund.fer)} is the total yearly cost taken from the fund.`}
       </p>
       <div className="grid grid-cols-2 gap-3">
@@ -106,7 +106,7 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
       {example ? (
         <p className="mt-3 rounded-md bg-tint-sand px-3 py-2 text-xs text-fg">
           {zh
-            ? `未填結餘，以下用結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(perMonth)} 做例子。填返實際數字就會即時更新。`
+            ? `未填結餘，以下用結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(perMonth)} 做例子。填入實際數字就會即時更新。`
             : `No balance entered; illustrated with ${fmtHkd(EXAMPLE_BALANCE)} and ${fmtHkd(perMonth)} a month.`}
         </p>
       ) : null}
@@ -144,12 +144,12 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
           );
         })
       ) : fund.fer != null ? (
-        <p className="mt-3 rounded-lg bg-tint-mint p-3 text-sm">{zh ? "呢隻已經係同類之中收費最低。" : "Already the cheapest fund of its type."}</p>
+        <p className="mt-3 rounded-lg bg-tint-mint p-3 text-sm">{zh ? "這隻已經是同類之中收費最低。" : "Already the cheapest fund of its type."}</p>
       ) : null}
       {alts.length ? (
         <p className="mt-2 text-xs leading-relaxed text-muted">
           {zh
-            ? `累積相差假設兩隻基金扣費前回報一樣（每年 ${FEE_GAP_GROSS}%）。實際回報唔同，收費平唔代表表現一定好。`
+            ? `累積相差假設兩隻基金扣費前回報一樣（每年 ${FEE_GAP_GROSS}%）。實際回報不同，收費低不代表表現一定好。`
             : `Gap assumes the same ${FEE_GAP_GROSS}% return before fees. Cheaper does not mean better performance.`}
         </p>
       ) : null}

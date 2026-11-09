@@ -92,7 +92,7 @@ export function FundPicker({
         }}
         type="search"
         enterKeyHint="done"
-        placeholder={placeholder ?? (zh ? "打基金名加入，例如：北美、核心累積" : "Type a fund name to add")}
+        placeholder={placeholder ?? (zh ? "輸入基金名加入，例如：北美、核心累積" : "Type a fund name to add")}
         className="pl-9"
         aria-label={zh ? "搜尋基金" : "Search funds"}
         role="combobox"
@@ -106,7 +106,7 @@ export function FundPicker({
           className="absolute inset-x-0 top-full z-40 mt-1 max-h-72 overflow-y-auto rounded-lg bg-card text-fg shadow-[var(--shadow-border)] ring-1 ring-border"
         >
           {results.length === 0 ? (
-            <li className="px-3 py-3 text-sm text-muted">{zh ? `搵唔到「${q.trim()}」，試下少打幾個字。` : `Nothing matches “${q.trim()}”.`}</li>
+            <li className="px-3 py-3 text-sm text-muted">{zh ? `找不到「${q.trim()}」，試試少輸入幾個字。` : `Nothing matches “${q.trim()}”.`}</li>
           ) : (
             results.map((f, i) => (
               <li key={f.id} role="option" aria-selected={false}>

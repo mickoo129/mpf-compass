@@ -46,7 +46,7 @@ export function ResetButton({ className, onDone }: { className?: string; onDone?
       aria-live="polite"
     >
       <RotateCcw className="size-4" />
-      {armed ? (zh ? "再撳一次確認清空" : "Tap again to clear") : zh ? "下一位客人（清空資料）" : "Next client (clear data)"}
+      {armed ? (zh ? "再按一次確認清空" : "Tap again to clear") : zh ? "下一位客人（清空資料）" : "Next client (clear data)"}
     </button>
   );
 }

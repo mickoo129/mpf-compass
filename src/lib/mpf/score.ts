@@ -183,7 +183,7 @@ export function scoreFunds(profile: Profile, regime?: Regime | null): ScoredFund
     if (regime && fit <= 0.32) reasons.push("展望偏弱");
     if (fund.sleeve === "korea") reasons.push("一年升幅較大");
     if (fund.category === "guaranteed") reasons.push("保證成本高");
-    if (fund.ret5y == null) reasons.push("成立未夠五年");
+    if (fund.ret5y == null) reasons.push("成立不足以五年");
 
     return { fund, score, reasons, expectedReturn: expectedReturn(fund, regime, horizon) };
   });
@@ -216,25 +216,25 @@ export function resolvedReview(profile: Profile): {
     month: {
       labelZh: "一個月後",
       labelEn: "In 1 month",
-      zh: "一個月後可以返嚟對照今次參考配置。積金局數字按月公布，一個月內未必已更新。",
+      zh: "一個月後可以回來對照今次參考配置。積金局數字按月公布，一個月內未必已更新。",
       en: "Come back in a month to compare with this mix. Official NAVs are monthly.",
     },
     quarter: {
       labelZh: "三個月後",
       labelEn: "In 3 months",
-      zh: "三個月後返嚟對照。中間唔使因為短期升跌而轉。",
+      zh: "三個月後回來對照。中間不用因為短期升跌而轉。",
       en: "Come back in a quarter. Do not switch on short-term noise.",
     },
     half: {
       labelZh: "半年後",
       labelEn: "In 6 months",
-      zh: "半年後返嚟對照。除非轉工、計劃合併或者收費大變，否則唔使郁。",
+      zh: "半年後回來對照。除非轉工、計劃合併或收費大變，否則不用變動。",
       en: "Come back in six months. Hold unless job, scheme or fee changes.",
     },
     year: {
       labelZh: "一年後",
       labelEn: "In 1 year",
-      zh: "一年後返嚟對照。月月轉好易變成高追。",
+      zh: "一年後回來對照。月月轉很容易變成高追。",
       en: "Come back in a year. Monthly switching chases noise.",
     },
   } as const;
@@ -415,12 +415,12 @@ function holdingReason(s: ScoredFund, i: number, _n: number, profile: Profile): 
   const region = fundRegion(f);
   if (i === 0) {
     if (f.isCaf) return { zh: `核心：核心累積基金，約六成環球股票、四成債券，收費有法定上限，配合「${goalZh}」。`, en: "Core: Core Accumulation, about 60/40 global shares and bonds with a fee cap." };
-    if (f.isA65) return { zh: `核心：65歲後基金，約兩成股票、八成債券，波動較細，配合「${goalZh}」。`, en: "Core: Age 65 Plus, about 20/80 shares and bonds." };
-    if (f.category === "mixed") return { zh: `核心：股票同債券混合，一隻基金已經分散多個市場，配合「${goalZh}」。`, en: "Core: a mixed fund already spread across markets." };
-    if (f.category === "equity") return { zh: `核心：${f.isTracker ? "跟蹤指數嘅" : ""}${REGION_LABEL[region].zh}股票基金，配合「${goalZh}」嘅長線增長。`, en: `Core: ${REGION_LABEL[region].en} equity for long-run growth.` };
+    if (f.isA65) return { zh: `核心：65歲後基金，約兩成股票、八成債券，波動較小，配合「${goalZh}」。`, en: "Core: Age 65 Plus, about 20/80 shares and bonds." };
+    if (f.category === "mixed") return { zh: `核心：股票和債券混合，一隻基金已經分散多個市場，配合「${goalZh}」。`, en: "Core: a mixed fund already spread across markets." };
+    if (f.category === "equity") return { zh: `核心：${f.isTracker ? "跟蹤指數的" : ""}${REGION_LABEL[region].zh}股票基金，配合「${goalZh}」的長線增長。`, en: `Core: ${REGION_LABEL[region].en} equity for long-run growth.` };
     return { zh: `核心：波動較低，配合「${goalZh}」。`, en: "Core: lower volatility to fit the goal." };
   }
-  if (f.isCaf) return { zh: "配搭：核心累積基金，加入環球股票同債券。", en: "Adds global shares and bonds via Core Accumulation." };
+  if (f.isCaf) return { zh: "配搭：核心累積基金，加入環球股票和債券。", en: "Adds global shares and bonds via Core Accumulation." };
   if (f.isA65) return { zh: "防守：65歲後基金，債券為主，減低整體波動。", en: "Defensive: Age 65 Plus, mostly bonds." };
   if (f.isConservative || f.category === "bond" || f.category === "money") {
     return { zh: "防守：債券／保守基金，減低整體波動。", en: "Defensive: bonds or cash to steady the mix." };
@@ -428,7 +428,7 @@ function holdingReason(s: ScoredFund, i: number, _n: number, profile: Profile): 
   if (f.category === "equity") {
     return { zh: `分散：加入${REGION_LABEL[region].zh}股票${f.isTracker ? "（指數基金，收費較低）" : ""}。`, en: `Diversifier: adds ${REGION_LABEL[region].en} equity.` };
   }
-  return { zh: "配搭：另一隻混合資產基金，分散基金經理同比例。", en: "Adds a second mixed fund for manager diversification." };
+  return { zh: "配搭：另一隻混合資產基金，分散基金經理及比例。", en: "Adds a second mixed fund for manager diversification." };
 }
 
 /**
@@ -498,31 +498,31 @@ export const GOAL_COPY: Record<GoalId, { zh: string; en: string; blurbZh: string
   growth: {
     zh: "進取增長",
     en: "Growth",
-    blurbZh: "離退休仲有好耐，想長線增長，接受到大上大落。",
+    blurbZh: "距離退休還有很長時間，想長線增長，能接受大幅上落。",
     blurbEn: "Long horizon, capital growth, larger swings accepted.",
   },
   balanced: {
     zh: "穩健增值",
     en: "Balanced",
-    blurbZh: "想增長又唔想太大上落，風險同預設投資策略差唔多。",
+    blurbZh: "想增長又不想太大上落，風險和預設投資策略差不多。",
     blurbEn: "Growth and defence together, near DIS risk.",
   },
   preserve: {
     zh: "保本為先",
     en: "Preserve",
-    blurbZh: "就快要攞錢，或者好怕蝕，穩陣行先。",
+    blurbZh: "快要提取款項，或很怕虧損，以穩健為先。",
     blurbEn: "Near withdrawal or loss-averse: stability first.",
   },
   lowfee: {
     zh: "低收費優先",
     en: "Low fee",
-    blurbZh: "收費係唯一你控制到嘅嘢。優先揀指數基金同預設投資策略基金。",
+    blurbZh: "收費是唯一你可以控制的因素。優先選指數基金和預設投資策略基金。",
     blurbEn: "Fees are the drag you can lock. Prefer trackers and DIS.",
   },
   dis: {
     zh: "跟隨預設策略",
     en: "Default (DIS)",
-    blurbZh: "收費有法定上限，年紀越大自動越保守，啱唔想自己揀基金嘅人。",
+    blurbZh: "收費有法定上限，年紀越大自動越保守，適合不想自己選基金的人。",
     blurbEn: "Fee cap and an age glidepath if you do not want to pick funds.",
   },
 };
@@ -546,7 +546,7 @@ export const MIX_SIZE_COPY: Record<MixSize, { zh: string; en: string }> = {
 };
 
 export const REVIEW_COPY: Record<ReviewCadence, { zh: string; en: string }> = {
-  auto: { zh: "跟上面揀嘅時間", en: "Follow window" },
+  auto: { zh: "跟上面選的時間", en: "Follow window" },
   month: { zh: "一個月", en: "1 month" },
   quarter: { zh: "三個月", en: "3 months" },
   half: { zh: "半年", en: "6 months" },
@@ -581,7 +581,7 @@ export function compareSavedMix(
     const addNames = added.map((a) => a.fund.nameZh).join("、");
     alertsZh.push(
       added.length
-        ? `今次評分／展望同上次唔同${addNames ? `，新入選：${addNames}` : ""}。`
+        ? `今次評分／展望與上次不同${addNames ? `，新入選：${addNames}` : ""}。`
         : "今次評分／展望已變，部分先前持倉不再列入。",
     );
     alertsEn.push("Scores or outlook changed; the mix was adjusted.");
@@ -590,12 +590,12 @@ export function compareSavedMix(
   if (same && !alertsZh.length) {
     return {
       status: "keep",
-      alertsZh: ["同上次一樣。評分同展望未見明顯更高分嘅同類選擇。"],
+      alertsZh: ["與上次一樣。評分和展望未見明顯更高分的同類選擇。"],
       alertsEn: ["Same mix. No stronger replacement — hold."],
     };
   }
   if (same) return { status: "keep", alertsZh, alertsEn };
-  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序同上次唔同，可以對照下面嘅參考配置。"], alertsEn };
+  return { status: "adjust", alertsZh: alertsZh.length ? alertsZh : ["今次排序與上次不同，可以對照下面的參考配置。"], alertsEn };
 }
 
 
@@ -614,7 +614,7 @@ export function suitabilityChecks(profile: Profile): Suitability[] {
   if (profile.goal === "growth" && years < 10) {
     out.push({
       level: "warn",
-      zh: `你距離退休約 ${years} 年，進取組合未必適合。${drop ? `以 2022 年為例，股票基金中位數一年跌咗約 ${drop}%；` : ""}臨近提取時遇上跌市，可能冇足夠時間等市況回復。你仍然可以睇呢個配置，但請考慮「穩健增值」或「跟隨預設策略」。`,
+      zh: `你距離退休約 ${years} 年，進取組合未必適合。${drop ? `以 2022 年為例，股票基金中位數一年跌了約 ${drop}%；` : ""}臨近提取時遇上跌市，可能沒有足夠時間等市況回復。你仍然可以看這個配置，但請考慮「穩健增值」或「跟隨預設策略」。`,
       en: `About ${years} years to retirement: a growth mix may not fit.${drop ? ` In 2022 the median equity fund fell about ${drop}%.` : ""} A fall close to withdrawal leaves little time to recover. Consider Balanced or DIS.`,
     });
   } else if (profile.goal === "balanced" && years < 5) {
@@ -627,14 +627,14 @@ export function suitabilityChecks(profile: Profile): Suitability[] {
   if (profile.goal === "preserve" && years >= 20) {
     out.push({
       level: "note",
-      zh: `你距離退休仲有約 ${years} 年。長期全放保守類基金，回報可能追唔上通脹。如果係因為怕短期波動，可以考慮「跟隨預設策略」，佢會隨年齡自動降低風險。`,
+      zh: `你距離退休還有約 ${years} 年。長期全放保守類基金，回報可能追不上通脹。如果是因為怕短期波動，可以考慮「跟隨預設策略」，它會隨年齡自動降低風險。`,
       en: `About ${years} years to go. Staying fully conservative that long may trail inflation. DIS de-risks automatically with age.`,
     });
   }
   if (profile.switchHorizon === "1m" || profile.switchHorizon === "3m") {
     out.push({
       level: "note",
-      zh: "強積金轉換基金通常需時數個工作日，期間資金唔喺市場入面，短線轉換未必追到升幅。短期回顧冇問題，但頻密轉換未必有利。",
+      zh: "強積金轉換基金通常需時數個工作日，期間資金不在市場內，短線轉換未必追到升幅。短期回顧沒有問題，但頻密轉換未必有利。",
       en: "An MPF switch usually takes several working days out of the market, so short-term switching often misses the move.",
     });
   }
@@ -651,5 +651,5 @@ export const REASON_EN: Record<string, string> = {
   展望偏弱: "Outlook weak",
   一年升幅較大: "Big 1-year run",
   保證成本高: "Costly guarantee",
-  成立未夠五年: "Under 5 years old",
+  成立不足以五年: "Under 5 years old",
 };

@@ -41,11 +41,11 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
 
   return (
     <Card className={className}>
-      <h2 className="mb-1 font-display text-lg">{zh ? "每年回報：同同類比" : "Each year versus similar funds"}</h2>
+      <h2 className="mb-1 font-display text-lg">{zh ? "每年回報：和同類比" : "Each year versus similar funds"}</h2>
       <p className="mb-2 text-sm text-fg">
         {counted
           ? zh
-            ? `${counted} 個時段入面，有 ${beat} 個跑贏${sleeve}基金嘅中位數（共 ${peers.length} 隻）。`
+            ? `${counted} 個時段內，有 ${beat} 個跑贏${sleeve}基金的中位數（共 ${peers.length} 隻）。`
             : `Beat the median of ${peers.length} ${sleeve} funds in ${beat} of ${counted} periods.`
           : zh
             ? "未有足夠年份比較。"
@@ -54,7 +54,7 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
       <ul className="mb-1 flex gap-4 text-xs text-muted">
         <li className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-sm" style={{ background: FUND_COLOR }} />
-          {zh ? "呢隻基金" : "This fund"}
+          {zh ? "這隻基金" : "This fund"}
         </li>
         <li className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-sm" style={{ background: PEER_COLOR }} />
@@ -73,7 +73,7 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
               contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
               cursor={{ fill: "rgba(26,122,150,0.06)" }}
             />
-            <Bar dataKey="fund" name={zh ? "呢隻基金" : "This fund"} fill={FUND_COLOR} radius={[3, 3, 0, 0]}>
+            <Bar dataKey="fund" name={zh ? "這隻基金" : "This fund"} fill={FUND_COLOR} radius={[3, 3, 0, 0]}>
               {data.map((d) => (
                 <Cell key={d.year} fill={FUND_COLOR} />
               ))}

@@ -17,7 +17,7 @@ export function Term({ k, children, className }: { k: TermKey; children?: React.
       <Popover.Root>
         <Popover.Trigger
           className="inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-current text-[0.65rem] leading-none font-semibold opacity-60 hover:opacity-100"
-          aria-label={zh ? `${t.zh}係咩？` : `What is ${t.en}?`}
+          aria-label={zh ? `${t.zh}是甚麼？` : `What is ${t.en}?`}
           onClick={(e) => e.stopPropagation()}
         >
           ?

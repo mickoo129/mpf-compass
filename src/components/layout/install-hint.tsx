@@ -74,14 +74,14 @@ export function InstallHint() {
       <div className="flex items-center gap-3 pr-6">
         <img src="/icons/icon-192.png" alt="" className="size-10 shrink-0 rounded-lg" />
         <div className="min-w-0 text-sm">
-          <p className="font-medium">{zh ? "加到主畫面，下次一撳就開" : "Add to your home screen"}</p>
+          <p className="font-medium">{zh ? "加到主畫面，下次一按即開" : "Add to your home screen"}</p>
           {mode === "ios" ? (
             <p className="text-xs text-muted">
-              {zh ? "撳 Safari 下面嘅" : "Tap"} <Share className="inline size-3.5 align-text-bottom" />{" "}
-              {zh ? "分享，再揀「加至主畫面」。" : "Share, then “Add to Home Screen”."}
+              {zh ? "按 Safari 下面的" : "Tap"} <Share className="inline size-3.5 align-text-bottom" />{" "}
+              {zh ? "分享，再選「加至主畫面」。" : "Share, then “Add to Home Screen”."}
             </p>
           ) : (
-            <p className="text-xs text-muted">{zh ? "好似 App 咁用，唔使再打網址。" : "Opens like an app."}</p>
+            <p className="text-xs text-muted">{zh ? "像 App 一樣使用，不用再輸入網址。" : "Opens like an app."}</p>
           )}
         </div>
         {mode === "android" && prompt ? (

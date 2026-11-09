@@ -79,8 +79,8 @@ export const Route = createFileRoute("/funds/")({
     return {
       meta: seo(
         q
-          ? { title: `搜尋「${q}」`, description: `喺全港強積金成分基金入面搵「${q}」，比較回報、收費同風險。`, path: `/funds?q=${encodeURIComponent(q)}` }
-          : { title: "全港成分基金", description: "按類別、地區、主題、計劃篩選全港強積金成分基金，比較回報、收費（港幣計）同風險。", path: "/funds" },
+          ? { title: `搜尋「${q}」`, description: `在全港強積金成分基金內找「${q}」，比較回報、收費和風險。`, path: `/funds?q=${encodeURIComponent(q)}` }
+          : { title: "全港成分基金", description: "按類別、地區、主題、計劃篩選全港強積金成分基金，比較回報、收費（港幣計）和風險。", path: "/funds" },
       ),
     };
   },
@@ -263,7 +263,7 @@ function FundsPage() {
         title={zh ? "全港成分基金" : "All constituent funds"}
         subtitle={
           zh
-            ? "打基金名或者公司名搵，亦可以按類別、地區、主題同計劃篩選。"
+            ? "輸入基金名或公司名搜尋，亦可以按類別、地區、主題和計劃篩選。"
             : "Filter by type, region, theme and provider. MPFA has no GICS sectors; themes are official flags only (index, DIS, healthcare, ESG)."
         }
       />
@@ -357,7 +357,7 @@ function FundsPage() {
             <option value="ret10y:desc">{zh ? "10年回報 高→低" : "10Y high→low"}</option>
             <option value="fer:asc">{zh ? "收費 低→高" : "Fee low→high"}</option>
             <option value="riskClass:asc">{zh ? "風險 低→高" : "Risk low→high"}</option>
-            <option value="aumM:desc">{zh ? "規模 大→細" : "Size large→small"}</option>
+            <option value="aumM:desc">{zh ? "規模 大→小" : "Size large→small"}</option>
           </select>
         </div>
         <div className={cn("contents", !showFilters && "max-sm:hidden")}>
@@ -444,7 +444,7 @@ function FundsPage() {
 
       <p className="mb-3 text-xs text-canvas-muted">
         {zh
-          ? `顯示 ${rows.length} 隻基金${allRows.length > rows.length ? `（同一基金唔同類別已合併，共 ${allRows.length} 個單位）` : ""}`
+          ? `顯示 ${rows.length} 隻基金${allRows.length > rows.length ? `（同一基金不同類別已合併，共 ${allRows.length} 個單位）` : ""}`
           : `Showing ${rows.length} funds${allRows.length > rows.length ? ` (${allRows.length} unit classes)` : ""}`}
       </p>
 
@@ -474,7 +474,7 @@ function FundsPage() {
         </table>
       </div>
 
-      {/* 手機同 iPad 用精簡列表；iPad 闊啲，順便顯示多幾個數同「比較」掣 */}
+      {/* 手機和 iPad 用精簡列表；iPad 闊些，順便顯示多幾個數和「比較」按鈕 */}
       <ul className="divide-y divide-border overflow-hidden rounded-xl bg-card text-fg shadow-[var(--shadow-border)] min-[1170px]:hidden">
         {rows.slice(0, limit).map((f) => {
           const shown: SortKey = sort === "fer" || sort === "riskClass" || sort === "aumM" ? "ret1y" : sort;
@@ -527,7 +527,7 @@ function FundsPage() {
           <p>
             {q.trim()
               ? zh
-                ? `搵唔到「${q.trim()}」。可以試下少打幾個字，例如公司名加地區（「宏利 北美」）。`
+                ? `找不到「${q.trim()}」。可以試試少輸入幾個字，例如公司名加地區（「宏利 北美」）。`
                 : `Nothing matches “${q.trim()}”. Try fewer words, e.g. trustee plus region.`
               : zh
                 ? "沒有符合篩選的基金。"
@@ -543,7 +543,7 @@ function FundsPage() {
       {rows.length > limit ? (
         <div className="mt-4 text-center">
           <Button variant="outline" size="sm" onClick={() => setLimit((n) => n + PAGE)}>
-            {zh ? `顯示更多（仲有 ${rows.length - limit} 隻）` : `Show more (${rows.length - limit} left)`}
+            {zh ? `顯示更多（還有 ${rows.length - limit} 隻）` : `Show more (${rows.length - limit} left)`}
           </Button>
         </div>
       ) : null}
@@ -596,7 +596,7 @@ function FundRow({
       </td>
       <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fund.riskClass ?? "—"}</td>
       <td className="px-3 py-2.5 text-right font-mono tabular-nums">
-        {/* 表入面只顯示百分比，令每行唔會因為港幣金額變高；港幣喺基金頁同比較頁睇 */}
+        {/* 表入面只顯示百分比，令每行不會因為港幣金額變高；港幣在基金頁同比較頁看 */}
         {fund.fer != null ? `${fund.fer.toFixed(2)}%` : "—"}
       </td>
       <td className="px-3 py-2.5 text-right">
