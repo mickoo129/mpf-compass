@@ -187,9 +187,9 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   const yieldBp =
     yieldLevel != null && yieldMove != null ? Math.round((yieldLevel - yieldLevel / (1 + yieldMove / 100)) * 100) : null;
   const lookbackZh = [
-    `美股（標普 500、納指）${lookbackLabelZh}${fmt(us)}；而家喺過去一年最低同最高之間大約 ${pct(usStretch)} 嘅位置（100% 即係一年高位）。`,
+    `美股（標普 500、納指）${lookbackLabelZh}${fmt(us)}；現在在過去一年最低和最高之間大約 ${pct(usStretch)} 的位置（100% 即是一年高位）。`,
     `港股 ${fmt(hk)}、中國相關 ${fmt(china)}、日本 ${fmt(japan)}、韓國 ${fmt(korea)}、台灣 ${fmt(tw)}。`,
-    `美債 10 年息率 ${yieldLevel != null ? `${yieldLevel.toFixed(2)}%` : "—"}${yieldBp != null ? `，呢段時間${yieldBp >= 0 ? "升" : "跌"}咗 ${Math.abs(yieldBp)} 點子` : ""}；美元指數 ${fmt(dollar)}、金價 ${fmt(gold)}。`,
+    `美債 10 年息率 ${yieldLevel != null ? `${yieldLevel.toFixed(2)}%` : "—"}${yieldBp != null ? `，這段時間${yieldBp >= 0 ? "升" : "跌"}了 ${Math.abs(yieldBp)} 點子` : ""}；美元指數 ${fmt(dollar)}、金價 ${fmt(gold)}。`,
   ];
   const lookbackEn = [
     `US equities ${lookEn} ${fmt(us)}, ~${pct(usStretch)} of 52-week range.`,
@@ -201,7 +201,7 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
   const outlookEn: string[] = [];
   outlookZh.push(
     usStretch != null && usStretch > 0.88
-      ? `${outlookLabelZh}：美股接近一年高位，短期回落嘅機會較大。`
+      ? `${outlookLabelZh}：美股接近一年高位，短期回落的機會較大。`
       : `${outlookLabelZh}：美股未見升得太急。`,
   );
   outlookEn.push(
@@ -210,22 +210,22 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
       : `${outEn}: US not stretched.`,
   );
   if ((koreaYtd ?? 0) > 28) {
-    outlookZh.push(`${outlookLabelZh}：韓股今年升咗好多，回落嘅機會較大。`);
+    outlookZh.push(`${outlookLabelZh}：韓股今年升了很多，回落的機會較大。`);
     outlookEn.push(`${outEn}: Korea’s YTD run is large; pull-back risk is higher.`);
   }
   if (hk != null && us != null && hk + 6 < us) {
-    outlookZh.push(`${outlookLabelZh}：港股呢段時間跑輸美股，但唔代表之後一定追返。`);
+    outlookZh.push(`${outlookLabelZh}：港股這段時間跑輸美股，但不代表之後一定追回。`);
     outlookEn.push(`${outEn}: HK has lagged the US; that does not mean it will catch up.`);
   }
   if (yieldLevel != null) {
     outlookZh.push(
       short
-        ? `${outlookLabelZh}：美債息率而家 ${yieldLevel.toFixed(2)}%${yieldMove != null && yieldMove > 0 ? "，近排仲上緊" : ""}。短期內債券價格會同息率反方向郁；債券回報主要靠收息，唔係靠估減息幾多。`
-        : `${outlookLabelZh}：債券之後嘅回報主要靠而家大約 ${yieldLevel.toFixed(2)}% 嘅息率。息率越高，持有一年收到嘅利息越穩陣，唔使估息口幾時到頂。`,
+        ? `${outlookLabelZh}：美債息率現在 ${yieldLevel.toFixed(2)}%${yieldMove != null && yieldMove > 0 ? "，近排仍上中" : ""}。短期內債券價格會和息率反方向變動；債券回報主要靠收息，不是靠估減息多少。`
+        : `${outlookLabelZh}：債券之後的回報主要靠現在大約 ${yieldLevel.toFixed(2)}% 的息率。息率越高，持有一年收到的利息越穩定，不用估息口何時到頂。`,
     );
     outlookEn.push(`${outEn}: bond outlook starts from ${yieldLevel.toFixed(2)}% yield, not a rate call.`);
   }
-  outlookZh.push("以上係用而家嘅息率、指數喺一年高低位嘅位置，同有冇升得太急嚟睇，唔係當過去就係將來。指數唔係基金價格，亦唔保證賺錢。");
+  outlookZh.push("以上是用現在的息率、指數在一年高低位的位置，和有沒有升得太急來看，不是當過去就是將來。指數不是基金價格，亦不保證賺錢。");
   outlookEn.push("Outlook uses starting yield and 52-week stretch, not “past = future”. Not a profit guarantee.");
 
   return {
@@ -246,10 +246,10 @@ export function buildRegime(quotes: MarketQuote[], horizon: SwitchHorizon): Regi
 export const HORIZON_OPTS: SwitchHorizon[] = ["1m", "3m", "6m", "1y"];
 
 export const HORIZON_COPY: Record<SwitchHorizon, { zh: string; en: string; blurbZh: string }> = {
-  "1m": { zh: "1 個月", en: "1 month", blurbZh: "一個月後可以返嚟對照今次參考配置。唔保證呢一個月會升。" },
-  "3m": { zh: "3 個月", en: "3 months", blurbZh: "三個月後返嚟對照。唔會用啱啱升得好急嘅基金做主力。" },
-  "6m": { zh: "半年", en: "6 months", blurbZh: "半年後返嚟對照。主要睇收費、債券息率同邊類基金落後咗。" },
-  "1y": { zh: "1 年", en: "1 year", blurbZh: "一年後返嚟對照。主要睇收費、五年表現同債券息率。" },
+  "1m": { zh: "1 個月", en: "1 month", blurbZh: "一個月後可以回來對照今次參考配置。不保證這一個月會升。" },
+  "3m": { zh: "3 個月", en: "3 months", blurbZh: "三個月後回來對照。不會用剛剛升得好急的基金做主力。" },
+  "6m": { zh: "半年", en: "6 months", blurbZh: "半年後回來對照。主要看收費、債券息率和哪類基金落後了。" },
+  "1y": { zh: "1 年", en: "1 year", blurbZh: "一年後回來對照。主要看收費、五年表現和債券息率。" },
 };
 
 export function horizonWeights(horizon: SwitchHorizon, goal: string): {

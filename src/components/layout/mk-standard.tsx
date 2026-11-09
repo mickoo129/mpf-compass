@@ -59,7 +59,7 @@ export function mkShare(url?: string) {
   }
   (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(
     () => mkToast("已複製連結，客人撳開會見到同一個方案"),
-    () => window.prompt("複製呢條連結：", link),
+    () => window.prompt("請複製這條連結：", link),
   );
 }
 

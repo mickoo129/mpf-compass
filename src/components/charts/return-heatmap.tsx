@@ -81,10 +81,10 @@ export function ReturnHeatmap({ zh }: { zh: boolean }) {
     <Card>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="font-display text-xl">{zh ? "同期比較：邊類好、邊類差" : "Same period: who led, who lagged"}</h2>
+          <h2 className="font-display text-xl">{zh ? "同期比較：哪類好、哪類差" : "Same period: who led, who lagged"}</h2>
           <p className="mt-1 text-xs text-muted">
             {zh
-              ? `每格係該類基金喺該年嘅中位數回報（排中間嗰隻）。綠色係升、紅色係跌，顏色越深幅度越大；揀「按同年排名著色」就睇同一年邊類跑得前。冇一類年年領先。近1年截至 ${catalogMeta.asOf}。`
+              ? `每格是該類基金在該年的中位數回報（排在中間那隻）。綠色是升、紅色是跌，顏色越深幅度越大；選「按同年排名著色」就看同一年哪類領先。沒有一類年年領先。近1年截至 ${catalogMeta.asOf}。`
               : `Each cell is the median return of that group in that year. Green rose, red fell; switch to rank colouring to see who led each year. No group leads every year. 1Y to ${catalogMeta.asOf}.`}
           </p>
         </div>
@@ -107,7 +107,7 @@ export function ReturnHeatmap({ zh }: { zh: boolean }) {
         </div>
       </div>
 
-      <p className="mb-1 text-xs text-subtle sm:hidden">{zh ? "← 左右掃睇較早年份 →" : "← Swipe for earlier years →"}</p>
+      <p className="mb-1 text-xs text-subtle sm:hidden">{zh ? "← 左右滑動查看較早年份 →" : "← Swipe for earlier years →"}</p>
       <div className="-mx-1 overflow-x-auto">
         <table className="w-full min-w-[520px] border-separate border-spacing-[3px] text-xs">
           <thead>
@@ -131,7 +131,7 @@ export function ReturnHeatmap({ zh }: { zh: boolean }) {
       </div>
       <p className="mt-3 text-xs leading-relaxed text-subtle">
         {zh
-          ? "數字來自積金局基金平台曆年回報，每類取中位數，只計 3 隻或以上基金嘅類別。撳類別名可以睇返嗰組基金。過往表現不代表將來。"
+          ? "數字來自積金局基金平台曆年回報，每類取中位數，只計 3 隻或以上基金的類別。按類別名可以查看該組基金。過往表現不代表將來。"
           : "MPFA calendar-year returns, median per group, groups with 3+ funds only. Tap a group to see its funds. Past returns do not predict future ones."}
       </p>
     </Card>

@@ -188,7 +188,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="mt-6 border-t border-border pt-4">
             <ResetButton className="w-full justify-center" onDone={() => setOpen(false)} />
             <p className="mt-2 text-xs text-subtle">
-              {locale === "zh" ? "清走年齡、結餘、計劃、持有基金、比較清單同記低嘅配置。" : "Clears age, balance, scheme, holdings, compare list and saved mix."}
+              {locale === "zh" ? "清除年齡、結餘、計劃、持有基金、比較清單和記錄的配置。" : "Clears age, balance, scheme, holdings, compare list and saved mix."}
             </p>
           </div>
         </SheetContent>
@@ -219,7 +219,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <MkEcard zh={locale === "zh"} />
           <p className="mk-home-link text-center text-canvas">
             <a href="https://mkpa.netlify.app/" target="_blank" rel="noopener noreferrer">
-              {locale === "zh" ? "MKPA 工具箱：睇其他實用工具 ↗" : "MKPA Toolbox: more tools ↗"}
+              {locale === "zh" ? "MKPA 工具箱：更多實用工具 ↗" : "MKPA Toolbox: more tools ↗"}
             </a>
           </p>
           <p className="mk-copy text-center !text-canvas-muted">
@@ -264,7 +264,7 @@ export function AsOfLine({ zh }: { zh: boolean }) {
   return (
     <p className="mb-5 w-full text-xs leading-relaxed text-canvas-muted">
       {zh
-        ? `基金數據截至 ${catalogMeta.asOf}（積金局每月公布一次，截至${nextSnapshotLabel(catalogMeta.asOf, true)}嘅數字一出，網站會自動更新）。市場指數即時更新。`
+        ? `基金數據截至 ${catalogMeta.asOf}（積金局每月公布一次，截至${nextSnapshotLabel(catalogMeta.asOf, true)}的數字一出，網站會自動更新）。市場指數即時更新。`
         : `Fund data as of ${catalogMeta.asOf} (MPFA publishes monthly; the site updates automatically when the ${nextSnapshotLabel(catalogMeta.asOf, false)} figures appear). Market indices are live.`}
     </p>
   );
@@ -280,7 +280,7 @@ export function CompareHint() {
   if (!ids.length || !browsing) return null;
   return (
     <>
-    {/* 留位：捲到最底時，頁尾唔會俾呢粒提示遮住 */}
+    {/* 留位：捲到最底時，頁尾不會給這粒提示遮住 */}
     <div aria-hidden className="h-16 bg-[#0E5E57] print:hidden" />
     <div className="fixed right-4 bottom-4 z-30 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-primary shadow-[var(--shadow-border)] print:hidden">
       <Link to="/compare" className="text-sm">

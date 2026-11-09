@@ -38,10 +38,10 @@ export const Route = createFileRoute("/checkup")({
         funds.length
           ? {
               title: `強積金健康檢查：${funds.length} 隻基金`,
-              description: `${scheme ?? ""}：${rows.map((r) => `${r.pct}% ${fundById(r.id)?.nameZh}`).join("、")}。睇收費、風險、分散程度同表現。`,
+              description: `${scheme ?? ""}：${rows.map((r) => `${r.pct}% ${fundById(r.id)?.nameZh}`).join("、")}。看收費、風險、分散程度和表現。`,
               path: "/checkup",
             }
-          : { title: "我嘅強積金健康檢查", description: "揀返你嘅計劃同基金，檢查收費、風險同年齡、分散程度同表現。唔會上傳你嘅資料。", path: "/checkup" },
+          : { title: "我的強積金健康檢查", description: "選擇你的計劃和基金，檢查收費、風險與年齡、分散程度和表現。不會上傳你的資料。", path: "/checkup" },
       ),
     };
   },
@@ -197,16 +197,16 @@ function CheckupPage() {
     <div>
       <PageTitle
         kicker={zh ? "健康檢查" : "Checkup"}
-        title={zh ? "我嘅強積金健康檢查" : "My MPF checkup"}
+        title={zh ? "我的強積金健康檢查" : "My MPF checkup"}
         subtitle={
           zh
-            ? "揀返你而家嘅計劃同持有嘅基金，睇下收費、風險、分散程度同表現有冇需要留意。用積金局公開數據比較，唔會上傳你嘅資料。"
+            ? "選擇你現在的計劃和持有的基金，看看收費、風險、分散程度和表現有沒有需要留意。用積金局公開數據比較，不會上傳你的資料。"
             : "Pick your scheme and current funds to review fees, risk, spread and performance against public MPFA data."
         }
       />
       <AsOfLine zh={zh} />
 
-      {/* 列印版：一行講清楚客人情況（唔印輸入欄） */}
+      {/* 列印版：一行說清楚客人情況（不印輸入欄） */}
       <p className="mb-3 hidden rounded-lg border border-black/15 bg-white p-3 text-sm text-fg print:block">
         <b>{zh ? "客人情況：" : "Client: "}</b>
         {zh
@@ -225,9 +225,9 @@ function CheckupPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="min-w-0 space-y-5 lg:col-span-5">
           <Card className="print:hidden">
-            <h2 className="mb-1 font-display text-lg">{zh ? "1. 你而家嘅計劃" : "1. Your scheme"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "1. 你現在的計劃" : "1. Your scheme"}</h2>
             <p className="mb-2 text-xs text-muted">
-              {zh ? "唔肯定？可以喺「積金易」App 或者周年權益報表睇到。" : "Not sure? Check the eMPF app or your annual benefit statement."}
+              {zh ? "不肯定？可以在「積金易」App 或周年權益報表看到。" : "Not sure? Check the eMPF app or your annual benefit statement."}
             </p>
             <select
               className="h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
@@ -245,7 +245,7 @@ function CheckupPage() {
 
           <Card className={cn(!scheme && "opacity-60")}>
             <h2 className="mb-1 font-display text-lg">
-              <span className="print:hidden">{zh ? (byAmount ? "2. 你持有嘅基金同金額" : "2. 你持有嘅基金同比例") : "2. Your funds and split"}</span>
+              <span className="print:hidden">{zh ? (byAmount ? "2. 你持有的基金和金額" : "2. 你持有的基金及比例") : "2. Your funds and split"}</span>
               <span className="hidden print:inline">{zh ? "持有基金" : "Holdings"}</span>
             </h2>
             <div className="mb-2 inline-flex rounded-lg bg-black/5 p-1 text-sm print:hidden" role="tablist" aria-label={zh ? "輸入方式" : "Enter by"}>
@@ -268,10 +268,10 @@ function CheckupPage() {
             <p className="mb-3 text-xs text-muted print:hidden">
               {byAmount
                 ? zh
-                  ? "照住積金易或者周年權益報表，入每隻基金而家嘅市值。同一隻基金喺唔同戶口（例如供款戶口同個人戶口），將兩個金額加埋入。比例同結餘會自動計。"
+                  ? "參照積金易或周年權益報表，輸入每隻基金現在的市值。同一隻基金在不同戶口（例如供款戶口和個人戶口），將兩個金額加起來輸入。比例和結餘會自動計。"
                   : "Enter each fund's current value from your statement. If a fund sits in two accounts, add the amounts together."
                 : zh
-                  ? "逐隻加入，會先平均分配；知道實際比例就改返每隻嘅 %。"
+                  ? "逐隻加入，會先平均分配；知道實際比例就修改每隻的 %。"
                   : "Add each fund; they are split evenly until you type the real shares."}
             </p>
             {rows.length ? (
@@ -350,10 +350,10 @@ function CheckupPage() {
               placeholder={
                 !scheme
                   ? zh
-                    ? "先揀上面嘅計劃"
+                    ? "先選上面的計劃"
                     : "Pick a scheme first"
                   : zh
-                    ? "撳呢度揀基金，或者打名搵（例如：北美）"
+                    ? "按這裡選擇基金，或輸入名稱搜尋（例如：北美）"
                     : "Tap to choose, or type a name"
               }
             />
@@ -363,12 +363,12 @@ function CheckupPage() {
                 {byAmount ? (
                   <span className={cn("font-mono", ready ? "text-up" : "text-warn")}>
                     {zh ? "合共 " : "Total "}${amtTotal.toLocaleString("en-HK")}
-                    {ready ? " ✓" : zh ? `（仲有 ${missingAmt} 隻未填金額）` : ` (${missingAmt} without an amount)`}
+                    {ready ? " ✓" : zh ? `（還有 ${missingAmt} 隻未填金額）` : ` (${missingAmt} without an amount)`}
                   </span>
                 ) : (
                 <span className={cn("font-mono", ready ? "text-up" : "text-warn")}>
                   {zh ? "合共 " : "Total "}
-                  {total}%{ready ? " ✓" : zh ? `（仲差 ${100 - total}%）` : ` (${100 - total}% to go)`}
+                  {total}%{ready ? " ✓" : zh ? `（仍差 ${100 - total}%）` : ` (${100 - total}% to go)`}
                 </span>
                 )}
                 {!byAmount && rows.length > 1 ? (
@@ -382,7 +382,7 @@ function CheckupPage() {
               <Button asChild className="mt-3 w-full lg:hidden print:hidden">
                 <a href="#result">
                   {zh
-                    ? `睇檢查結果（${result.items.filter((i) => i.light !== "good").length} 項要留意）`
+                    ? `看檢查結果（${result.items.filter((i) => i.light !== "good").length} 項要留意）`
                     : `See results (${result.items.filter((i) => i.light !== "good").length} to look at)`}
                 </a>
               </Button>
@@ -390,7 +390,7 @@ function CheckupPage() {
           </Card>
 
           <Card className="print:hidden">
-            <h2 className="mb-3 font-display text-lg">{zh ? "3. 你嘅情況（可選）" : "3. About you (optional)"}</h2>
+            <h2 className="mb-3 font-display text-lg">{zh ? "3. 你的情況（可選）" : "3. About you (optional)"}</h2>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="mb-1 block text-xs text-muted">{zh ? "年齡" : "Age"}</span>
@@ -421,10 +421,10 @@ function CheckupPage() {
             <p className="mt-2 text-xs text-subtle">
               {byAmount
                 ? zh
-                  ? "用金額輸入，結餘就係上面各基金金額加埋，收費會用呢個數計。"
+                  ? "用金額輸入，結餘就是上面各基金金額加起來，收費會用這個數計。"
                   : "In amount mode the balance is the sum of the amounts above."
                 : zh
-                  ? "填咗結餘，收費會用實際金額計；唔填就用 $200,000 做例子。"
+                  ? "填了結餘，收費會用實際金額計；不填就用 $200,000 做例子。"
                   : "With a balance, fees use the real amount; otherwise a HK$200,000 example."}
             </p>
           </Card>
@@ -437,18 +437,18 @@ function CheckupPage() {
               <p className="text-sm text-muted">
                 {!scheme
                   ? zh
-                    ? "先揀你嘅計劃。"
+                    ? "先選你的計劃。"
                     : "Pick your scheme first."
                   : !rows.length
                     ? zh
-                      ? "再加入你持有嘅基金。"
+                      ? "再加入你持有的基金。"
                       : "Add the funds you hold."
                     : byAmount
                       ? zh
-                        ? `仲有 ${missingAmt} 隻基金未填金額。`
+                        ? `還有 ${missingAmt} 隻基金未填金額。`
                         : `${missingAmt} fund(s) still need an amount.`
                       : zh
-                        ? `比例加埋要等於 100%（而家係 ${total}%）。`
+                        ? `比例加起來要等於 100%（現在是 ${total}%）。`
                         : `Shares must add up to 100% (now ${total}%).`}
               </p>
             </Card>
@@ -529,11 +529,11 @@ function CheckupPage() {
                           void navigate({ to: "/compare" });
                         }}
                       >
-                        {zh ? "同全港同類基金並排比較" : "Compare with similar funds across schemes"}
+                        {zh ? "和全港同類基金並排比較" : "Compare with similar funds across schemes"}
                       </Button>
                       <p className="mt-1 text-xs text-muted">
                         {zh
-                          ? "會擺你呢隻，同其他計劃入面五年回報最高嘅同類基金。供款帳戶未必轉得去其他計劃。"
+                          ? "會列出你這隻，和其他計劃入面五年回報最高的同類基金。供款帳戶未必轉到其他計劃。"
                           : "Your fund next to the highest 5-year funds of the same type in other schemes. A contribution account may not be able to move."}
                       </p>
                     </div>
@@ -548,16 +548,16 @@ function CheckupPage() {
                     {zh ? (
                       [
                         `全部轉做「${result.dis.caf.nameZh}」（約六成環球股票、四成債券，收費有法定上限，50 歲後會自動逐步減股票）：`,
-                        `開支比率 ${result.dis.fer.toFixed(2)}%（而家 ${result.fer?.toFixed(2)}%），`,
-                        `每年收費約 $${Math.round(result.dis.annual).toLocaleString("en-HK")}（而家 $${Math.round(result.dis.annualNow).toLocaleString("en-HK")}${result.dis.example ? "，以結餘 $200,000 做例子" : ""}）。`,
+                        `開支比率 ${result.dis.fer.toFixed(2)}%（現在 ${result.fer?.toFixed(2)}%），`,
+                        `每年收費約 $${Math.round(result.dis.annual).toLocaleString("en-HK")}（現在 $${Math.round(result.dis.annualNow).toLocaleString("en-HK")}${result.dis.example ? "，以結餘 $200,000 做例子" : ""}）。`,
                         result.dis.gap > 500
                           ? `到 ${profile.retireAge} 歲累積大約少收 $${Math.round(result.dis.gap).toLocaleString("en-HK")}。`
                           : result.dis.gap < -500
-                            ? `而家嘅組合收費已經低過核心累積，到 ${profile.retireAge} 歲累積大約少收 $${Math.round(-result.dis.gap).toLocaleString("en-HK")}。`
-                            : "收費同而家差唔多。",
-                        `風險級別 ${result.dis.caf.riskClass ?? "—"}（而家平均 ${result.riskClass?.toFixed(1) ?? "—"}）。`,
+                            ? `現在的組合收費已經低於核心累積，到 ${profile.retireAge} 歲累積大約少收 $${Math.round(-result.dis.gap).toLocaleString("en-HK")}。`
+                            : "收費和現在差不多。",
+                        `風險級別 ${result.dis.caf.riskClass ?? "—"}（現在平均 ${result.riskClass?.toFixed(1) ?? "—"}）。`,
                         profile.age >= 50
-                          ? `你而家 ${profile.age} 歲，預設投資策略已經開始逐年將部分轉去「65歲後基金」（約兩成股票），所以實際收費同風險會再低啲。`
+                          ? `你現在 ${profile.age} 歲，預設投資策略已經開始逐年將部分轉去「65歲後基金」（約兩成股票），所以實際收費和風險會再低些。`
                           : "",
                       ].join("")
                     ) : (
@@ -570,11 +570,11 @@ function CheckupPage() {
                   </p>
                   <p className="mt-2 text-xs text-muted">
                     {zh
-                      ? "唔係建議，只係大部分人會用嚟比較嘅基準。累積數字假設扣費前回報一樣（每年 5%）。"
+                      ? "不是建議，只是大部分人會用來比較的基準。累積數字假設扣費前回報一樣（每年 5%）。"
                       : "Not a recommendation, just the common benchmark. Assumes the same gross return (5% a year)."}
                   </p>
                   <Link to="/funds/$id" params={{ id: result.dis.caf.id }} className="mt-2 inline-block text-sm text-[#00753E] underline underline-offset-2 print:hidden">
-                    {zh ? "睇核心累積基金詳情" : "See the Core Accumulation Fund"}
+                    {zh ? "看核心累積基金詳情" : "See the Core Accumulation Fund"}
                   </Link>
                 </Card>
               ) : null}
@@ -584,12 +584,12 @@ function CheckupPage() {
                   <h3 className="font-display text-lg">{zh ? "下一步" : "Next"}</h3>
                   <p className="mt-1 text-sm text-muted">
                     {zh
-                      ? `睇下喺「${schemes.find((x) => x.en === scheme)?.zh ?? scheme}」入面，按你嘅年齡同目標計出嚟嘅參考配置。`
+                      ? `看看在「${schemes.find((x) => x.en === scheme)?.zh ?? scheme}」入面，按你的年齡和目標計出來的參考配置。`
                       : "See a reference mix inside this scheme for your age and goal."}
                   </p>
                   <Button asChild className="mt-3 w-full sm:w-auto">
                     <Link to="/recommend" search={{ scheme, p: encodeSettings(profile) }}>
-                      {zh ? "用呢個計劃睇參考配置" : "See a reference mix in this scheme"}
+                      {zh ? "用這個計劃看參考配置" : "See a reference mix in this scheme"}
                     </Link>
                   </Button>
                 </Card>
@@ -597,7 +597,7 @@ function CheckupPage() {
 
               <p className="text-xs leading-relaxed text-canvas-muted">
                 {zh
-                  ? "以上係用積金局公開數據同一般原則對照你嘅組合，唔係投資建議。收費平或者過往表現好，唔代表將來一定好。轉換前請細閱計劃文件，有需要可以搵持牌中介人傾。"
+                  ? "以上是用積金局公開數據和一般原則對照你的組合，不是投資建議。收費低或過往表現好，不代表將來一定好。轉換前請細閱計劃文件，有需要可以找持牌中介人商討。"
                   : "A comparison against public MPFA data and general rules, not investment advice. Read the scheme documents before switching."}
               </p>
             </>

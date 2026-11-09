@@ -89,7 +89,7 @@ function FundDetail() {
           {zh ? fund.schemeZh : fund.schemeEn}
         </Link>
       </p>
-      <label className="mb-1 block text-xs text-canvas-muted">{zh ? "同計劃其他基金" : "Other funds in this scheme"}</label>
+      <label className="mb-1 block text-xs text-canvas-muted">{zh ? "和計劃其他基金" : "Other funds in this scheme"}</label>
       <select
         className="mb-4 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
         value={fund.id}
@@ -140,7 +140,7 @@ function FundDetail() {
         <p className="mb-2 text-xs text-subtle">
           {zh ? `積金局數字，截至 ${catalogMeta.asOf}。` : `MPFA figures as of ${catalogMeta.asOf}.`}
         </p>
-        {/* 細表限闊，闊螢幕唔使由左睇到最右 */}
+        {/* 小表限闊，闊螢幕不用由左看到最右 */}
         <div className="max-w-2xl overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
             <thead>
@@ -202,7 +202,7 @@ function FundDetail() {
             {"："}
             <ReturnCell value={cal3} digits={1} />
             {rank3 ? (zh ? `，同類第 ${rank3.rank}（共 ${rank3.total} 隻）` : `, rank ${rank3.rank} of ${rank3.total}`) : null}
-            {zh ? "。截至 2025 年底，同上面唔係同一段時間。" : ". To end-2025, a different period from the table."}
+            {zh ? "。截至 2025 年底，與上面不是同一段時間。" : ". To end-2025, a different period from the table."}
           </p>
         ) : null}
       </Card>
@@ -226,7 +226,7 @@ function FundDetail() {
             <Row k={zh ? "管理費" : "Mgmt fee"} v={fmtFee(fund.mgmtFee, zh)} />
             <Row k={zh ? "積金易平台費" : "eMPF fee"} v={fund.empfFee != null ? `${fund.empfFee}%` : "—"} />
             <Row
-              k={zh ? "收費同同類比" : "Fee vs peers"}
+              k={zh ? "收費和同類比" : "Fee vs peers"}
               v={
                 rankF
                   ? zh

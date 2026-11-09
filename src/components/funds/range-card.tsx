@@ -67,7 +67,7 @@ export function RangeCard({
           <h2 className="font-display text-lg">{title ?? (zh ? "可能升跌範圍（歷史估算）" : "Range of outcomes (historical)")}</h2>
           <p className="mt-1 text-xs text-muted">
             {zh
-              ? "唔係預測。以下係過去每一段同樣長度時間嘅實際走勢分佈，等你知道一般會上落幾多。"
+              ? "不是預測。以下是過去每一段同樣長度時間的實際走勢分佈，讓你知道一般會上落多少。"
               : "Not a forecast: how every past window of the same length actually turned out."}
           </p>
         </div>
@@ -93,14 +93,14 @@ export function RangeCard({
       {allCash ? (
         <p className="text-sm text-muted">
           {zh
-            ? "呢類屬貨幣市場／保守／保證基金，每月上落極細，主要取決於利率同收費，所以唔適合用指數估算範圍。"
+            ? "這類屬貨幣市場／保守／保證基金，每月上落極小，主要取決於利率和收費，所以不適合用指數估算範圍。"
             : "Cash-like fund: monthly moves are tiny and driven by rates and fees, so no index range is shown."}
         </p>
       ) : history.isLoading ? (
         <Skeleton className="h-28" />
       ) : !summary ? (
         <p className="text-sm text-muted">
-          {zh ? "暫時攞唔到指數歷史數據，請稍後再試。" : "Index history is unavailable right now. Try again later."}
+          {zh ? "暫時未能取得指數歷史數據，請稍後再試。" : "Index history is unavailable right now. Try again later."}
         </p>
       ) : (
         <RangeBody s={summary} zh={zh} label={zh ? label.zh : label.en} amount={amount} />
@@ -108,7 +108,7 @@ export function RangeCard({
 
       <p className="mt-3 text-xs leading-relaxed text-subtle">
         {zh
-          ? "估算方法：冇基金每日單位價，所以用每隻基金最接近嘅市場指數（混合及債券基金再加債券指數），按其股票比重調整並扣除開支比率。指數價格唔包股息，所以數字會略為偏低。過往走勢不代表將來，亦唔係基金實際回報。"
+          ? "估算方法：沒有基金每日單位價，所以用每隻基金最接近的市場指數（混合及債券基金再加債券指數），按其股票比重調整並扣除開支比率。指數價格不包股息，所以數字會略為偏低。過往走勢不代表將來，亦不是基金實際回報。"
           : "Method: no fund unit prices, so each fund is proxied by its closest index (plus a bond index for mixed/bond funds), scaled by equity weight, minus FER. Index prices exclude dividends, so figures lean low. Past ranges do not predict the future."}
       </p>
     </Card>
@@ -144,7 +144,7 @@ function RangeBody({ s, zh, label, amount }: { s: RangeSummary; zh: boolean; lab
 
       <p className="mt-3 text-sm text-fg">
         {zh
-          ? `以 ${s.fromYear}–${s.toYear} 年嘅走勢計，任何${label}：`
+          ? `以 ${s.fromYear}–${s.toYear} 年的走勢計，任何${label}：`
           : `Based on ${s.fromYear}–${s.toYear}, over any ${label}:`}
       </p>
       <ul className="mt-1 space-y-1 text-sm text-muted">
@@ -172,7 +172,7 @@ function RangeBody({ s, zh, label, amount }: { s: RangeSummary; zh: boolean; lab
           <b className="font-mono text-up">{fmtPct(s.max, 1)}</b>
         </li>
         <li>
-          {zh ? "錄得上升嘅機會約 " : "Finished higher about "}
+          {zh ? "錄得上升的機會約 " : "Finished higher about "}
           <b className="font-mono text-fg">{Math.round(s.upShare * 100)}%</b>
           {zh ? `（共 ${s.samples} 段）` : ` of the time (${s.samples} windows)`}
         </li>

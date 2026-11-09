@@ -8,33 +8,33 @@ import type { Fund } from "./types";
 
 const WHAT_ZH: Record<string, string> = {
   us: "主要投資美國上市公司股票",
-  global: "投資全球多個市場嘅股票，美國通常佔最大比重",
+  global: "投資全球多個市場的股票，美國通常佔最大比重",
   europe: "主要投資歐洲上市公司股票",
   japan: "主要投資日本上市公司股票",
   asia: "主要投資亞太區（例如澳洲、台灣、韓國、香港）股票",
   korea: "主要投資韓國上市公司股票",
   hk: "主要投資香港上市公司股票",
-  "hk-china": "主要投資香港同中國相關股票",
-  "greater-china": "主要投資中國內地、香港同台灣股票",
+  "hk-china": "主要投資香港和中國相關股票",
+  "greater-china": "主要投資中國內地、香港和台灣股票",
   china: "主要投資中國相關股票",
-  healthcare: "集中投資全球醫療同健康護理相關股票",
-  esg: "投資符合環境、社會及管治（ESG）準則嘅股票",
+  healthcare: "集中投資全球醫療和健康護理相關股票",
+  esg: "投資符合環境、社會及管治（ESG）準則的股票",
   em: "投資新興市場股票",
-  "dis-caf": "預設投資策略嘅核心累積基金：約六成環球股票、四成環球債券，收費有法定上限",
-  "dis-a65": "預設投資策略嘅65歲後基金：約兩成環球股票、八成債券，收費有法定上限",
-  "mixed-aggressive": "股票同債券混合，股票佔大約八成或以上",
-  "mixed-growth": "股票同債券混合，股票佔大約六至八成",
-  "mixed-balanced": "股票同債券混合，股票佔大約四至六成",
-  "mixed-conservative": "股票同債券混合，以債券為主，股票佔大約兩至四成",
+  "dis-caf": "預設投資策略的核心累積基金：約六成環球股票、四成環球債券，收費有法定上限",
+  "dis-a65": "預設投資策略的65歲後基金：約兩成環球股票、八成債券，收費有法定上限",
+  "mixed-aggressive": "股票和債券混合，股票佔大約八成或以上",
+  "mixed-growth": "股票和債券混合，股票佔大約六至八成",
+  "mixed-balanced": "股票和債券混合，股票佔大約四至六成",
+  "mixed-conservative": "股票和債券混合，以債券為主，股票佔大約兩至四成",
   "mixed-target": "目標日期基金：越接近目標年份，股票比例會自動減少",
-  "mixed-global": "股票同債券混合，比例由基金經理按市況調整",
-  "bond-global": "投資全球政府同企業債券",
+  "mixed-global": "股票和債券混合，比例由基金經理按市況調整",
+  "bond-global": "投資全球政府和企業債券",
   "bond-asia": "主要投資亞洲區債券",
   "bond-hk": "主要投資港元債券",
   "bond-cn": "主要投資人民幣債券，回報亦受人民幣匯率影響",
-  conservative: "強積金保守基金：投資港元存款同短期債務票據，回報接近銀行存款",
-  money: "貨幣市場基金：投資存款同短期票據，波動好細",
-  guaranteed: "保證基金：符合條件先有保證回報，條件同收費要細閱計劃文件",
+  conservative: "強積金保守基金：投資港元存款和短期債務票據，回報接近銀行存款",
+  money: "貨幣市場基金：投資存款和短期票據，波動很小",
+  guaranteed: "保證基金：符合條件才有保證回報，條件和收費要細閱計劃文件",
 };
 
 const WHAT_EN: Record<string, string> = {
@@ -86,18 +86,18 @@ function bumpEn(risk: number | null): string {
 
 function suitsZh(risk: number | null): string {
   if (risk == null) return "";
-  if (risk >= 5) return "一般適合距離退休 15 年以上、可以接受短期上落嘅人";
-  if (risk === 4) return "一般適合距離退休 8 年以上嘅人";
-  return "一般適合臨近退休或者唔想承受大上落嘅人";
+  if (risk >= 5) return "一般適合距離退休 15 年以上、可以接受短期上落的人";
+  if (risk === 4) return "一般適合距離退休 8 年以上的人";
+  return "一般適合臨近退休或不想承受大上落的人";
 }
 
 function feeWordZh(fund: Fund): string {
   const peers = allFunds.filter((f) => f.sleeve === fund.sleeve && f.category === fund.category && f.fer != null);
   const med = median(peers.map((f) => f.fer as number));
   if (fund.fer == null || med == null || peers.length < 3) return "";
-  if (fund.fer <= med - 0.25) return "收費喺同類之中偏低";
-  if (fund.fer >= med + 0.25) return "收費喺同類之中偏高";
-  return "收費喺同類之中屬中等";
+  if (fund.fer <= med - 0.25) return "收費在同類之中偏低";
+  if (fund.fer >= med + 0.25) return "收費在同類之中偏高";
+  return "收費在同類之中屬中等";
 }
 
 export function describeFund(fund: Fund, zh: boolean): string {

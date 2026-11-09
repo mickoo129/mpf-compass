@@ -8,7 +8,7 @@ import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/schemes")({
   head: () => ({
-    meta: seo({ title: "24 個強積金計劃", description: "全港註冊強積金計劃嘅回報、平均收費同基金數目。", path: "/schemes" }),
+    meta: seo({ title: "24 個強積金計劃", description: "全港註冊強積金計劃的回報、平均收費和基金數目。", path: "/schemes" }),
   }),
   component: SchemesPage,
 });
@@ -41,7 +41,7 @@ function SchemesPage() {
         title={zh ? "24 個註冊計劃" : "24 registered schemes"}
         subtitle={
           zh
-            ? "撳計劃名睇佢有咩基金；撳「智選」就只喺嗰個計劃入面計參考配置。回報用各計劃嘅核心累積基金比較：每個計劃都有、投資方向同收費上限一樣，比較最公平。"
+            ? "按計劃名查看該計劃有甚麼基金；按「智選」就只在那個計劃入面計參考配置。回報用各計劃的核心累積基金比較：每個計劃都有、投資方向和收費上限一樣，比較最公平。"
             : "Tap a scheme to see its constituent funds in the library. Use Recommend to score only within that scheme."
         }
       />

@@ -57,10 +57,10 @@ export const Route = createFileRoute("/recommend")({
         saved
           ? {
               title: `強積金參考配置（${saved.at.slice(0, 10)}）`,
-              description: `${saved.holdings.map((h) => `${Math.round(h.weight * 100)}% ${h.nameZh}`).join("、")}。打開可睇至今大約升跌。研究用途，並非投資建議。`,
+              description: `${saved.holdings.map((h) => `${Math.round(h.weight * 100)}% ${h.nameZh}`).join("、")}。打開可看至今大約升跌。研究用途，並非投資建議。`,
               path: "/recommend",
             }
-          : { title: "智選參考配置", description: "按年齡同風險取向，喺你嘅計劃入面篩選 2–5 隻基金，計埋收費同至退休滾存。研究用途，並非投資建議。", path: "/recommend" },
+          : { title: "智選參考配置", description: "按年齡和風險取向，在你的計劃入面篩選 2–5 隻基金，計及收費和至退休滾存。研究用途，並非投資建議。", path: "/recommend" },
       ),
     };
   },
@@ -187,7 +187,7 @@ function RecommendPage() {
   );
 
   // 分享呢個方案：連結包括計劃、目標、年齡同配置（?scheme=&r=），撳開會重現；唔包姓名。
-  // 分享嗰陣順手記低配置，下次返嚟就見到「至今大約升跌」。
+  // 分享嗰陣順手記錄配置，下次返嚟就見到「至今大約升跌」。
   function mixUrl(): string {
     const url = new URL("/recommend", window.location.origin);
     if (profile.schemeEn) url.searchParams.set("scheme", profile.schemeEn);
@@ -215,10 +215,10 @@ function RecommendPage() {
     <div>
       <PageTitle
         kicker={zh ? "智選配置" : "Goal-based mix"}
-        title={zh ? "按你嘅年齡同風險取向，計好晒。" : "A mix for your age and risk appetite."}
-        subtitle={zh ? "結果喺下面。想改年齡、目標或者計劃就撳「修改條件」，改完撳「睇結果」返上嚟。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
+        title={zh ? "按你的年齡和風險取向，計好全部。" : "A mix for your age and risk appetite."}
+        subtitle={zh ? "結果在下面。想改年齡、目標或計劃就按「修改條件」，改完按「看結果」回到上方。研究用途，並非投資建議。" : "Results below; tap Edit to change inputs. Research only, not advice."}
       />
-      {/* 列印版：一行講清楚客人情況（唔印輸入欄） */}
+      {/* 列印版：一行說清楚客人情況（不印輸入欄） */}
       <p className="mb-3 hidden rounded-lg border border-black/15 bg-white p-3 text-sm text-fg print:block">
         <b>{zh ? "客人情況：" : "Client: "}</b>
         {zh
@@ -227,10 +227,10 @@ function RecommendPage() {
               `預計 ${profile.retireAge} 歲退休`,
               `目標「${GOAL_COPY[profile.goal].zh}」`,
               profile.account === "contribution" ? "供款帳戶" : "個人帳戶",
-              profile.schemeEn ? `只揀「${schemes.find((x) => x.en === profile.schemeEn)?.zh ?? profile.schemeEn}」嘅基金` : "全港計劃比較",
+              profile.schemeEn ? `只選「${schemes.find((x) => x.en === profile.schemeEn)?.zh ?? profile.schemeEn}」的基金` : "全港計劃比較",
               profile.balance > 0 ? `結餘 $${profile.balance.toLocaleString("en-HK")}` : "",
               profile.monthly > 0 ? `每月供款 $${profile.monthly.toLocaleString("en-HK")}` : "",
-              `${HORIZON_COPY[horizon].zh}後再睇`,
+              `${HORIZON_COPY[horizon].zh}後再看`,
             ]
               .filter(Boolean)
               .join("、")
@@ -239,11 +239,11 @@ function RecommendPage() {
       <div className="sticky top-[var(--mk-head-h)] z-30 -mx-4 mb-5 flex print:hidden items-center gap-2 border-b border-white/10 bg-[#0E5E57]/95 px-4 py-2 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3">
         <p className="min-w-0 flex-1 truncate text-sm text-white">
           {zh
-            ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}再睇`
+            ? `${profile.age} 歲 · ${GOAL_COPY[profile.goal].zh} · ${profile.schemeEn ? (schemes.find((x) => x.en === profile.schemeEn)?.zh ?? "") : "全港計劃"} · 每${HORIZON_COPY[horizon].zh}再看`
             : `Age ${profile.age} · ${GOAL_COPY[profile.goal].en} · ${profile.schemeEn ?? "all schemes"}`}
         </p>
         <Button asChild size="sm" variant="outline" className="shrink-0 whitespace-nowrap">
-          {editing ? <a href="#mix">{zh ? "睇結果" : "See result"}</a> : <a href="#inputs">{zh ? "修改條件" : "Edit"}</a>}
+          {editing ? <a href="#mix">{zh ? "看結果" : "See result"}</a> : <a href="#inputs">{zh ? "修改條件" : "Edit"}</a>}
         </Button>
       </div>
 
@@ -251,10 +251,10 @@ function RecommendPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div id="inputs" className="order-2 min-w-0 scroll-mt-40 space-y-5 lg:order-1 lg:col-span-5 print:hidden">
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "你嘅情況" : "Your situation"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "你的情況" : "Your situation"}</h2>
             <p className="mb-4 text-xs text-subtle">
               {zh
-                ? "每次開都係由 35 歲、65 歲退休、結餘 0、每月供款 0 開始，唔會記住上一位嘅數字。"
+                ? "每次開都是由 35 歲、65 歲退休、結餘 0、每月供款 0 開始，不會記住上一位的數字。"
                 : "Each visit starts at age 35, retirement 65, zero balance and zero monthly contribution. Nothing here is saved for the next person."}
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -296,7 +296,7 @@ function RecommendPage() {
                   active={profile.account === "contribution"}
                   onClick={() => setProfile({ account: "contribution" })}
                   title={zh ? "供款帳戶" : "Contribution"}
-                  sub={zh ? "只可以揀僱主計劃入面嘅基金" : "Employer scheme only"}
+                  sub={zh ? "只可以選僱主計劃入面的基金" : "Employer scheme only"}
                 />
                 <Choice
                   active={profile.account === "personal"}
@@ -308,13 +308,13 @@ function RecommendPage() {
             </div>
             {profile.account === "contribution" ? (
               <div className="mt-4">
-                <Label>{zh ? "你而家嘅計劃（只喺呢個計劃揀基金）" : "Current scheme (funds from this scheme only)"}</Label>
+                <Label>{zh ? "你現在的計劃（只在這個計劃選基金）" : "Current scheme (funds from this scheme only)"}</Label>
                 <select
                   className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
                   onChange={(e) => setProfile({ schemeEn: e.target.value || null })}
                 >
-                  <option value="">{zh ? "請選擇計劃，例如只得宏利戶口" : "Select scheme, e.g. Manulife only"}</option>
+                  <option value="">{zh ? "請選擇計劃，例如只有宏利戶口" : "Select scheme, e.g. Manulife only"}</option>
                   {schemes.map((s) => (
                     <option key={s.en} value={s.en}>
                       {zh ? s.zh : s.en}
@@ -322,12 +322,12 @@ function RecommendPage() {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-subtle">
-                  {zh ? "供款帳戶通常只可以喺僱主計劃入面轉基金。揀咗計劃先會出配置。" : "Contribution accounts switch inside the employer scheme."}
+                  {zh ? "供款帳戶通常只可以在僱主計劃入面轉基金。選了計劃才會顯示配置。" : "Contribution accounts switch inside the employer scheme."}
                 </p>
               </div>
             ) : (
               <div className="mt-4">
-                <Label>{zh ? "只喺呢個計劃揀基金（可以唔揀）" : "Limit to one scheme (optional)"}</Label>
+                <Label>{zh ? "只在這個計劃選基金（可以不選）" : "Limit to one scheme (optional)"}</Label>
                 <select
                   className="mt-2 h-11 w-full min-w-0 max-w-full truncate rounded-md bg-white px-3 text-sm text-fg border border-border focus:border-primary focus:outline-none [color-scheme:light]"
                   value={profile.schemeEn ?? ""}
@@ -341,7 +341,7 @@ function RecommendPage() {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-subtle">
-                  {zh ? "個人帳戶可以轉去第二間。如果你只想留喺一間（例如宏利），喺呢度揀返佢。" : "Personal accounts can transfer. Lock a scheme if you only hold one trustee."}
+                  {zh ? "個人帳戶可以轉到其他計劃。如果你只想留在一間（例如宏利），在這裡選擇該計劃。" : "Personal accounts can transfer. Lock a scheme if you only hold one trustee."}
                 </p>
               </div>
             )}
@@ -369,10 +369,10 @@ function RecommendPage() {
             </div>
             <SuitabilityList items={checks} zh={zh} />
             <div className="mt-4">
-              <Label>{zh ? "幾耐之後再睇一次" : "Switch window"}</Label>
+              <Label>{zh ? "多久之後再看一次" : "Switch window"}</Label>
               <p className="mt-1 text-xs text-subtle">
                 {zh
-                  ? "揀幾耐，下面就會顯示呢段時間一般會上落幾多，到時返嚟對照。"
+                  ? "選多久，下面就會顯示這段時間一般會上落多少，到時回來對照。"
                   : "Lookback and outlook follow this window."}
               </p>
               <div className="mt-2 grid grid-cols-4 gap-1">
@@ -394,7 +394,7 @@ function RecommendPage() {
             </div>
             <div className="mt-4">
               <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => setAdvanced((v) => !v)}>
-                {advanced ? (zh ? "收起更多選項" : "Hide advanced") : zh ? "更多選項：基金數目同幾耐檢討一次" : "Advanced: mix size and review"}
+                {advanced ? (zh ? "收起更多選項" : "Hide advanced") : zh ? "更多選項：基金數目和多久檢討一次" : "Advanced: mix size and review"}
               </button>
             </div>
             {advanced ? (
@@ -404,8 +404,8 @@ function RecommendPage() {
               <p className="mt-1 text-xs text-subtle">
                 {zh
                   ? mixSize === "auto"
-                    ? `按你嘅目標同距離退休幾耐，自動用 ${mixN} 隻基金。你都可以自己改。`
-                    : `你揀咗 ${mixN} 隻。如果計劃入面啱用嘅基金唔夠，會自動減少。`
+                    ? `按你的目標和距離退休多久，自動用 ${mixN} 隻基金。你都可以自己改。`
+                    : `你選了 ${mixN} 隻。如果計劃入面合適用的基金不足，會自動減少。`
                   : mixSize === "auto"
                     ? `Auto-picked ${mixN} for this goal and horizon.`
                     : `You chose ${mixN}. Capped if the scheme has fewer funds.`}
@@ -427,10 +427,10 @@ function RecommendPage() {
               </div>
             </div>
             <div className="mt-4">
-              <Label>{zh ? "幾耐檢討一次" : "Review cadence"}</Label>
+              <Label>{zh ? "多久檢討一次" : "Review cadence"}</Label>
               <p className="mt-1 text-xs text-subtle">
                 {zh
-                  ? "強積金唔使月月轉。積金局每月先公布一次數字，轉得太密好易變成高追。"
+                  ? "強積金不用月月轉。積金局每月才公布一次數字，轉得太密很容易變成高追。"
                   : "MPF is not a monthly trade. Official NAVs are monthly; frequent switches chase noise."}
               </p>
               <div className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-4">
@@ -466,39 +466,39 @@ function RecommendPage() {
               </p>
               <p className="mt-1 text-xs leading-relaxed text-subtle print:hidden">
                 {zh
-                  ? "按收費、風險、五年同類表現同市況揀出；點樣計可以睇下面「點樣揀出嚟？」。配置會跟每日市況微調，隔幾日再開可能唔同；想之後對照，就撳下面「記低配置」，或者頁頂「分享」留低今次結果。"
+                  ? "按收費、風險、五年同類表現和市況選出；怎樣計可以參考下面「怎樣選出來？」。配置會跟每日市況微調，隔幾日再開可能不同；想之後對照，就按下面「記錄配置」，或頁頂「分享」保留今次結果。"
                   : `Count follows goal and years to retirement (balanced + long horizon usually 3). Not a guarantee the window will be profitable.`}
               </p>
               </div>
             </div>
             {alloc.length ? (
               <p className="mb-3 rounded-md bg-tint-mint px-3 py-2 text-sm">
-                {zh ? "呢個配置平均開支比率 " : "Weighted FER "}
+                {zh ? "這個配置平均開支比率 " : "Weighted FER "}
                 <b className="font-mono">{fmtPctPlain(mixFer(alloc))}</b>
-                {zh ? "，即係大約 " : ", about "}
+                {zh ? "，即是大約 " : ", about "}
                 <FeeAmount fer={mixFer(alloc)} zh={zh} className="font-mono font-medium" />
                 {profile.balance > 0 ? null : (
-                  <span className="block text-xs text-muted print:hidden">{zh ? "喺「你嘅情況」填上結餘，就會用你自己嘅金額計。" : "Enter your balance to see your own amount."}</span>
+                  <span className="block text-xs text-muted print:hidden">{zh ? "在「你的情況」填上結餘，就會用你自己的金額計。" : "Enter your balance to see your own amount."}</span>
                 )}
               </p>
             ) : null}
             {overBudget ? (
               <p className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-xs text-fg" role="alert">
                 {zh
-                  ? `呢個計劃可以揀嘅基金風險級別普遍偏高，配置嘅平均風險（${mixRisk.toFixed(1)}）高過「${GOAL_COPY[profile.goal].zh}」一般嘅水平。可以考慮加大保守基金嘅比例。`
+                  ? `這個計劃可以選的基金風險級別普遍偏高，配置的平均風險（${mixRisk.toFixed(1)}）高於「${GOAL_COPY[profile.goal].zh}」一般的水平。可以考慮加大保守基金的比例。`
                   : `This scheme's funds carry high risk classes; the mix averages ${mixRisk.toFixed(1)}, above what this goal usually targets.`}
               </p>
             ) : null}
             {warns.length ? (
               <div className="mb-3 rounded-lg border border-warn/40 bg-tint-sand p-3 text-sm text-fg" role="alert">
-                <p className="mb-1 font-medium text-warn">{zh ? "請留意：目標同年期未必配合" : "Check: goal and horizon may not fit"}</p>
+                <p className="mb-1 font-medium text-warn">{zh ? "請留意：目標與年期未必配合" : "Check: goal and horizon may not fit"}</p>
                 {warns.map((w) => (
                   <p key={w.en} className="text-xs text-muted">{zh ? w.zh : w.en}</p>
                 ))}
               </div>
             ) : null}
             {profile.account === "contribution" && !profile.schemeEn ? (
-              <p className="text-sm text-warn">{zh ? "請先揀你而家嘅計劃，先可以喺你轉得到嘅基金入面揀。" : "Pick your scheme to constrain the opportunity set."}</p>
+              <p className="text-sm text-warn">{zh ? "請先選你現在的計劃，才可以在你可轉換的基金入面選。" : "Pick your scheme to constrain the opportunity set."}</p>
             ) : null}
             <div className="space-y-3">
               {alloc.map((a) => (
@@ -539,7 +539,7 @@ function RecommendPage() {
               zh={zh}
               amount={profile.balance}
               initialMonths={({ "1m": 1, "3m": 3, "6m": 6, "1y": 12 } as const)[horizon]}
-              title={zh ? "呢個配置可能升跌幾多（歷史估算）" : "How much this mix might move (historical)"}
+              title={zh ? "這個配置可能升跌多少（歷史估算）" : "How much this mix might move (historical)"}
             />
           ) : null}
 
@@ -549,10 +549,10 @@ function RecommendPage() {
 
           {showCompare && comparison.status !== "none" ? (
             <Card className={comparison.status === "adjust" ? "bg-tint-sand" : "bg-tint-mint"}>
-              <h2 className="mb-1 font-display text-lg">{zh ? "同上次比較" : "Versus last mix"}</h2>
+              <h2 className="mb-1 font-display text-lg">{zh ? "與上次比較" : "Versus last mix"}</h2>
               <p className="text-xs text-subtle">
                 {zh
-                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "排序冇變" : "排序有變"}`
+                  ? `上次 ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status === "keep" ? "排序沒有變" : "排序有變"}`
                   : `Saved ${lastMix ? lastMix.at.slice(0, 10) : ""} · ${comparison.status}`}
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted">
@@ -562,7 +562,7 @@ function RecommendPage() {
               </ul>
               <p className="mt-2 text-xs text-subtle">
                 {zh
-                  ? "上面嘅升跌只係估算，唔應該單憑升跌決定轉換。排序有變通常係因為展望轉弱，或者同類出現更高分、更低收費嘅選擇。"
+                  ? "上面的升跌只是估算，不應該單憑升跌決定轉換。排序有變通常是因為展望轉弱，或同類出現更高分、更低收費的選擇。"
                   : "No daily NAVs, so there is no +X% / −X% switch trigger. Alerts are a weaker outlook or a clearly better-scoring, cheaper peer."}
               </p>
             </Card>
@@ -571,32 +571,32 @@ function RecommendPage() {
           <Card className="print:hidden">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="font-display text-lg">{zh ? `${review.labelZh}返嚟對照` : `Compare again: ${review.labelEn}`}</h2>
+                <h2 className="font-display text-lg">{zh ? `${review.labelZh}回來對照` : `Compare again: ${review.labelEn}`}</h2>
                 <p className="text-xs text-muted">
                   {lastMix
                     ? zh
-                      ? `已記低 ${lastMix.at.slice(0, 10)} 嘅配置，到時會顯示大約升跌幾多。`
+                      ? `已記錄 ${lastMix.at.slice(0, 10)} 的配置，到時會顯示大約升跌多少。`
                       : `Saved ${lastMix.at.slice(0, 10)}; the move since then will show here.`
                     : zh
-                      ? "記低今次配置，到時就見到大約升跌咗幾多（指數估算）。"
+                      ? "記錄今次配置，到時就見到大約升跌了多少（指數估算）。"
                       : "Save this mix to see roughly how it moved (index estimate)."}
                 </p>
               </div>
               <Button className="shrink-0 whitespace-nowrap" variant="outline" size="sm" disabled={!alloc.length} onClick={() => saveMix(buildSaved())}>
-                {lastMix ? (zh ? "重新記低" : "Save again") : zh ? "記低配置" : "Save mix"}
+                {lastMix ? (zh ? "重新記錄" : "Save again") : zh ? "記錄配置" : "Save mix"}
               </Button>
             </div>
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-display text-lg">{zh ? "至退休嘅假設滾存" : "Illustrative path to retirement"}</h2>
+            <h2 className="mb-1 font-display text-lg">{zh ? "至退休的假設滾存" : "Illustrative path to retirement"}</h2>
             {usingExample ? (
               <p className="mb-2 rounded-md bg-tint-sand px-3 py-2 text-xs text-fg">
                 {zh
                   ? (
                       <>
                         {`示例：未填資料，暫時以結餘 ${fmtHkd(EXAMPLE_BALANCE)}、每月供款 ${fmtHkd(EXAMPLE_MONTHLY)} 計。`}
-                        <span className="print:hidden">喺上面「你嘅情況」填返自己嘅數字就會即時更新。</span>
+                        <span className="print:hidden">在上面「你的情況」填入自己的數字就會即時更新。</span>
                       </>
                     )
                   : `Example: nothing entered, so this uses a ${fmtHkd(EXAMPLE_BALANCE)} balance and ${fmtHkd(EXAMPLE_MONTHLY)} a month. Enter your own figures above to update.`}
@@ -604,7 +604,7 @@ function RecommendPage() {
             ) : null}
             <p className="mb-3 text-xs text-subtle">
               {zh
-                ? `假設長期持有呢個配置直至退休（${years} 年），連每月供款一齊滾存。三條線係三個平均年回報假設，唔係預測；中途上落可以睇上面「可能升跌範圍」。`
+                ? `假設長期持有這個配置直至退休（${years} 年），連每月供款一起滾存。三條線是三個平均年回報假設，不是預測；中途上落可以看上面「可能升跌範圍」。`
                 : `Years to retirement (${years}). Compounds a rule-based return plus contributions — a reference line, not a forecast. See the range card above for the ups and downs along the way.`}
             </p>
             <div className="h-52">
@@ -637,11 +637,11 @@ function RecommendPage() {
             {assumed.length ? (
               <details className="mt-3 rounded-md bg-tint-sky px-3 py-2 text-xs text-muted print:hidden">
                 <summary className="cursor-pointer text-fg">
-                  {zh ? `「中間」${assumedTotal.toFixed(1)}% 點樣計？` : `How is the middle ${assumedTotal.toFixed(1)}% worked out?`}
+                  {zh ? `「中間」${assumedTotal.toFixed(1)}% 怎樣計？` : `How is the middle ${assumedTotal.toFixed(1)}% worked out?`}
                 </summary>
                 <p className="mt-2">
                   {zh
-                    ? "每隻基金：55% 用該類資產嘅長期規劃假設，45% 用該基金積金局五年年化回報（最多比類別假設高 2%、低 4%；未夠五年嘅基金就全用類別假設），再扣開支比率高過 0.8% 嘅部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
+                    ? "每隻基金：55% 用該類資產的長期規劃假設，45% 用該基金積金局五年年化回報（最多比類別假設高 2%、低 4%；不足以五年的基金就全用類別假設），再扣開支比率高於 0.8% 的部分（每高 1% 扣 0.25%）。然後按配置比例加權。"
                     : "Per fund: 55% long-run planning assumption for its asset class, 45% its MPFA 5-year return (capped 12%, floored −2%), less a fee drag for FER above 0.8%. Then weighted by the mix."}
                 </p>
                 <table className="mt-2 w-full text-left">
@@ -668,7 +668,7 @@ function RecommendPage() {
                 </table>
                 <p className="mt-2">
                   {zh
-                    ? `類別長期假設係本工具嘅規劃數字（例如美股 6.5%、核心累積 5.0%、環球債券 3.0%），刻意定得比近十年強積金中位數低大約 1%，唔係積金局數字，亦唔係保證。「保守」同「樂觀」再按配置風險上下調 ${(rates.mid - rates.low).toFixed(1)}%。`
+                    ? `類別長期假設是本工具的規劃數字（例如美股 6.5%、核心累積 5.0%、環球債券 3.0%），刻意定得比近十年強積金中位數低大約 1%，不是積金局數字，亦不是保證。「保守」和「樂觀」再按配置風險上下調 ${(rates.mid - rates.low).toFixed(1)}%。`
                     : "Class assumptions are this tool's planning figures, not MPFA numbers and not guarantees."}
                 </p>
               </details>
@@ -694,7 +694,7 @@ function RecommendPage() {
                 </div>
                 <p className="mt-2 text-xs text-subtle">
                   {zh
-                    ? `當中供款本金約 ${fmtHkd(projBalance + projMonthly * 12 * years)}。平均年回報每差 1%，${years} 年後結果可以差好遠，所以唔好只睇中間嗰個數。`
+                    ? `當中供款本金約 ${fmtHkd(projBalance + projMonthly * 12 * years)}。平均年回報每差 1%，${years} 年後結果可以相差很遠，所以不要只看中間那個數。`
                     : `Contributions ≈ ${fmtHkd(projBalance + projMonthly * 12 * years)}. A 1-point difference in average return compounds a lot over ${years} years.`}
                 </p>
               </div>
@@ -704,33 +704,33 @@ function RecommendPage() {
           <details className="group rounded-xl bg-card p-4 text-fg shadow-[var(--shadow-border)] sm:p-5 print:hidden">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
               <span>
-                <span className="font-display text-lg">{zh ? "點樣揀出嚟？" : "How was this picked?"}</span>
-                <span className="block text-xs text-muted">{zh ? "用咩數字、點樣計分、而家市況點睇" : "Scoring rule and market outlook"}</span>
+                <span className="font-display text-lg">{zh ? "怎樣選出來？" : "How was this picked?"}</span>
+                <span className="block text-xs text-muted">{zh ? "用甚麼數字、怎樣計分、現在市況如何看" : "Scoring rule and market outlook"}</span>
               </span>
               <span className="shrink-0 text-xs whitespace-nowrap text-primary group-open:hidden">{zh ? "展開" : "Show"}</span>
             </summary>
             <div className="mt-4 space-y-5">
       <div>
-        <h2 className="mb-1 font-display text-lg">{zh ? "個配置點嚟" : "Where the mix comes from"}</h2>
+        <h2 className="mb-1 font-display text-lg">{zh ? "個配置點來" : "Where the mix comes from"}</h2>
         <p className="mb-3 text-sm text-muted">
           {zh
-            ? "呢個唔係積金局或者受託人嘅官方建議，亦唔係話一定賺。配置係跟一條固定規則計出嚟：先睇你嘅目標，再用積金局嘅長線數字，最後用最新指數避免高追。"
+            ? "這個不是積金局或受託人的官方建議，亦不代表一定賺錢。配置是按一套固定規則計算出來：先看你的目標，再用積金局的長線數字，最後用最新指數避免高追。"
             : "This is not an MPFA or trustee allocation, and not a profit forecast. The mix is a published rule: your goal, MPFA long-horizon figures, then live indices to avoid chasing heat."}
         </p>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
-            <li>{zh ? "你：目標、打算幾耐之後再睇、你個計劃有咩基金可以揀。" : "You: goal, switch window, and the scheme menu you can actually use."}</li>
-          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現，用嚟睇隻基金貴唔貴、風險啱唔啱、喺同類入面有冇落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
-          <li>{zh ? "Yahoo 指數（每次開頁更新）：而家債券息率、指數離一年高位幾遠、有冇升得太急，用嚟微調比例，唔會當過去半年就係將來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
+            <li>{zh ? "你：目標、打算多久之後再看、你的計劃有甚麼基金可以選。" : "You: goal, switch window, and the scheme menu you can actually use."}</li>
+          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現，用來看基金收費高不高、風險合適不合適、在同類入面有沒有落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
+          <li>{zh ? "Yahoo 指數（每次開頁更新）：現在債券息率、指數離一年高位多遠、有沒有升得太急，用來微調比例，不會當過去半年就是將來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
         </ol>
       </div>
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="font-display text-lg">{zh ? "呢段時間：已經發生咗乜、之後點睇" : "Window: lookback / outlook"}</h2>
+              <h2 className="font-display text-lg">{zh ? "這段時間：已經發生了甚麼、之後如何看" : "Window: lookback / outlook"}</h2>
               <Badge tone="primary">{zh ? regime.outlookLabelZh : horizon}</Badge>
             </div>
             <p className="mb-3 text-xs text-muted">
               {zh
-                ? `Yahoo 指數，每次開頁更新${markets.data?.fetchedAt ? `（${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC）` : ""}。左邊係呢段時間已經發生嘅走勢；右邊係按規則睇之後同一段時間（息率、離一年高位幾遠、有冇升得太急），唔係預測一定升。`
+                ? `Yahoo 指數，每次開頁更新${markets.data?.fetchedAt ? `（${markets.data.fetchedAt.slice(0, 16).replace("T", " ")} UTC）` : ""}。左邊是這段時間已經發生的走勢；右邊是按規則看之後同一段時間（息率、離一年高位多遠、有沒有升得太急），不是預測一定升。`
                 : `Yahoo indices as of page load. Left = what already happened in the window; right = a rule-based tilt, not a forecast.`}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -746,7 +746,7 @@ function RecommendPage() {
               </div>
               <div className="rounded-lg bg-white p-3 shadow-[var(--shadow-border)]">
                 <p className="mb-1 text-xs font-medium tracking-wide text-primary uppercase">
-                  {zh ? `之後點睇：${regime.outlookLabelZh}` : "Outlook"}
+                  {zh ? `之後點看：${regime.outlookLabelZh}` : "Outlook"}
                 </p>
                 <ul className="list-disc space-y-1 pl-4 text-xs text-muted">
                   {(zh ? regime.outlookZh : regime.outlookEn).slice(0, 4).map((n) => (
@@ -760,7 +760,7 @@ function RecommendPage() {
           </details>
 
           <Card className="print:hidden">
-            <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃入面，其他評分較高嘅基金" : "Other well-scored funds in the same scheme"}</h2>
+            <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃入面，其他評分較高的基金" : "Other well-scored funds in the same scheme"}</h2>
             <ul className="space-y-2 text-sm">
               {others.map((s, i) => (
                 <li key={s.fund.id}>
@@ -871,12 +871,12 @@ function SinceCard({
   const fmt = (v: number | null) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`);
   return (
     <Card className="bg-tint-sky">
-      <h2 className="mb-1 font-display text-lg">{zh ? "上次記低嘅配置，至今大約" : "Since your saved mix (est.)"}</h2>
+      <h2 className="mb-1 font-display text-lg">{zh ? "上次記錄的配置，至今大約" : "Since your saved mix (est.)"}</h2>
       <p className="text-xs text-muted">
-        {zh ? `${savedAt.slice(0, 10)} 記低 · 過咗 ${since.days} 日` : `Saved ${savedAt.slice(0, 10)} · ${since.days} days ago`}
+        {zh ? `${savedAt.slice(0, 10)} 記錄 · 過了 ${since.days} 日` : `Saved ${savedAt.slice(0, 10)} · ${since.days} days ago`}
       </p>
       {since.days < 1 ? (
-        <p className="mt-2 text-sm text-muted">{zh ? "今日先記低，過一排返嚟就會見到升跌估算。" : "Saved today. Come back later to see the estimate."}</p>
+        <p className="mt-2 text-sm text-muted">{zh ? "今日先記錄，一段時間後回來就會見到升跌估算。" : "Saved today. Come back later to see the estimate."}</p>
       ) : (
         <>
           <p className="mt-2 text-sm">
@@ -905,7 +905,7 @@ function SinceCard({
       )}
       <p className="mt-2 text-xs leading-relaxed text-muted">
         {zh
-          ? "估算方法：積金局每月先公布基金回報，所以用每隻基金對應嘅市場指數（混合及債券部分用美債息變化）由記低嗰日計到今日，再扣開支比率。唔係基金實際單位價，可能同你戶口有出入。"
+          ? "估算方法：積金局每月才公布基金回報，所以用每隻基金對應的市場指數（混合及債券部分用美債息變化）由記錄當日計到今日，再扣開支比率。不是基金實際單位價，可能和你戶口有出入。"
           : "Estimated from each fund's reference index (bond part from the US 10-year yield) since the save date, minus fees. Not actual unit prices."}
       </p>
     </Card>

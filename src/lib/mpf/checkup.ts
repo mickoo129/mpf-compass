@@ -148,12 +148,12 @@ export function runCheckup(
       titleEn: "Fees",
       bodyZh:
         `平均開支比率 ${fer.toFixed(2)}%，每年約 $${Math.round(annual ?? 0).toLocaleString("en-HK")}${unitZh}。` +
-        (schemeMedianFer != null ? `計劃內中位數係 ${schemeMedianFer.toFixed(2)}%。` : "") +
+        (schemeMedianFer != null ? `計劃內中位數是 ${schemeMedianFer.toFixed(2)}%。` : "") +
         (gap > 0
-          ? `同計劃入面有同類而收費較低嘅基金，全部換成佢哋，平均可降至 ${cheapFer!.toFixed(2)}%，到 ${person.retireAge} 歲累積相差約 $${Math.round(gap).toLocaleString("en-HK")}。`
+          ? `和計劃入面有同類而收費較低的基金，全部換成這些基金，平均可降至 ${cheapFer!.toFixed(2)}%，到 ${person.retireAge} 歲累積相差約 $${Math.round(gap).toLocaleString("en-HK")}。`
           : dearScheme
-            ? "每隻已經係計劃內同類最平，但整體高過計劃中位數，主要係因為揀咗收費較高嘅類別（例如單一地區股票）。指數基金或者核心累積基金通常平好多。"
-            : "已經係計劃內同類之中最低收費。"),
+            ? "每隻已經是計劃內同類收費最低，但整體高於計劃中位數，主要是因為選了收費較高的類別（例如單一地區股票）。指數基金或核心累積基金通常收費低很多。"
+            : "已經是計劃內同類之中最低收費。"),
       bodyEn:
         `Weighted FER ${fer.toFixed(2)}%, about HK$${Math.round(annual ?? 0).toLocaleString("en-HK")} a year${unitEn}.` +
         (gap > 0 ? ` Same-type cheaper funds in this scheme would bring it to ${cheapFer!.toFixed(2)}%, about HK$${Math.round(gap).toLocaleString("en-HK")} by ${person.retireAge}.` : " Already the cheapest of each type in this scheme."),
@@ -161,7 +161,7 @@ export function runCheckup(
         .filter(({ alt }) => alt && !heldIds.has(alt.id))
         .map(({ h, alt }) => ({
           fund: alt!,
-          zh: `同「${h.fund.nameZh}」同類，開支比率 ${alt!.fer?.toFixed(2)}%（而家 ${h.fund.fer?.toFixed(2)}%）`,
+          zh: `和「${h.fund.nameZh}」同類，開支比率 ${alt!.fer?.toFixed(2)}%（現在 ${h.fund.fer?.toFixed(2)}%）`,
           en: `Same type as ${h.fund.nameEn}, FER ${alt!.fer?.toFixed(2)}% vs ${h.fund.fer?.toFixed(2)}%`,
         })),
     });
@@ -177,16 +177,16 @@ export function runCheckup(
     items.push({
       key: "risk",
       light: above && years < 10 ? "act" : above || below ? "watch" : "good",
-      titleZh: "風險同年齡",
+      titleZh: "風險與年齡",
       titleEn: "Risk for your age",
-      bodyZh: `平均風險級別約 ${riskClass.toFixed(1)}（1 最低、7 最高），股票比重估計約 ${pct(equityShare)}。以你 ${person.age} 歲、距離退休 ${years} 年，一般會落喺 ${band.low}–${band.high} 級。${
+      bodyZh: `平均風險級別約 ${riskClass.toFixed(1)}（1 最低、7 最高），股票比重估計約 ${pct(equityShare)}。以你 ${person.age} 歲、距離退休 ${years} 年，一般會落在 ${band.low}–${band.high} 級。${
         above
           ? years < 10
-            ? "你嘅組合偏進取，臨近提取時遇上跌市可能冇時間回復。"
-            : "你嘅組合比一般同齡人進取，要預備短期上落較大。"
+            ? "你的組合偏進取，臨近提取時遇上跌市可能沒有時間回復。"
+            : "你的組合比一般同齡人進取，要預備短期上落較大。"
           : below
-            ? "你嘅組合比一般同齡人保守，長遠回報可能追唔上通脹。"
-            : "同你嘅年齡大致配合。"
+            ? "你的組合比一般同齡人保守，長遠回報可能追不上通脹。"
+            : "和你的年齡大致配合。"
       }`,
       bodyEn: `Average risk class ${riskClass.toFixed(1)} (1–7), roughly ${pct(equityShare)} in equities. At ${person.age} with ${years} years to go, members usually sit around ${band.low}–${band.high}.${above ? " Your mix is more aggressive than typical." : below ? " Your mix is more conservative than typical." : " That fits your age."}`,
     });
@@ -211,8 +211,8 @@ export function runCheckup(
     titleZh: "分散程度",
     titleEn: "Spread",
     bodyZh: single
-      ? `${pct(single.share)} 集中喺${REGION_ZH[single.region]}市場。單一市場出事（例如 2021–23 年港股連跌三年）會影響成個戶口。可以考慮部分轉去環球或其他地區基金。`
-      : `冇單一市場超過一半：${regions.map((r) => `${REGION_ZH[r.region]} ${pct(r.share)}`).join("、")}。`,
+      ? `${pct(single.share)} 集中在${REGION_ZH[single.region]}市場。單一市場出現問題（例如 2021–23 年港股連跌三年）會影響整個戶口。可以考慮部分轉去環球或其他地區基金。`
+      : `沒有單一市場超過一半：${regions.map((r) => `${REGION_ZH[r.region]} ${pct(r.share)}`).join("、")}。`,
     bodyEn: single
       ? `${pct(single.share)} sits in one market (${single.region}). Consider moving part to global or other regions.`
       : `No single market above half: ${regions.map((r) => `${r.region} ${pct(r.share)}`).join(", ")}.`,
@@ -246,9 +246,9 @@ export function runCheckup(
     ? leaders
         .map(
           ({ x, top }) =>
-            `「${x.h.fund.nameZh}」係你持有嘅基金，五年年化 ${x.h.fund.ret5y?.toFixed(1)}%；全港 ${x.peerCount} 隻${sleeveZh(x.h.fund)}基金嘅五年年化中位數係 ${x.med?.toFixed(1)}%，佢低咗 ${x.behind.toFixed(1)}%。` +
+            `「${x.h.fund.nameZh}」是你持有的基金，五年年化 ${x.h.fund.ret5y?.toFixed(1)}%；全港 ${x.peerCount} 隻${sleeveZh(x.h.fund)}基金的五年年化中位數是 ${x.med?.toFixed(1)}%，你的基金低了 ${x.behind.toFixed(1)}%。` +
             (top.length
-              ? `一齊比較嘅${top.map((f) => `「${f.nameZh}」（${f.schemeZh}，五年年化 ${f.ret5y?.toFixed(1)}%）`).join("、")}，係其他計劃入面同類（${sleeveZh(x.h.fund)}）五年年化回報最高嘅基金，每個計劃最多揀一隻。`
+              ? `一起比較的${top.map((f) => `「${f.nameZh}」（${f.schemeZh}，五年年化 ${f.ret5y?.toFixed(1)}%）`).join("、")}，是其他計劃入面同類（${sleeveZh(x.h.fund)}）五年年化回報最高的基金，每個計劃最多選一隻。`
               : ""),
         )
         .join("")
@@ -274,7 +274,7 @@ export function runCheckup(
       ? laggards
           .map((x) => `「${x.h.fund.nameZh}」五年年化 ${x.h.fund.ret5y?.toFixed(1)}%，比全港同類中位數低 ${x.behind.toFixed(1)}%。`)
           .join("")
-      : "每隻基金嘅五年回報都唔低過全港同類中位數超過 1%。",
+      : "每隻基金的五年回報都不低於全港同類中位數超過 1%。",
     bodyEn: laggards.length
       ? laggards.map((x) => `${x.h.fund.nameEn}: 5Y ${x.h.fund.ret5y?.toFixed(1)}%, ${x.behind.toFixed(1)}% below its peer median.`).join(" ")
       : "No holding trails its peer median 5-year return by more than 1%.",
@@ -282,7 +282,7 @@ export function runCheckup(
       .filter((x) => x.better)
       .map((x) => ({
         fund: x.better!,
-        zh: `同計劃同類，五年年化 ${x.better!.ret5y?.toFixed(1)}%（「${x.h.fund.nameZh}」${x.h.fund.ret5y?.toFixed(1)}%）`,
+        zh: `和計劃同類，五年年化 ${x.better!.ret5y?.toFixed(1)}%（「${x.h.fund.nameZh}」${x.h.fund.ret5y?.toFixed(1)}%）`,
         en: `Same scheme and type, 5Y ${x.better!.ret5y?.toFixed(1)}% vs ${x.h.fund.ret5y?.toFixed(1)}%`,
       })),
   });
@@ -298,7 +298,7 @@ export function runCheckup(
       light: cash > 0.6 ? "act" : "watch",
       titleZh: "保守基金比例",
       titleEn: "Cash-like share",
-      bodyZh: `${pct(cash)} 放喺保守／貨幣市場／保證基金。距離退休仲有 ${years} 年，呢類基金長期回報大約只係追平通脹，可能錯過增長。`,
+      bodyZh: `${pct(cash)} 放在保守／貨幣市場／保證基金。距離退休還有 ${years} 年，這類基金長期回報大約只是追平通脹，可能錯過增長。`,
       bodyEn: `${pct(cash)} sits in conservative, money-market or guaranteed funds; over ${years} years that may lag inflation.`,
     });
   }

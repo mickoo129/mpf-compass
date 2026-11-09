@@ -19,7 +19,7 @@ export function showPrintHelp(): void {
   d.setAttribute("role", "dialog");
   d.setAttribute("aria-label", "列印提示");
   d.innerHTML =
-    '<p><b>呢個畫面唔支援列印</b>由主畫面 icon 或者 WhatsApp、IG 等 app 開，手機唔俾列印。請撳「複製連結」，貼去 Safari 或 Chrome 開，再撳「列印 / 存 PDF」。</p><div><button type="button" class="mk-printhelp-copy">複製連結</button><button type="button" class="mk-printhelp-close">知道</button></div>';
+    '<p><b>此畫面不支援列印</b>從主畫面圖示或 WhatsApp、IG 等應用程式開啟時，手機無法列印。請按「複製連結」，貼到 Safari 或 Chrome 開啟，再按「列印 / 存 PDF」。</p><div><button type="button" class="mk-printhelp-copy">複製連結</button><button type="button" class="mk-printhelp-close">知道了</button></div>';
   document.body.appendChild(d);
   d.querySelector<HTMLButtonElement>(".mk-printhelp-close")!.onclick = () => d.remove();
   const copyBtn = d.querySelector<HTMLButtonElement>(".mk-printhelp-copy")!;
@@ -28,9 +28,9 @@ export function showPrintHelp(): void {
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(u).then(
         () => (copyBtn.textContent = "已複製"),
-        () => window.prompt("複製呢條連結：", u),
+        () => window.prompt("請複製這條連結：", u),
       );
-    } else window.prompt("複製呢條連結：", u);
+    } else window.prompt("請複製這條連結：", u);
   };
 }
 
