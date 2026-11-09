@@ -79,7 +79,7 @@ export const Route = createFileRoute("/funds/")({
     return {
       meta: seo(
         q
-          ? { title: `搜尋「${q}」`, description: `在全港強積金成分基金入面找「${q}」，比較回報、收費和風險。`, path: `/funds?q=${encodeURIComponent(q)}` }
+          ? { title: `搜尋「${q}」`, description: `在全港強積金成分基金內找「${q}」，比較回報、收費和風險。`, path: `/funds?q=${encodeURIComponent(q)}` }
           : { title: "全港成分基金", description: "按類別、地區、主題、計劃篩選全港強積金成分基金，比較回報、收費（港幣計）和風險。", path: "/funds" },
       ),
     };

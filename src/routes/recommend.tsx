@@ -60,7 +60,7 @@ export const Route = createFileRoute("/recommend")({
               description: `${saved.holdings.map((h) => `${Math.round(h.weight * 100)}% ${h.nameZh}`).join("、")}。打開可看至今大約升跌。研究用途，並非投資建議。`,
               path: "/recommend",
             }
-          : { title: "智選參考配置", description: "按年齡和風險取向，在你的計劃入面篩選 2–5 隻基金，計及收費和至退休滾存。研究用途，並非投資建議。", path: "/recommend" },
+          : { title: "智選參考配置", description: "按年齡和風險取向，在你的計劃內篩選 2–5 隻基金，計及收費和至退休滾存。研究用途，並非投資建議。", path: "/recommend" },
       ),
     };
   },
@@ -296,7 +296,7 @@ function RecommendPage() {
                   active={profile.account === "contribution"}
                   onClick={() => setProfile({ account: "contribution" })}
                   title={zh ? "供款帳戶" : "Contribution"}
-                  sub={zh ? "只可以選僱主計劃入面的基金" : "Employer scheme only"}
+                  sub={zh ? "只可以選僱主計劃內的基金" : "Employer scheme only"}
                 />
                 <Choice
                   active={profile.account === "personal"}
@@ -322,7 +322,7 @@ function RecommendPage() {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-subtle">
-                  {zh ? "供款帳戶通常只可以在僱主計劃入面轉基金。選了計劃才會顯示配置。" : "Contribution accounts switch inside the employer scheme."}
+                  {zh ? "供款帳戶通常只可以在僱主計劃內轉基金。選了計劃才會顯示配置。" : "Contribution accounts switch inside the employer scheme."}
                 </p>
               </div>
             ) : (
@@ -405,7 +405,7 @@ function RecommendPage() {
                 {zh
                   ? mixSize === "auto"
                     ? `按你的目標和距離退休多久，自動用 ${mixN} 隻基金。你都可以自己改。`
-                    : `你選了 ${mixN} 隻。如果計劃入面合適用的基金不足，會自動減少。`
+                    : `你選了 ${mixN} 隻。如果計劃內合適用的基金不足，會自動減少。`
                   : mixSize === "auto"
                     ? `Auto-picked ${mixN} for this goal and horizon.`
                     : `You chose ${mixN}. Capped if the scheme has fewer funds.`}
@@ -498,7 +498,7 @@ function RecommendPage() {
               </div>
             ) : null}
             {profile.account === "contribution" && !profile.schemeEn ? (
-              <p className="text-sm text-warn">{zh ? "請先選你現在的計劃，才可以在你可轉換的基金入面選。" : "Pick your scheme to constrain the opportunity set."}</p>
+              <p className="text-sm text-warn">{zh ? "請先選你現在的計劃，才可以在你可轉換的基金內選。" : "Pick your scheme to constrain the opportunity set."}</p>
             ) : null}
             <div className="space-y-3">
               {alloc.map((a) => (
@@ -719,7 +719,7 @@ function RecommendPage() {
         </p>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
             <li>{zh ? "你：目標、打算多久之後再看、你的計劃有甚麼基金可以選。" : "You: goal, switch window, and the scheme menu you can actually use."}</li>
-          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現，用來看基金收費高不高、風險合適不合適、在同類入面有沒有落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
+          <li>{zh ? `積金局（截至 ${catalogMeta.asOf}）：收費、風險級別、五年同類表現，用來看基金收費高不高、風險合適不合適、在同類內有沒有落後。` : `MPFA (as of ${catalogMeta.asOf}): fees, risk class, 5-year peer standing — whether a fund is costly, too risky, or lagging its group.`}</li>
           <li>{zh ? "Yahoo 指數（每次開頁更新）：現在債券息率、指數離一年高位多遠、有沒有升得太急，用來微調比例，不會當過去半年就是將來。" : "Yahoo indices (refresh on load): starting yield, 52-week stretch, overheat — a tilt, not “past = future”."}</li>
         </ol>
       </div>
@@ -760,7 +760,7 @@ function RecommendPage() {
           </details>
 
           <Card className="print:hidden">
-            <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃入面，其他評分較高的基金" : "Other well-scored funds in the same scheme"}</h2>
+            <h2 className="mb-3 font-display text-lg">{zh ? "同一計劃內，其他評分較高的基金" : "Other well-scored funds in the same scheme"}</h2>
             <ul className="space-y-2 text-sm">
               {others.map((s, i) => (
                 <li key={s.fund.id}>

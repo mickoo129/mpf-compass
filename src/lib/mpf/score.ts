@@ -634,7 +634,7 @@ export function suitabilityChecks(profile: Profile): Suitability[] {
   if (profile.switchHorizon === "1m" || profile.switchHorizon === "3m") {
     out.push({
       level: "note",
-      zh: "強積金轉換基金通常需時數個工作日，期間資金不在市場入面，短線轉換未必追到升幅。短期回顧沒有問題，但頻密轉換未必有利。",
+      zh: "強積金轉換基金通常需時數個工作日，期間資金不在市場內，短線轉換未必追到升幅。短期回顧沒有問題，但頻密轉換未必有利。",
       en: "An MPF switch usually takes several working days out of the market, so short-term switching often misses the move.",
     });
   }

@@ -533,7 +533,7 @@ function CheckupPage() {
                       </Button>
                       <p className="mt-1 text-xs text-muted">
                         {zh
-                          ? "會列出你這隻，和其他計劃入面五年回報最高的同類基金。供款帳戶未必轉到其他計劃。"
+                          ? "會列出你這隻，和其他計劃內五年回報最高的同類基金。供款帳戶未必轉到其他計劃。"
                           : "Your fund next to the highest 5-year funds of the same type in other schemes. A contribution account may not be able to move."}
                       </p>
                     </div>
@@ -584,7 +584,7 @@ function CheckupPage() {
                   <h3 className="font-display text-lg">{zh ? "下一步" : "Next"}</h3>
                   <p className="mt-1 text-sm text-muted">
                     {zh
-                      ? `看看在「${schemes.find((x) => x.en === scheme)?.zh ?? scheme}」入面，按你的年齡和目標計出來的參考配置。`
+                      ? `看看在「${schemes.find((x) => x.en === scheme)?.zh ?? scheme}」內，按你的年齡和目標計出來的參考配置。`
                       : "See a reference mix inside this scheme for your age and goal."}
                   </p>
                   <Button asChild className="mt-3 w-full sm:w-auto">

@@ -149,7 +149,7 @@ function ComparePage() {
           <p className="mt-1 text-sm leading-relaxed text-fg">{zh ? fromCheckup.whyZh : fromCheckup.whyEn}</p>
           <p className="mt-2 text-xs text-muted">
             {zh
-              ? "數字是積金局公布的五年年化回報（截至 " + catalogMeta.asOf + "）。其他計劃的基金只適用於可以轉計劃的個人帳戶，供款帳戶通常只可以選僱主計劃入面的基金。過往表現不代表將來。"
+              ? "數字是積金局公布的五年年化回報（截至 " + catalogMeta.asOf + "）。其他計劃的基金只適用於可以轉計劃的個人帳戶，供款帳戶通常只可以選僱主計劃內的基金。過往表現不代表將來。"
               : `MPFA 5-year annualized returns as of ${catalogMeta.asOf}. Other schemes apply only to accounts that can move. Past performance is no guide to the future.`}
           </p>
           <Button asChild variant="outline" size="sm" className="mt-3 print:hidden">

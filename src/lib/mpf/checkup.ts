@@ -150,7 +150,7 @@ export function runCheckup(
         `平均開支比率 ${fer.toFixed(2)}%，每年約 $${Math.round(annual ?? 0).toLocaleString("en-HK")}${unitZh}。` +
         (schemeMedianFer != null ? `計劃內中位數是 ${schemeMedianFer.toFixed(2)}%。` : "") +
         (gap > 0
-          ? `和計劃入面有同類而收費較低的基金，全部換成這些基金，平均可降至 ${cheapFer!.toFixed(2)}%，到 ${person.retireAge} 歲累積相差約 $${Math.round(gap).toLocaleString("en-HK")}。`
+          ? `和計劃內有同類而收費較低的基金，全部換成這些基金，平均可降至 ${cheapFer!.toFixed(2)}%，到 ${person.retireAge} 歲累積相差約 $${Math.round(gap).toLocaleString("en-HK")}。`
           : dearScheme
             ? "每隻已經是計劃內同類收費最低，但整體高於計劃中位數，主要是因為選了收費較高的類別（例如單一地區股票）。指數基金或核心累積基金通常收費低很多。"
             : "已經是計劃內同類之中最低收費。"),
@@ -248,7 +248,7 @@ export function runCheckup(
           ({ x, top }) =>
             `「${x.h.fund.nameZh}」是你持有的基金，五年年化 ${x.h.fund.ret5y?.toFixed(1)}%；全港 ${x.peerCount} 隻${sleeveZh(x.h.fund)}基金的五年年化中位數是 ${x.med?.toFixed(1)}%，你的基金低了 ${x.behind.toFixed(1)}%。` +
             (top.length
-              ? `一起比較的${top.map((f) => `「${f.nameZh}」（${f.schemeZh}，五年年化 ${f.ret5y?.toFixed(1)}%）`).join("、")}，是其他計劃入面同類（${sleeveZh(x.h.fund)}）五年年化回報最高的基金，每個計劃最多選一隻。`
+              ? `一起比較的${top.map((f) => `「${f.nameZh}」（${f.schemeZh}，五年年化 ${f.ret5y?.toFixed(1)}%）`).join("、")}，是其他計劃內同類（${sleeveZh(x.h.fund)}）五年年化回報最高的基金，每個計劃最多選一隻。`
               : ""),
         )
         .join("")

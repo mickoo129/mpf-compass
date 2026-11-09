@@ -37,13 +37,13 @@ export const GLOSSARY: Record<TermKey, { zh: string; en: string; bodyZh: string;
   caf: {
     zh: "核心累積基金",
     en: "Core Accumulation Fund",
-    bodyZh: "預設投資策略入面較進取那隻：大約六成環球股票、四成環球債券。每個計劃都有一隻，收費有法定上限。",
+    bodyZh: "預設投資策略內較進取那隻：大約六成環球股票、四成環球債券。每個計劃都有一隻，收費有法定上限。",
     bodyEn: "The growth half of DIS: about 60% global shares and 40% bonds, with a fee cap.",
   },
   a65: {
     zh: "65歲後基金",
     en: "Age 65 Plus Fund",
-    bodyZh: "預設投資策略入面較保守那隻：大約兩成環球股票、八成債券，供臨近或已到退休年齡的人用。",
+    bodyZh: "預設投資策略內較保守那隻：大約兩成環球股票、八成債券，供臨近或已到退休年齡的人用。",
     bodyEn: "The defensive half of DIS: about 20% shares, 80% bonds.",
   },
   annualised: {
@@ -79,13 +79,13 @@ export const GLOSSARY: Record<TermKey, { zh: string; en: string; bodyZh: string;
   scheme: {
     zh: "計劃和成分基金",
     en: "Scheme vs fund",
-    bodyZh: "「計劃」是受託人（例如宏利、滙豐）提供的強積金計劃；每個計劃入面有十幾至幾十隻「成分基金」給你選。供款帳戶一般只可以在僱主選的計劃入面轉換基金。",
+    bodyZh: "「計劃」是受託人（例如宏利、滙豐）提供的強積金計劃；每個計劃內有十幾至幾十隻「成分基金」給你選。供款帳戶一般只可以在僱主選的計劃內轉換基金。",
     bodyEn: "A scheme is a trustee's MPF plan; each scheme offers its own constituent funds.",
   },
   account: {
     zh: "供款帳戶和個人帳戶",
     en: "Contribution vs personal account",
-    bodyZh: "供款帳戶是現在僱主幫你供款那個，只可以在僱主選的計劃入面選基金（僱員供款部分每年可轉一次去其他計劃）。個人帳戶是舊工的累算權益，可以自由轉去任何計劃。",
+    bodyZh: "供款帳戶是現在僱主幫你供款那個，只可以在僱主選的計劃內選基金（僱員供款部分每年可轉一次去其他計劃）。個人帳戶是舊工的累算權益，可以自由轉去任何計劃。",
     bodyEn: "Your current employer's account is tied to its scheme; a personal account (from past jobs) can move to any scheme.",
   },
   conservative: {

@@ -85,9 +85,9 @@ export function FeeCard({ fund, zh, className }: { fund: Fund; zh: boolean; clas
   const inScheme = cheapestSwitch(fund);
   const anywhere = cheapestAnywhere(fund);
   const alts = [
-    inScheme ? { fund: inScheme, labelZh: "同一計劃入面，同類收費最低", labelEn: "Cheapest same-type fund in this scheme" } : null,
+    inScheme ? { fund: inScheme, labelZh: "同一計劃內，同類收費最低", labelEn: "Cheapest same-type fund in this scheme" } : null,
     anywhere && anywhere.id !== inScheme?.id && (anywhere.fer ?? 9) < (inScheme?.fer ?? 9)
-      ? { fund: anywhere, labelZh: "其他計劃入面，同類收費最低（只適用於可以轉計劃的個人帳戶）", labelEn: "Cheapest same-type fund in another scheme (personal accounts only)" }
+      ? { fund: anywhere, labelZh: "其他計劃內，同類收費最低（只適用於可以轉計劃的個人帳戶）", labelEn: "Cheapest same-type fund in another scheme (personal accounts only)" }
       : null,
   ].filter((x): x is NonNullable<typeof x> => x != null);
 

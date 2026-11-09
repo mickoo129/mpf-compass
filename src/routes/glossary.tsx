@@ -24,7 +24,7 @@ function GlossaryPage() {
       <PageTitle
         kicker={zh ? "詞彙" : "Glossary"}
         title={zh ? "強積金用語，白話解釋" : "MPF terms in plain words"}
-        subtitle={zh ? "網站入面見到「?」，按下便會見到這裡的解釋。" : "Tap any “?” on the site to see these."}
+        subtitle={zh ? "網站內見到「?」，按下便會見到這裡的解釋。" : "Tap any “?” on the site to see these."}
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {keys.map((k) => (

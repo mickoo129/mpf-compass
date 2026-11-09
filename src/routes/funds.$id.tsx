@@ -230,7 +230,7 @@ function FundDetail() {
               v={
                 rankF
                   ? zh
-                    ? `${rankF.total} 隻同類入面第 ${rankF.rank} 平${rankF.rank <= rankF.total / 3 ? "（偏平）" : rankF.rank > (rankF.total * 2) / 3 ? "（偏貴）" : "（中等）"}`
+                    ? `${rankF.total} 隻同類內第 ${rankF.rank} 平${rankF.rank <= rankF.total / 3 ? "（偏平）" : rankF.rank > (rankF.total * 2) / 3 ? "（偏貴）" : "（中等）"}`
                     : `${rankF.rank} cheapest of ${rankF.total}`
                   : "—"
               }

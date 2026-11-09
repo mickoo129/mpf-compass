@@ -45,7 +45,7 @@ export function YearVsPeers({ fund, zh, className }: { fund: Fund; zh: boolean; 
       <p className="mb-2 text-sm text-fg">
         {counted
           ? zh
-            ? `${counted} 個時段入面，有 ${beat} 個跑贏${sleeve}基金的中位數（共 ${peers.length} 隻）。`
+            ? `${counted} 個時段內，有 ${beat} 個跑贏${sleeve}基金的中位數（共 ${peers.length} 隻）。`
             : `Beat the median of ${peers.length} ${sleeve} funds in ${beat} of ${counted} periods.`
           : zh
             ? "未有足夠年份比較。"
