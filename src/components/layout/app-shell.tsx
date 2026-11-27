@@ -195,6 +195,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </Sheet>
       <main className="mk-wrap min-w-0 flex-1 py-5 sm:py-8">
         <MkPrintHead />
+        <StaleNotice zh={locale === "zh"} />
         {children}
       </main>
       <footer className="mk-footer-dark border-t border-white/10 bg-[#0E5E57]">
@@ -291,5 +292,21 @@ export function CompareHint() {
       </button>
     </div>
     </>
+  );
+}
+
+/** 積金局每月公布一次；數據超過 75 日（正常約 30–60 日）就提示，可能係自動更新暫時出事。喺瀏覽器先計，避免 SSR 同客戶端日期唔同。 */
+function StaleNotice({ zh }: { zh: boolean }) {
+  const [days, setDays] = useState<number | null>(null);
+  useEffect(() => {
+    setDays(Math.floor((Date.now() - new Date(`${catalogMeta.asOf}T00:00:00Z`).getTime()) / 86400000));
+  }, []);
+  if (days == null || days <= 75) return null;
+  return (
+    <p className="mb-4 rounded-lg border border-[#F1D9A6] bg-[#FFF5DC] px-3 py-2 text-sm font-medium text-[#8A5B00] print:hidden">
+      {zh
+        ? `基金數據截至 ${catalogMeta.asOf}，已超過 ${days} 日未更新，可能未反映最新數字，請以積金局基金平台為準。`
+        : `Fund data is as of ${catalogMeta.asOf}, more than ${days} days old. Please check the MPFA Fund Platform for the latest figures.`}
+    </p>
   );
 }

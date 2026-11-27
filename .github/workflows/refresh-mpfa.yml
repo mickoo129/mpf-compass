@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 8 * * 1-6"
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: '確認大批基金變動係真（例如計劃合併），照更新'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -17,7 +22,7 @@ jobs:
         with:
           node-version: "22"
       - name: Pull MPFA fund platform
-        run: node scripts/refresh-mpfa.mjs
+        run: node scripts/refresh-mpfa.mjs ${{ github.event.inputs.confirm == 'true' && '--confirm' || '' }}
       - name: Commit if the snapshot moved
         run: |
           git config user.name "mpf-compass-bot"
