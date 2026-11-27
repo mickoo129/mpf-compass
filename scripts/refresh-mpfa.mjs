@@ -14,7 +14,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const FUNDS_PATH = join(ROOT, "src/data/funds.json");
 const I18N_PATH = join(ROOT, "src/lib/i18n.ts");
 const RETURNS_PATH = join(ROOT, "src/lib/mpf/returns.ts");
-const FORCE = process.argv.includes("--force");
+// --confirm：用家確認大批基金變動係真（例如計劃合併），跳過「少咗超過一成」同「數字唔合理」檢查
+const CONFIRM = process.argv.includes("--confirm");
+const FORCE = process.argv.includes("--force") || CONFIRM;
 const EN_URL = "https://mfp.mpfa.org.hk/eng/mpp_list.jsp";
 const ZH_URL = "https://mfp.mpfa.org.hk/tch/mpp_list.jsp";
 
@@ -323,11 +325,14 @@ async function main() {
   const dropped = [...byKey.keys()];
   if (dropped.length) console.warn("dropped (no longer on platform)", dropped.length, dropped.slice(0, 8));
 
-  // 合理性檢查：唔合理就唔寫入，令 Actions 失敗發電郵通知，網站照用上一次嘅數據
+  // 合理性檢查（捉「讀錯網頁」，唔係質疑官方數字）：唔合理就唔寫入，令 Actions 失敗發電郵通知，網站照用上一次嘅數據。
+  // 用家確認係真實變動（例如計劃合併）就用 workflow_dispatch 揀 confirm（--confirm）再跑一次。
   if (asOf < catalog.meta.asOf) throw new Error(`MPFA as-of ${asOf} is older than current ${catalog.meta.asOf}`);
-  if (dropped.length > catalog.funds.length * 0.1) throw new Error(`Too many funds dropped: ${dropped.length} of ${catalog.funds.length}`);
   const odd = merged.filter((f) => (f.fer != null && (f.fer < 0 || f.fer > 5)) || (f.ret1y != null && (f.ret1y < -90 || f.ret1y > 200)));
-  if (odd.length > merged.length * 0.05) throw new Error(`Too many funds with odd FER / 1Y return: ${odd.length} (e.g. ${odd.slice(0, 3).map((f) => f.id).join(", ")})`);
+  if (!CONFIRM) {
+    if (dropped.length > catalog.funds.length * 0.1) throw new Error(`Too many funds dropped: ${dropped.length} of ${catalog.funds.length}: ${dropped.slice(0, 20).join("; ")}`);
+    if (odd.length > merged.length * 0.05) throw new Error(`Too many funds with odd FER / 1Y return: ${odd.length} (e.g. ${odd.slice(0, 3).map((f) => f.id).join(", ")})`);
+  } else console.warn("--confirm: skipping dropped/odd checks", dropped.length, odd.length);
   if (odd.length) console.warn("odd values", odd.length, odd.slice(0, 5).map((f) => `${f.id} fer=${f.fer} ret1y=${f.ret1y}`));
 
   const schemes = new Set(merged.map((f) => f.schemeEn));
