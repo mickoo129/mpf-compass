@@ -323,6 +323,13 @@ async function main() {
   const dropped = [...byKey.keys()];
   if (dropped.length) console.warn("dropped (no longer on platform)", dropped.length, dropped.slice(0, 8));
 
+  // 合理性檢查：唔合理就唔寫入，令 Actions 失敗發電郵通知，網站照用上一次嘅數據
+  if (asOf < catalog.meta.asOf) throw new Error(`MPFA as-of ${asOf} is older than current ${catalog.meta.asOf}`);
+  if (dropped.length > catalog.funds.length * 0.1) throw new Error(`Too many funds dropped: ${dropped.length} of ${catalog.funds.length}`);
+  const odd = merged.filter((f) => (f.fer != null && (f.fer < 0 || f.fer > 5)) || (f.ret1y != null && (f.ret1y < -90 || f.ret1y > 200)));
+  if (odd.length > merged.length * 0.05) throw new Error(`Too many funds with odd FER / 1Y return: ${odd.length} (e.g. ${odd.slice(0, 3).map((f) => f.id).join(", ")})`);
+  if (odd.length) console.warn("odd values", odd.length, odd.slice(0, 5).map((f) => `${f.id} fer=${f.fer} ret1y=${f.ret1y}`));
+
   const schemes = new Set(merged.map((f) => f.schemeEn));
   catalog.meta = {
     ...catalog.meta,
